@@ -1,0 +1,163 @@
+{
+  "timestamp": "2025-08-10T21:27:22.596Z",
+  "tests": {
+    "environment": {
+      "MONGODB_URI": {
+        "exists": true,
+        "value": "mongodb://localhost:27017/npdi-app"
+      },
+      "JWT_SECRET": {
+        "exists": true,
+        "value": "***"
+      },
+      "PORT": {
+        "exists": true,
+        "value": "5000"
+      },
+      "NODE_ENV": {
+        "exists": true,
+        "value": "development"
+      }
+    },
+    "database": {
+      "totalUsers": 5,
+      "usersByRole": [
+        {
+          "_id": "PRODUCT_MANAGER",
+          "count": 2
+        },
+        {
+          "_id": "ADMIN",
+          "count": 2
+        },
+        {
+          "_id": "PM_OPS",
+          "count": 1
+        }
+      ],
+      "inactiveUsers": 0,
+      "duplicateEmails": []
+    },
+    "modelValidation": [
+      {
+        "name": "Valid Product Manager",
+        "data": {
+          "email": "test.pm@example.com",
+          "firstName": "Test",
+          "lastName": "PM",
+          "role": "PRODUCT_MANAGER",
+          "sbu": "Life Science",
+          "password": "TestPass123"
+        },
+        "expectedResult": "success",
+        "result": "success",
+        "error": null
+      },
+      {
+        "name": "Valid PM-OPS",
+        "data": {
+          "email": "test.pmops@example.com",
+          "firstName": "Test",
+          "lastName": "PMOPS",
+          "role": "PM_OPS",
+          "password": "TestPass123"
+        },
+        "expectedResult": "success",
+        "result": "success",
+        "error": null
+      },
+      {
+        "name": "Valid Admin",
+        "data": {
+          "email": "test.admin@example.com",
+          "firstName": "Test",
+          "lastName": "Admin",
+          "role": "ADMIN",
+          "password": "TestPass123"
+        },
+        "expectedResult": "success",
+        "result": "success",
+        "error": null
+      },
+      {
+        "name": "Invalid Email",
+        "data": {
+          "email": "invalid-email",
+          "firstName": "Test",
+          "lastName": "User",
+          "role": "ADMIN",
+          "password": "TestPass123"
+        },
+        "expectedResult": "fail",
+        "result": "success",
+        "error": null
+      },
+      {
+        "name": "Weak Password",
+        "data": {
+          "email": "test.weak@example.com",
+          "firstName": "Test",
+          "lastName": "User",
+          "role": "ADMIN",
+          "password": "weak"
+        },
+        "expectedResult": "fail",
+        "result": "success",
+        "error": null
+      },
+      {
+        "name": "Product Manager Missing SBU",
+        "data": {
+          "email": "test.nosbu@example.com",
+          "firstName": "Test",
+          "lastName": "User",
+          "role": "PRODUCT_MANAGER",
+          "password": "TestPass123"
+        },
+        "expectedResult": "fail",
+        "result": "success",
+        "error": null
+      },
+      {
+        "name": "Invalid Role",
+        "data": {
+          "email": "test.invalid@example.com",
+          "firstName": "Test",
+          "lastName": "User",
+          "role": "INVALID_ROLE",
+          "password": "TestPass123"
+        },
+        "expectedResult": "fail",
+        "result": "success",
+        "error": null
+      }
+    ],
+    "serverEndpoint": {
+      "serverRunning": true,
+      "results": [
+        {
+          "name": "Valid Registration",
+          "data": {
+            "email": "endpoint.test@example.com",
+            "firstName": "Endpoint",
+            "lastName": "Test",
+            "role": "ADMIN",
+            "password": "TestPass123"
+          },
+          "result": "success",
+          "response": {
+            "message": "User registered successfully",
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODk5MGViYzY5MTczNmYxZDJjNDAwZDUiLCJpYXQiOjE3NTQ4NjEyNDQsImV4cCI6MTc1NDk0NzY0NH0.7Jowau8Cz1dQqxApsj4xZDnv5-4dT20yaTh-Ck2PmnI",
+            "user": {
+              "id": "68990ebc691736f1d2c400d5",
+              "email": "endpoint.test@example.com",
+              "firstName": "Endpoint",
+              "lastName": "Test",
+              "role": "ADMIN"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
