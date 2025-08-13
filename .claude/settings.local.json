@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(journalctl:*)",
+      "Bash(cat:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(pkill:*)",
+      "Bash(npm run dev:*)",
+      "Bash(kill:*)",
+      "Bash(cp:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(node:*)",
+      "Bash(npm --version)",
+      "Bash(npx next dev:*)",
+      "Bash(mv:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm start)",
+      "Bash(sudo docker:*)",
+      "Bash(ss:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:pubchem.ncbi.nlm.nih.gov)"
+    ],
+    "deny": []
+  }
+}
