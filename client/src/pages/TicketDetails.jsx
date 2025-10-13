@@ -18,36 +18,16 @@ import {
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-
-const StatusBadge = ({ status }) => {
-  const badgeClasses = {
-    'DRAFT': 'badge-draft',
-    'IN_PROCESS': 'badge-in-process',
-    'COMPLETED': 'badge-completed',
-    'CANCELED': 'badge-canceled'
-  };
-
-  return (
-    <span className={`badge ${badgeClasses[status]}`}>
-      {status.replace('_', ' ')}
-    </span>
-  );
-};
-
-const PriorityBadge = ({ priority }) => {
-  const priorityClasses = {
-    'LOW': 'priority-low',
-    'MEDIUM': 'priority-medium',
-    'HIGH': 'priority-high',
-    'URGENT': 'priority-urgent'
-  };
-
-  return (
-    <span className={`badge ${priorityClasses[priority]}`}>
-      {priority}
-    </span>
-  );
-};
+import { StatusBadge, PriorityBadge } from '../components/badges';
+import { DynamicCustomSections } from '../components/forms';
+// Shared form components - ready for future refactoring
+// import {
+//   ChemicalPropertiesForm,
+//   QualitySpecificationsForm,
+//   PricingCalculationForm,
+//   SKUVariantsForm,
+//   CorpBaseDataForm
+// } from '../components/forms';
 
 const TicketDetails = () => {
   const { id } = useParams();
@@ -86,6 +66,7 @@ const TicketDetails = () => {
   
   const { register: registerEdit, handleSubmit: handleSubmitEdit, setValue: setValueEdit, watch: watchEdit, control: controlEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm();
   const { fields: editFields, append: editAppend, remove: editRemove } = useFieldArray({ control: controlEdit, name: 'skuVariants' });
+  const { fields: editCompositionFields, append: editAppendComposition, remove: editRemoveComposition } = useFieldArray({ control: controlEdit, name: 'composition.components' });
 
   // Calculate automatic margin based on standard cost and list price
   const calculateMargin = (standardCost, listPrice) => {
@@ -251,7 +232,7 @@ const TicketDetails = () => {
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
-            <img src="/logo-white.svg" alt="MilliporeSigma" className="h-8" />
+            <img src="/M.png" alt="MilliporeSigma" className="h-12" />
             <div className="text-white">
               <h1 className="text-2xl font-bold">{ticket.ticketNumber}</h1>
               <p className="text-blue-100">{ticket.productName}</p>
@@ -267,6 +248,7 @@ const TicketDetails = () => {
               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                 ticket.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
                 ticket.status === 'IN_PROCESS' ? 'bg-yellow-100 text-yellow-800' :
+                ticket.status === 'NPDI_INITIATED' ? 'bg-orange-100 text-orange-800' :
                 ticket.status === 'CANCELED' ? 'bg-red-100 text-red-800' :
                 ticket.status === 'DRAFT' ? 'bg-blue-100 text-blue-800' :
                 ticket.status === 'SUBMITTED' ? 'bg-purple-100 text-purple-800' :
@@ -286,6 +268,7 @@ const TicketDetails = () => {
                 <option value="DRAFT" className="text-gray-900">Draft</option>
                 <option value="SUBMITTED" className="text-gray-900">Submitted</option>
                 <option value="IN_PROCESS" className="text-gray-900">In Process</option>
+                <option value="NPDI_INITIATED" className="text-gray-900">NPDI Initiated</option>
                 <option value="COMPLETED" className="text-gray-900">Completed</option>
                 <option value="CANCELED" className="text-gray-900">Canceled</option>
               </select>
@@ -352,6 +335,28 @@ const TicketDetails = () => {
         </div>
       )}
 
+      {/* Missing BULK SKU Reminder */}
+      {(isPMOPS || isAdmin) && !editMode && ticket.skuVariants && ticket.skuVariants.length > 0 && !ticket.skuVariants.some(sku => sku.type === 'BULK') && (
+        <div className="bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg shadow-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="bg-white/20 p-2 rounded-lg">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="text-white">
+                <h3 className="text-lg font-bold">⚠️ Missing BULK SKU</h3>
+                <p className="text-blue-100 text-sm">This product does not have a BULK SKU variant. Consider adding one with default size of 1 {ticket.pricingData?.baseUnit || 'unit'}.</p>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
+              <p className="text-white text-xs font-medium">To-Do</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {editMode && canEdit() ? (
         // Edit Form Mode - Complete CreateTicket replica
         <div className="w-full">
@@ -398,6 +403,44 @@ const TicketDetails = () => {
           
           <div className="max-w-4xl mx-auto">
             <form key={`edit-form-${ticket._id}`} onSubmit={handleSubmitEdit(handleUpdateTicket)} className="space-y-8">
+            {/* Production Type */}
+            <div className="card">
+              <div className="card-body">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                      Production Type
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      Select whether this product is produced internally or procured from external suppliers
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        {...registerEdit('productionType')}
+                        value="Produced"
+                        defaultChecked={ticket.productionType === 'Produced'}
+                        className="form-radio h-4 w-4 text-millipore-blue"
+                      />
+                      <span className="ml-2 text-sm font-medium text-gray-700">Produced</span>
+                    </label>
+                    <label className="inline-flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        {...registerEdit('productionType')}
+                        value="Procured"
+                        defaultChecked={ticket.productionType === 'Procured'}
+                        className="form-radio h-4 w-4 text-millipore-blue"
+                      />
+                      <span className="ml-2 text-sm font-medium text-gray-700">Procured</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Basic Information */}
             <div className="card">
               <div className="card-header">
@@ -545,9 +588,100 @@ const TicketDetails = () => {
                       <option value="Crystal">Crystal</option>
                     </select>
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Shipping Conditions
+                    </label>
+                    <select {...registerEdit('chemicalProperties.shippingConditions')} className="form-select" defaultValue={ticket.chemicalProperties?.shippingConditions}>
+                      <option value="Standard">Standard (Ambient)</option>
+                      <option value="Wet Ice">Wet Ice (2-8°C)</option>
+                      <option value="Dry Ice">Dry Ice (-20°C to -80°C)</option>
+                      <option value="Liquid Nitrogen">Liquid Nitrogen (-196°C)</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {/* Additional Chemical Properties */}
+                <div className="space-y-6 border-t border-gray-200 pt-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      InChI
+                    </label>
+                    <textarea
+                      {...registerEdit('chemicalProperties.inchi')}
+                      rows="2"
+                      className="form-input font-mono text-sm"
+                      placeholder="International Chemical Identifier"
+                      defaultValue={ticket.chemicalProperties?.inchi}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      InChI Key
+                    </label>
+                    <input
+                      {...registerEdit('chemicalProperties.inchiKey')}
+                      type="text"
+                      className="form-input font-mono text-sm"
+                      placeholder="Hashed InChI identifier"
+                      defaultValue={ticket.chemicalProperties?.inchiKey}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Synonyms
+                    </label>
+                    <textarea
+                      {...registerEdit('chemicalProperties.synonyms')}
+                      rows="3"
+                      className="form-input"
+                      placeholder="Common names, trade names, alternate chemical names (comma-separated)"
+                      defaultValue={ticket.chemicalProperties?.synonyms}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      List of common synonyms and alternative names for this chemical
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hazard Statements
+                    </label>
+                    <textarea
+                      {...registerEdit('chemicalProperties.hazardStatements')}
+                      rows="4"
+                      className="form-input"
+                      placeholder="GHS hazard statements (H-codes), one per line"
+                      defaultValue={ticket.chemicalProperties?.hazardStatements}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Globally Harmonized System (GHS) hazard statements such as H302, H315, etc.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        UN Number
+                      </label>
+                      <input
+                        {...registerEdit('chemicalProperties.unNumber')}
+                        type="text"
+                        className="form-input"
+                        placeholder="e.g., UN1170"
+                        defaultValue={ticket.chemicalProperties?.unNumber}
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        United Nations number for hazardous materials transport
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-gray-200 pt-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Purity Min (%)
@@ -583,154 +717,226 @@ const TicketDetails = () => {
               </div>
             </div>
 
-
-            {/* Hazard Classification */}
+            {/* Quality Specifications */}
             <div className="card">
               <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Hazard Classification</h3>
+                <h3 className="text-lg font-medium text-gray-900">Quality Specifications</h3>
               </div>
               <div className="card-body space-y-6">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      GHS Class
-                    </label>
-                    <select {...registerEdit('hazardClassification.ghsClass')} className="form-select" defaultValue={ticket.hazardClassification?.ghsClass}>
-                      <option value="">Select GHS Class</option>
-                      <option value="H200-H299">H200-H299 (Physical Hazards)</option>
-                      <option value="H300-H399">H300-H399 (Health Hazards)</option>
-                      <option value="H400-H499">H400-H499 (Environmental Hazards)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Signal Word
-                    </label>
-                    <select {...registerEdit('hazardClassification.signalWord')} className="form-select" defaultValue={ticket.hazardClassification?.signalWord}>
-                      <option value="WARNING">WARNING</option>
-                      <option value="DANGER">DANGER</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Transport Class
-                    </label>
-                    <input
-                      {...registerEdit('hazardClassification.transportClass')}
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., 3"
-                      defaultValue={ticket.hazardClassification?.transportClass}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      UN Number
-                    </label>
-                    <input
-                      {...registerEdit('hazardClassification.unNumber')}
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., UN1170"
-                      defaultValue={ticket.hazardClassification?.unNumber}
-                    />
-                  </div>
+                {/* MQ Quality Level */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    MQ Quality Level
+                  </label>
+                  <select {...registerEdit('quality.mqQualityLevel')} className="form-select max-w-xs" defaultValue={ticket.quality?.mqQualityLevel || 'N/A'}>
+                    <option value="N/A">N/A</option>
+                    <option value="MQ100">MQ100</option>
+                    <option value="MQ200">MQ200</option>
+                    <option value="MQ300">MQ300</option>
+                    <option value="MQ400">MQ400</option>
+                    <option value="MQ500">MQ500</option>
+                    <option value="MQ600">MQ600</option>
+                  </select>
                 </div>
+
+                {/* Quality Attributes Display - Read Only in Edit Mode */}
+                {ticket.quality?.attributes && ticket.quality.attributes.length > 0 ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">Quality Attributes</label>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Test/Attribute
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Data Source
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Value/Range
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Comments
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {ticket.quality.attributes.map((attr, index) => (
+                            <tr key={index}>
+                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                                {attr.testAttribute}
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  attr.dataSource === 'QC'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {attr.dataSource}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-900">
+                                {attr.valueRange}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-500">
+                                {attr.comments || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      Note: Quality attributes cannot be edited after ticket creation. Please create a new ticket to modify quality specifications.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                    <p className="text-sm">No quality attributes defined for this ticket</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* CorpBase Section */}
+            {/* Product Composition */}
             <div className="card">
               <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">CorpBase Website Information</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Product Composition</h3>
+                    <p className="text-sm text-gray-500 mt-1">Define the chemical components that make up this product</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => editAppendComposition({
+                      proprietary: false,
+                      componentCAS: '',
+                      weightPercent: 0,
+                      componentName: '',
+                      componentFormula: ''
+                    })}
+                    className="btn btn-sm btn-secondary"
+                  >
+                    + Add Component
+                  </button>
+                </div>
               </div>
-              <div className="card-body space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product Description
-                  </label>
-                  <textarea
-                    {...registerEdit('corpbaseData.productDescription')}
-                    rows="4"
-                    className="form-input"
-                    placeholder="Product description..."
-                    defaultValue={ticket.corpbaseData?.productDescription}
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Website Title
-                    </label>
-                    <input
-                      {...registerEdit('corpbaseData.websiteTitle')}
-                      type="text"
-                      className="form-input"
-                      placeholder="SEO-optimized title for website"
-                      defaultValue={ticket.corpbaseData?.websiteTitle}
-                    />
+              <div className="card-body">
+                {editCompositionFields.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+                    <p className="text-sm">No components defined. Click "+ Add Component" to add.</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Meta Description
-                    </label>
-                    <textarea
-                      {...registerEdit('corpbaseData.metaDescription')}
-                      rows="2"
-                      className="form-input"
-                      placeholder="Brief description for search engines (150-160 characters)"
-                      defaultValue={ticket.corpbaseData?.metaDescription}
-                    />
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Proprietary
+                          </th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Component CAS
+                          </th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Weight %
+                          </th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Component Name
+                          </th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Component Formula
+                          </th>
+                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {editCompositionFields.map((field, index) => (
+                          <tr key={field.id}>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <select
+                                {...registerEdit(`composition.components.${index}.proprietary`)}
+                                className="form-select text-sm"
+                                defaultValue={ticket.composition?.components?.[index]?.proprietary || false}
+                              >
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                              </select>
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <input
+                                {...registerEdit(`composition.components.${index}.componentCAS`)}
+                                type="text"
+                                className="form-input text-sm w-32"
+                                placeholder="CAS Number"
+                                defaultValue={ticket.composition?.components?.[index]?.componentCAS}
+                              />
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <input
+                                {...registerEdit(`composition.components.${index}.weightPercent`, {
+                                  valueAsNumber: true,
+                                  min: 0,
+                                  max: 100
+                                })}
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="100"
+                                className="form-input text-sm w-24"
+                                placeholder="0-100"
+                                defaultValue={ticket.composition?.components?.[index]?.weightPercent}
+                              />
+                            </td>
+                            <td className="px-3 py-4">
+                              <input
+                                {...registerEdit(`composition.components.${index}.componentName`)}
+                                type="text"
+                                className="form-input text-sm w-48"
+                                placeholder="Component Name"
+                                defaultValue={ticket.composition?.components?.[index]?.componentName}
+                              />
+                            </td>
+                            <td className="px-3 py-4">
+                              <input
+                                {...registerEdit(`composition.components.${index}.componentFormula`)}
+                                type="text"
+                                className="form-input text-sm w-32"
+                                placeholder="Formula"
+                                defaultValue={ticket.composition?.components?.[index]?.componentFormula}
+                              />
+                            </td>
+                            <td className="px-3 py-4 whitespace-nowrap">
+                              <button
+                                type="button"
+                                onClick={() => editRemoveComposition(index)}
+                                className="text-red-600 hover:text-red-900 text-sm"
+                              >
+                                Remove
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Key Features & Benefits
-                  </label>
-                  <textarea
-                    {...registerEdit('corpbaseData.keyFeatures')}
-                    rows="3"
-                    className="form-input"
-                    placeholder="• High purity and quality&#10;• Suitable for research applications&#10;• Available in multiple sizes"
-                    defaultValue={Array.isArray(ticket.corpbaseData?.keyFeatures) ? 
-                      ticket.corpbaseData.keyFeatures.join('\n') : 
-                      ticket.corpbaseData?.keyFeatures}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Applications
-                    </label>
-                    <textarea
-                      {...registerEdit('corpbaseData.applications')}
-                      rows="3"
-                      className="form-input"
-                      placeholder="List key applications..."
-                      defaultValue={Array.isArray(ticket.corpbaseData?.applications) ? 
-                        ticket.corpbaseData.applications.join('\n') : 
-                        ticket.corpbaseData?.applications}
-                    />
+                )}
+                {editCompositionFields.length > 0 && (
+                  <div className="mt-4 text-sm text-gray-600">
+                    <p className="font-medium">Total Weight: {editCompositionFields.reduce((sum, _, idx) => {
+                      const weight = watchEdit(`composition.components.${idx}.weightPercent`) || 0;
+                      return sum + parseFloat(weight);
+                    }, 0).toFixed(2)}%</p>
+                    {Math.abs(editCompositionFields.reduce((sum, _, idx) => {
+                      const weight = watchEdit(`composition.components.${idx}.weightPercent`) || 0;
+                      return sum + parseFloat(weight);
+                    }, 0) - 100) > 0.01 && (
+                      <p className="text-orange-600 mt-1">⚠ Warning: Total weight should equal 100%</p>
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target Industries
-                    </label>
-                    <textarea
-                      {...registerEdit('corpbaseData.targetIndustries')}
-                      rows="3"
-                      className="form-input"
-                      placeholder="Pharmaceutical, Biotechnology, Research..."
-                      defaultValue={ticket.corpbaseData?.targetIndustries}
-                    />
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -766,7 +972,7 @@ const TicketDetails = () => {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Raw Material Cost ($/unit)
+                        Standard Cost ($/{watchEdit('pricingData.baseUnit') || 'unit'})
                       </label>
                       <input
                         {...registerEdit('pricingData.standardCosts.rawMaterialCostPerUnit')}
@@ -804,74 +1010,39 @@ const TicketDetails = () => {
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-green-900 mb-3">Target Margins</h4>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Small Size Margin (%)
-                      </label>
-                      <input
-                        {...registerEdit('pricingData.targetMargins.smallSize')}
-                        type="number"
-                        step="1"
-                        className="form-input text-sm"
-                        placeholder="75"
-                        defaultValue={ticket.pricingData?.targetMargins?.smallSize}
-                      />
+                  {/* Standard Cost Display */}
+                  <div className="mt-4 pt-4 border-t border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-600">Standard Cost per Base Unit:</span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-blue-600 text-white">
+                        ${parseFloat(watchEdit('pricingData.standardCosts.rawMaterialCostPerUnit') || ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || 0).toFixed(2)} / {watchEdit('pricingData.baseUnit') || ticket.pricingData?.baseUnit || 'unit'}
+                      </span>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Medium Size Margin (%)
-                      </label>
-                      <input
-                        {...registerEdit('pricingData.targetMargins.mediumSize')}
-                        type="number"
-                        step="1"
-                        className="form-input text-sm"
-                        placeholder="65"
-                        defaultValue={ticket.pricingData?.targetMargins?.mediumSize}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Large Size Margin (%)
-                      </label>
-                      <input
-                        {...registerEdit('pricingData.targetMargins.largeSize')}
-                        type="number"
-                        step="1"
-                        className="form-input text-sm"
-                        placeholder="55"
-                        defaultValue={ticket.pricingData?.targetMargins?.largeSize}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Bulk Size Margin (%)
-                      </label>
-                      <input
-                        {...registerEdit('pricingData.targetMargins.bulkSize')}
-                        type="number"
-                        step="1"
-                        className="form-input text-sm"
-                        placeholder="45"
-                        defaultValue={ticket.pricingData?.targetMargins?.bulkSize}
-                      />
-                    </div>
+                    <p className="mt-1 text-xs text-gray-500">
+                      This value is calculated from your standard cost input above
+                    </p>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Pricing Guidelines</h4>
-                  <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Small sizes (&lt;10g): Higher margin due to packaging overhead</li>
-                    <li>• Medium sizes (10-100g): Standard research quantities</li>
-                    <li>• Large sizes (100g-1kg): Volume pricing begins</li>
-                    <li>• Bulk sizes (&gt;1kg): Lowest margin, competitive pricing</li>
-                  </ul>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-green-900 mb-3">Target Margin</h4>
+                  <div className="max-w-xs">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Target Margin (%)
+                    </label>
+                    <input
+                      {...registerEdit('pricingData.targetMargin')}
+                      type="number"
+                      step="1"
+                      className="form-input text-sm"
+                      placeholder="50"
+                      defaultValue={ticket.pricingData?.targetMargin || 50}
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Single target margin applied to all SKU sizes
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -992,121 +1163,226 @@ const TicketDetails = () => {
                               </select>
                             </div>
                           </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              List Price ($)
-                            </label>
-                            {canEditPricing() ? (
-                              <input
-                                {...registerEdit(`skuVariants.${index}.pricing.listPrice`)}
-                                type="number"
-                                step="0.01"
-                                className="form-input"
-                                placeholder="0.00"
-                                defaultValue={field.pricing?.listPrice}
-                                onChange={(e) => {
-                                  const listPrice = e.target.value;
-                                  const currentStandardCost = watchEdit(`skuVariants.${index}.pricing.standardCost`) || field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : 0);
-                                  const calculatedMargin = calculateMargin(currentStandardCost, listPrice);
-                                  setValueEdit(`skuVariants.${index}.pricing.margin`, calculatedMargin);
-                                }}
-                              />
-                            ) : (
-                              <div className="form-input bg-gray-50 border-gray-200 text-gray-700">
-                                {field.pricing?.listPrice ? `$${field.pricing.listPrice}` : 'Not set'}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Additional pricing fields */}
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                          <div className="flex items-center justify-between mb-3">
-                            <h5 className="text-xs font-medium text-gray-700">Advanced Pricing (Optional)</h5>
-                            {!canEditPricing() && (
-                              <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                                Pricing preserved from Product Manager
-                              </span>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                          {/* Only show pricing for non-VAR/SPEC/CONF types */}
+                          {!['VAR', 'SPEC', 'CONF'].includes(field.type) && (
                             <div>
-                              <label className="block text-xs font-medium text-green-700 mb-1">
-                                Standard Cost ($)
-                                {field.type === 'BULK' && <span className="text-green-600 ml-1">(from Raw Material Cost)</span>}
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                List Price ($)
                               </label>
                               {canEditPricing() ? (
                                 <input
-                                  {...registerEdit(`skuVariants.${index}.pricing.standardCost`)}
+                                  {...registerEdit(`skuVariants.${index}.pricing.listPrice`)}
                                   type="number"
                                   step="0.01"
-                                  className="form-input text-sm bg-green-50 border-green-200 font-medium"
+                                  className="form-input"
                                   placeholder="0.00"
-                                  defaultValue={field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : undefined)}
+                                  defaultValue={field.pricing?.listPrice}
                                   onChange={(e) => {
-                                    const standardCost = e.target.value;
-                                    const currentMargin = watchEdit(`skuVariants.${index}.pricing.margin`) || 50;
-                                    const calculatedPrice = calculateListPrice(standardCost, currentMargin);
-                                    setValueEdit(`skuVariants.${index}.pricing.listPrice`, calculatedPrice);
-                                  }}
-                                />
-                              ) : (
-                                <div className="form-input text-sm bg-green-50 border-green-200 text-green-700 font-medium">
-                                  {field.pricing?.standardCost ? `$${field.pricing.standardCost}` : (field.type === 'BULK' && ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit ? `$${ticket.pricingData.standardCosts.rawMaterialCostPerUnit}` : 'Not set')}
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div>
-                              <label className="block text-xs font-medium text-blue-700 mb-1">
-                                Margin (%)
-                              </label>
-                              {canEditPricing() ? (
-                                <input
-                                  {...registerEdit(`skuVariants.${index}.pricing.margin`)}
-                                  type="number"
-                                  step="1"
-                                  className="form-input text-sm bg-blue-50 border-blue-200"
-                                  placeholder="50"
-                                  defaultValue={field.pricing?.margin || 50}
-                                  onChange={(e) => {
-                                    const margin = e.target.value;
+                                    const listPrice = e.target.value;
                                     const currentStandardCost = watchEdit(`skuVariants.${index}.pricing.standardCost`) || field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : 0);
-                                    const calculatedPrice = calculateListPrice(currentStandardCost, margin);
-                                    setValueEdit(`skuVariants.${index}.pricing.listPrice`, calculatedPrice);
+                                    const calculatedMargin = calculateMargin(currentStandardCost, listPrice);
+                                    setValueEdit(`skuVariants.${index}.pricing.margin`, calculatedMargin);
                                   }}
                                 />
                               ) : (
-                                <div className="form-input text-sm bg-gray-50 border-gray-200 text-gray-700">
-                                  {field.pricing?.margin ? `${field.pricing.margin}%` : 'Not set'}
+                                <div className="form-input bg-gray-50 border-gray-200 text-gray-700">
+                                  {field.pricing?.listPrice ? `$${field.pricing.listPrice}` : 'Not set'}
                                 </div>
                               )}
                             </div>
-                            
-                            <div>
-                              <label className="block text-xs font-medium text-gray-500 mb-1">
-                                Currency
-                              </label>
-                              <select
-                                {...registerEdit(`skuVariants.${index}.pricing.currency`)}
-                                className="form-select text-sm"
-                                defaultValue={field.pricing?.currency || 'USD'}
-                              >
-                                <option value="USD">USD</option>
-                                <option value="EUR">EUR</option>
-                                <option value="GBP">GBP</option>
-                                <option value="JPY">JPY</option>
-                              </select>
+                          )}
+                        </div>
+
+                        {/* Additional pricing fields - Only for non-VAR/SPEC/CONF types */}
+                        {!['VAR', 'SPEC', 'CONF'].includes(field.type) && (
+                          <div className="mt-4 pt-4 border-t border-gray-100">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="text-xs font-medium text-gray-700">Advanced Pricing (Optional)</h5>
+                              {!canEditPricing() && (
+                                <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                                  Pricing preserved from Product Manager
+                                </span>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-xs font-medium text-green-700 mb-1">
+                                  Standard Cost ($)
+                                  {field.type === 'BULK' && <span className="text-green-600 ml-1">(from Raw Material Cost)</span>}
+                                </label>
+                                {canEditPricing() ? (
+                                  <input
+                                    {...registerEdit(`skuVariants.${index}.pricing.standardCost`)}
+                                    type="number"
+                                    step="0.01"
+                                    className="form-input text-sm bg-green-50 border-green-200 font-medium"
+                                    placeholder="0.00"
+                                    defaultValue={field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : undefined)}
+                                    onChange={(e) => {
+                                      const standardCost = e.target.value;
+                                      const currentMargin = watchEdit(`skuVariants.${index}.pricing.margin`) || 50;
+                                      const calculatedPrice = calculateListPrice(standardCost, currentMargin);
+                                      setValueEdit(`skuVariants.${index}.pricing.listPrice`, calculatedPrice);
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="form-input text-sm bg-green-50 border-green-200 text-green-700 font-medium">
+                                    {field.pricing?.standardCost ? `$${field.pricing.standardCost}` : (field.type === 'BULK' && ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit ? `$${ticket.pricingData.standardCosts.rawMaterialCostPerUnit}` : 'Not set')}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-medium text-blue-700 mb-1">
+                                  Margin (%)
+                                </label>
+                                {canEditPricing() ? (
+                                  <input
+                                    {...registerEdit(`skuVariants.${index}.pricing.margin`)}
+                                    type="number"
+                                    step="1"
+                                    className="form-input text-sm bg-blue-50 border-blue-200"
+                                    placeholder="50"
+                                    defaultValue={field.pricing?.margin || 50}
+                                    onChange={(e) => {
+                                      const margin = e.target.value;
+                                      const currentStandardCost = watchEdit(`skuVariants.${index}.pricing.standardCost`) || field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : 0);
+                                      const calculatedPrice = calculateListPrice(currentStandardCost, margin);
+                                      setValueEdit(`skuVariants.${index}.pricing.listPrice`, calculatedPrice);
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="form-input text-sm bg-gray-50 border-gray-200 text-gray-700">
+                                    {field.pricing?.margin ? `${field.pricing.margin}%` : 'Not set'}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  Currency
+                                </label>
+                                <select
+                                  {...registerEdit(`skuVariants.${index}.pricing.currency`)}
+                                  className="form-select text-sm"
+                                  defaultValue={field.pricing?.currency || 'USD'}
+                                >
+                                  <option value="USD">USD</option>
+                                  <option value="EUR">EUR</option>
+                                  <option value="GBP">GBP</option>
+                                  <option value="JPY">JPY</option>
+                                </select>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
+
+            {/* CorpBase Website Information */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="text-lg font-medium text-gray-900">CorpBase Website Information</h3>
+              </div>
+              <div className="card-body space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Description
+                  </label>
+                  <textarea
+                    {...registerEdit('corpbaseData.productDescription')}
+                    rows="4"
+                    className="form-input"
+                    placeholder="Product description..."
+                    defaultValue={ticket.corpbaseData?.productDescription}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Website Title
+                    </label>
+                    <input
+                      {...registerEdit('corpbaseData.websiteTitle')}
+                      type="text"
+                      className="form-input"
+                      placeholder="SEO-optimized title for website"
+                      defaultValue={ticket.corpbaseData?.websiteTitle}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Meta Description
+                    </label>
+                    <textarea
+                      {...registerEdit('corpbaseData.metaDescription')}
+                      rows="2"
+                      className="form-input"
+                      placeholder="Brief description for search engines (150-160 characters)"
+                      defaultValue={ticket.corpbaseData?.metaDescription}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Key Features & Benefits
+                  </label>
+                  <textarea
+                    {...registerEdit('corpbaseData.keyFeatures')}
+                    rows="3"
+                    className="form-input"
+                    placeholder="• High purity and quality&#10;• Suitable for research applications&#10;• Available in multiple sizes"
+                    defaultValue={Array.isArray(ticket.corpbaseData?.keyFeatures) ?
+                      ticket.corpbaseData.keyFeatures.join('\n') :
+                      ticket.corpbaseData?.keyFeatures}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Applications
+                    </label>
+                    <textarea
+                      {...registerEdit('corpbaseData.applications')}
+                      rows="3"
+                      className="form-input"
+                      placeholder="List key applications..."
+                      defaultValue={Array.isArray(ticket.corpbaseData?.applications) ?
+                        ticket.corpbaseData.applications.join('\n') :
+                        ticket.corpbaseData?.applications}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Target Industries
+                    </label>
+                    <textarea
+                      {...registerEdit('corpbaseData.targetIndustries')}
+                      rows="3"
+                      className="form-input"
+                      placeholder="Pharmaceutical, Biotechnology, Research..."
+                      defaultValue={ticket.corpbaseData?.targetIndustries}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Custom Sections (added by admin via Form Configuration) */}
+            <DynamicCustomSections
+              register={registerEdit}
+              errors={editErrors}
+              watch={watchEdit}
+              readOnly={!editMode}
+            />
 
             {/* Submit Buttons - Enhanced Styling */}
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
@@ -1256,8 +1532,8 @@ const TicketDetails = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-500">Priority</label>
                   {editMode && canEdit() ? (
-                    <select 
-                      {...registerEdit('priority')} 
+                    <select
+                      {...registerEdit('priority')}
                       className="mt-1 form-select text-sm"
                       defaultValue={ticket.priority}
                     >
@@ -1272,7 +1548,138 @@ const TicketDetails = () => {
                     </p>
                   )}
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500">Production Type</label>
+                  {editMode && canEdit() ? (
+                    <select
+                      {...registerEdit('productionType')}
+                      className="mt-1 form-select text-sm"
+                      defaultValue={ticket.productionType}
+                    >
+                      <option value="Produced">Produced</option>
+                      <option value="Procured">Procured</option>
+                    </select>
+                  ) : (
+                    <p className="mt-1 text-sm text-gray-900">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        ticket.productionType === 'Produced'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        {ticket.productionType || 'Produced'}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                {/* New Fields Row 2 */}
+                {ticket.primaryPlant && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Primary Plant</label>
+                    <p className="mt-1 text-sm text-gray-900">{ticket.primaryPlant}</p>
+                  </div>
+                )}
+
+                {ticket.productScope?.scope && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Product Scope</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {ticket.productScope.scope}
+                      {ticket.productScope.scope === 'Other' && ticket.productScope.otherSpecification && (
+                        <span className="text-gray-600"> - {ticket.productScope.otherSpecification}</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {ticket.distributionType && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Distribution Type</label>
+                    <p className="mt-1 text-sm text-gray-900">{ticket.distributionType}</p>
+                  </div>
+                )}
+
+                {ticket.retestOrExpiration?.type && ticket.retestOrExpiration.type !== 'None' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Retest/Expiration</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {ticket.retestOrExpiration.type}
+                      {ticket.retestOrExpiration.shelfLife?.value && (
+                        <span className="text-gray-600">
+                          {' - '}{ticket.retestOrExpiration.shelfLife.value} {ticket.retestOrExpiration.shelfLife.unit}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+
+                {ticket.sialProductHierarchy && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">SIAL Product Hierarchy</label>
+                    <p className="mt-1 text-sm text-gray-900">{ticket.sialProductHierarchy}</p>
+                  </div>
+                )}
+
+                {ticket.materialGroup && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Material Group</label>
+                    <p className="mt-1 text-sm text-gray-900">{ticket.materialGroup}</p>
+                  </div>
+                )}
+
+                {ticket.countryOfOrigin && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Country of Origin</label>
+                    <p className="mt-1 text-sm text-gray-900">{ticket.countryOfOrigin}</p>
+                  </div>
+                )}
+
+                {ticket.brand && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Brand</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                        {ticket.brand}
+                      </span>
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Vendor Information - Only shown if Procured */}
+              {ticket.productionType === 'Procured' && ticket.vendorInformation && (
+                Object.values(ticket.vendorInformation).some(val => val) && (
+                  <div className="border-t border-gray-200 pt-6 mt-6">
+                    <h4 className="text-md font-medium text-gray-900 mb-4">Vendor Information</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {ticket.vendorInformation.vendorName && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Vendor Name</label>
+                          <p className="mt-1 text-sm text-gray-900">{ticket.vendorInformation.vendorName}</p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.vendorProductName && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Vendor Product Name</label>
+                          <p className="mt-1 text-sm text-gray-900">{ticket.vendorInformation.vendorProductName}</p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.vendorSAPNumber && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Vendor SAP Number</label>
+                          <p className="mt-1 text-sm text-gray-900 font-mono">{ticket.vendorInformation.vendorSAPNumber}</p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.vendorProductNumber && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Vendor Product #</label>
+                          <p className="mt-1 text-sm text-gray-900 font-mono">{ticket.vendorInformation.vendorProductNumber}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              )}
             </div>
           </div>
 
@@ -1396,6 +1803,64 @@ const TicketDetails = () => {
                     </div>
                   )}
                   
+                  {ticket.chemicalProperties.shippingConditions && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Shipping Conditions</label>
+                      {editMode && canEdit() ? (
+                        <select
+                          {...registerEdit('chemicalProperties.shippingConditions')}
+                          className="mt-1 form-select text-sm"
+                          defaultValue={ticket.chemicalProperties.shippingConditions}
+                        >
+                          <option value="Standard">Standard (Ambient)</option>
+                          <option value="Wet Ice">Wet Ice (2-8°C)</option>
+                          <option value="Dry Ice">Dry Ice (-20°C to -80°C)</option>
+                          <option value="Liquid Nitrogen">Liquid Nitrogen (-196°C)</option>
+                        </select>
+                      ) : (
+                        <p className="mt-1 text-sm text-gray-900">
+                          {ticket.chemicalProperties.shippingConditions}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* New Chemical Property Fields */}
+                  {ticket.chemicalProperties.materialSource && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Material Source</label>
+                      <p className="mt-1 text-sm text-gray-900">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                          {ticket.chemicalProperties.materialSource}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
+                  {ticket.chemicalProperties.animalComponent && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Animal Component</label>
+                      <p className="mt-1 text-sm text-gray-900">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          ticket.chemicalProperties.animalComponent === 'Animal Component Free'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {ticket.chemicalProperties.animalComponent}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+
+                  {ticket.chemicalProperties.storageTemperature && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500">Storage Temperature</label>
+                      <p className="mt-1 text-sm text-gray-900 font-mono bg-blue-50 px-2 py-1 rounded">
+                        {ticket.chemicalProperties.storageTemperature}
+                      </p>
+                    </div>
+                  )}
+
                   {ticket.chemicalProperties.purity && (
                     <div className="sm:col-span-2 lg:col-span-3">
                       <label className="block text-sm font-medium text-gray-500">Purity Range</label>
@@ -1405,13 +1870,160 @@ const TicketDetails = () => {
                     </div>
                   )}
                 </div>
-                
-                {ticket.chemicalProperties.canonicalSMILES && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Canonical SMILES</label>
-                    <p className="text-xs text-gray-700 font-mono break-all">
-                      {ticket.chemicalProperties.canonicalSMILES}
-                    </p>
+
+                {/* SMILES, InChI, InChI Key in gray boxes */}
+                <div className="mt-6 space-y-4">
+                  {ticket.chemicalProperties.canonicalSMILES && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <label className="block text-sm font-medium text-gray-500 mb-2">Canonical SMILES</label>
+                      <p className="text-xs text-gray-700 font-mono break-all">
+                        {ticket.chemicalProperties.canonicalSMILES}
+                      </p>
+                    </div>
+                  )}
+
+                  {ticket.chemicalProperties.inchi && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <label className="block text-sm font-medium text-gray-500 mb-2">InChI</label>
+                      {editMode && canEdit() ? (
+                        <textarea
+                          {...registerEdit('chemicalProperties.inchi')}
+                          rows="2"
+                          className="form-input text-xs font-mono"
+                          defaultValue={ticket.chemicalProperties.inchi}
+                        />
+                      ) : (
+                        <p className="text-xs text-gray-700 font-mono break-all">
+                          {ticket.chemicalProperties.inchi}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {ticket.chemicalProperties.inchiKey && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <label className="block text-sm font-medium text-gray-500 mb-2">InChI Key</label>
+                      {editMode && canEdit() ? (
+                        <input
+                          {...registerEdit('chemicalProperties.inchiKey')}
+                          type="text"
+                          className="form-input text-xs font-mono"
+                          defaultValue={ticket.chemicalProperties.inchiKey}
+                        />
+                      ) : (
+                        <p className="text-xs text-gray-700 font-mono break-all">
+                          {ticket.chemicalProperties.inchiKey}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {ticket.chemicalProperties.synonyms && (
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <label className="block text-sm font-medium text-blue-900 mb-2">Synonyms</label>
+                      {editMode && canEdit() ? (
+                        <textarea
+                          {...registerEdit('chemicalProperties.synonyms')}
+                          rows="3"
+                          className="form-input text-sm"
+                          defaultValue={ticket.chemicalProperties.synonyms}
+                        />
+                      ) : (
+                        <p className="text-sm text-blue-900">
+                          {ticket.chemicalProperties.synonyms}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {ticket.chemicalProperties.hazardStatements && (
+                    <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                      <label className="block text-sm font-medium text-red-900 mb-2">Hazard Statements (GHS)</label>
+                      {editMode && canEdit() ? (
+                        <textarea
+                          {...registerEdit('chemicalProperties.hazardStatements')}
+                          rows="4"
+                          className="form-input text-sm"
+                          defaultValue={ticket.chemicalProperties.hazardStatements}
+                          placeholder="GHS hazard statements (H-codes), one per line"
+                        />
+                      ) : (
+                        <p className="text-sm text-red-900 whitespace-pre-line">
+                          {ticket.chemicalProperties.hazardStatements}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {ticket.chemicalProperties.unNumber && (
+                    <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                      <label className="block text-sm font-medium text-amber-900 mb-2">UN Number</label>
+                      {editMode && canEdit() ? (
+                        <input
+                          {...registerEdit('chemicalProperties.unNumber')}
+                          type="text"
+                          className="form-input text-sm font-mono"
+                          defaultValue={ticket.chemicalProperties.unNumber}
+                          placeholder="e.g., UN1170"
+                        />
+                      ) : (
+                        <p className="text-sm text-amber-900 font-mono">
+                          {ticket.chemicalProperties.unNumber}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-amber-700">
+                        United Nations number for hazardous materials transport
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Additional PubChem Properties - Only show visible ones */}
+                {ticket.chemicalProperties.additionalProperties?.visibleProperties?.length > 0 && (
+                  <div className="border-t border-gray-200 pt-6 mt-6">
+                    <h4 className="text-sm font-medium text-gray-900 mb-4 flex items-center">
+                      Additional Properties
+                      {ticket.chemicalProperties.autoPopulated && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                          PubChem Data
+                        </span>
+                      )}
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {ticket.chemicalProperties.additionalProperties.visibleProperties.map(propKey => {
+                        const propertyLabels = {
+                          meltingPoint: 'Melting Point',
+                          boilingPoint: 'Boiling Point',
+                          flashPoint: 'Flash Point',
+                          density: 'Density',
+                          vaporPressure: 'Vapor Pressure',
+                          vaporDensity: 'Vapor Density',
+                          refractiveIndex: 'Refractive Index',
+                          logP: 'LogP',
+                          polarSurfaceArea: 'Polar Surface Area',
+                          hydrogenBondDonor: 'H-Bond Donors',
+                          hydrogenBondAcceptor: 'H-Bond Acceptors',
+                          rotatableBonds: 'Rotatable Bonds',
+                          exactMass: 'Exact Mass',
+                          monoisotopicMass: 'Monoisotopic Mass',
+                          complexity: 'Complexity',
+                          heavyAtomCount: 'Heavy Atom Count',
+                          charge: 'Charge'
+                        };
+
+                        const value = ticket.chemicalProperties.additionalProperties[propKey];
+                        if (!value) return null;
+
+                        return (
+                          <div key={propKey}>
+                            <label className="block text-sm font-medium text-gray-500">{propertyLabels[propKey]}</label>
+                            <p className="mt-1 text-sm text-gray-900 bg-green-50 px-2 py-1 rounded">
+                              {value}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -1486,7 +2098,8 @@ const TicketDetails = () => {
                         </div>
                         <div className="text-right">
                           <div>
-                            {sku.pricing?.listPrice && (
+                            {/* Only show pricing for non-VAR/SPEC/CONF types */}
+                            {!['VAR', 'SPEC', 'CONF'].includes(sku.type) && sku.pricing?.listPrice && (
                               <div className="mb-1">
                                 <p className="text-lg font-semibold text-green-700">${sku.pricing.listPrice}</p>
                                 <p className="text-xs text-gray-500">List Price</p>
@@ -1496,11 +2109,11 @@ const TicketDetails = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       <p className="text-sm text-gray-700">{sku.description}</p>
-                      
-                      {/* Pricing Details - Always visible for non-edit mode */}
-                      {!editMode && sku.pricing && (
+
+                      {/* Pricing Details - Only for non-VAR/SPEC/CONF types */}
+                      {!editMode && !['VAR', 'SPEC', 'CONF'].includes(sku.type) && sku.pricing && (
                         <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                           <h5 className="text-xs font-medium text-gray-700 mb-2">Pricing Details</h5>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
@@ -1558,82 +2171,78 @@ const TicketDetails = () => {
               <div className="card-body">
                 {editMode && canEdit() && isProductManager ? (
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h4 className="text-sm font-medium text-blue-900 mb-3">Standard Costs</h4>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">Raw Material Cost ($/unit)</label>
-                            <input
-                              {...registerEdit('pricingData.standardCosts.rawMaterialCostPerUnit')}
-                              type="number"
-                              step="0.01"
-                              className="form-input text-sm"
-                              defaultValue={ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || 0.50}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">Packaging Cost ($/unit)</label>
-                            <input
-                              {...registerEdit('pricingData.standardCosts.packagingCost')}
-                              type="number"
-                              step="0.01"
-                              className="form-input text-sm"
-                              defaultValue={ticket.pricingData?.standardCosts?.packagingCost || 2.50}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">Labor & Overhead ($/unit)</label>
-                            <input
-                              {...registerEdit('pricingData.standardCosts.laborOverheadCost')}
-                              type="number"
-                              step="0.01"
-                              className="form-input text-sm"
-                              defaultValue={ticket.pricingData?.standardCosts?.laborOverheadCost || 5.00}
-                            />
-                          </div>
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-blue-900 mb-3">Standard Costs</h4>
+                      <div className="mb-4">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Base Costing Unit</label>
+                        <select
+                          {...registerEdit('pricingData.baseUnit')}
+                          className="form-select text-sm w-32"
+                          defaultValue={ticket.pricingData?.baseUnit || 'g'}
+                        >
+                          <option value="mg">mg</option>
+                          <option value="g">g</option>
+                          <option value="kg">kg</option>
+                          <option value="mL">mL</option>
+                          <option value="L">L</option>
+                          <option value="units">units</option>
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600">Standard Cost ($/{watchEdit('pricingData.baseUnit') || 'unit'})</label>
+                          <input
+                            {...registerEdit('pricingData.standardCosts.rawMaterialCostPerUnit')}
+                            type="number"
+                            step="0.01"
+                            className="form-input text-sm"
+                            defaultValue={ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || 0.50}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600">Packaging Cost ($/unit)</label>
+                          <input
+                            {...registerEdit('pricingData.standardCosts.packagingCost')}
+                            type="number"
+                            step="0.01"
+                            className="form-input text-sm"
+                            defaultValue={ticket.pricingData?.standardCosts?.packagingCost || 2.50}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600">Labor & Overhead ($/unit)</label>
+                          <input
+                            {...registerEdit('pricingData.standardCosts.laborOverheadCost')}
+                            type="number"
+                            step="0.01"
+                            className="form-input text-sm"
+                            defaultValue={ticket.pricingData?.standardCosts?.laborOverheadCost || 5.00}
+                          />
                         </div>
                       </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h4 className="text-sm font-medium text-green-900 mb-3">Target Margins</h4>
-                        <div className="space-y-3">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">Small Size (%)</label>
-                            <input
-                              {...registerEdit('pricingData.targetMargins.smallSize')}
-                              type="number"
-                              className="form-input text-sm"
-                              defaultValue={ticket.pricingData?.targetMargins?.smallSize || 75}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">Medium Size (%)</label>
-                            <input
-                              {...registerEdit('pricingData.targetMargins.mediumSize')}
-                              type="number"
-                              className="form-input text-sm"
-                              defaultValue={ticket.pricingData?.targetMargins?.mediumSize || 65}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">Large Size (%)</label>
-                            <input
-                              {...registerEdit('pricingData.targetMargins.largeSize')}
-                              type="number"
-                              className="form-input text-sm"
-                              defaultValue={ticket.pricingData?.targetMargins?.largeSize || 55}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600">Bulk Size (%)</label>
-                            <input
-                              {...registerEdit('pricingData.targetMargins.bulkSize')}
-                              type="number"
-                              className="form-input text-sm"
-                              defaultValue={ticket.pricingData?.targetMargins?.bulkSize || 45}
-                            />
-                          </div>
+                      {/* Standard Cost Display */}
+                      <div className="mt-4 pt-4 border-t border-blue-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-gray-600">Standard Cost per Base Unit:</span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-blue-600 text-white">
+                            ${parseFloat(watchEdit('pricingData.standardCosts.rawMaterialCostPerUnit') || ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || 0).toFixed(2)} / {watchEdit('pricingData.baseUnit') || ticket.pricingData?.baseUnit || 'unit'}
+                          </span>
                         </div>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="text-sm font-medium text-green-900 mb-3">Target Margin</h4>
+                      <div className="max-w-xs">
+                        <label className="block text-xs font-medium text-gray-600">Target Margin (%)</label>
+                        <input
+                          {...registerEdit('pricingData.targetMargin')}
+                          type="number"
+                          className="form-input text-sm"
+                          defaultValue={ticket.pricingData?.targetMargin || 50}
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Single target margin applied to all SKU sizes
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1641,15 +2250,17 @@ const TicketDetails = () => {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {!isPMOPS && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-500">Manufacturing Cost</label>
-                        <p className="text-lg font-semibold text-gray-900">${ticket.standardCost}</p>
+                        <label className="block text-sm font-medium text-gray-500">Standard Cost per Base Unit</label>
+                        <p className="text-lg font-semibold text-gray-900">
+                          ${ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || ticket.standardCost || 0} / {ticket.pricingData?.baseUnit || 'unit'}
+                        </p>
                         <p className="text-xs text-gray-500">From Product Manager</p>
                       </div>
                     )}
                     {!isPMOPS && (
                       <div>
                         <label className="block text-sm font-medium text-gray-500">Target Margin</label>
-                        <p className="text-lg font-semibold text-gray-900">{ticket.margin || 50}%</p>
+                        <p className="text-lg font-semibold text-gray-900">{ticket.pricingData?.targetMargin || ticket.margin || 50}%</p>
                       </div>
                     )}
                     <div>
@@ -1872,6 +2483,156 @@ const TicketDetails = () => {
             </div>
           )}
 
+          {/* Quality Specifications */}
+          {ticket.quality && (
+            <div className="card">
+              <div className="card-header">
+                <h3 className="text-lg font-medium text-gray-900">Quality Specifications</h3>
+              </div>
+              <div className="card-body space-y-6">
+                {/* MQ Quality Level */}
+                {ticket.quality.mqQualityLevel && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-2">MQ Quality Level</label>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold ${
+                      ticket.quality.mqQualityLevel === 'N/A'
+                        ? 'bg-gray-100 text-gray-600'
+                        : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {ticket.quality.mqQualityLevel}
+                    </span>
+                  </div>
+                )}
+
+                {/* Quality Attributes Table */}
+                {ticket.quality.attributes && ticket.quality.attributes.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 mb-3">Quality Attributes</label>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Test/Attribute
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Data Source
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Value/Range
+                            </th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Comments
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {ticket.quality.attributes.map((attr, index) => (
+                            <tr key={index}>
+                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                                {attr.testAttribute}
+                              </td>
+                              <td className="px-4 py-3 text-sm">
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  attr.dataSource === 'QC'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-green-100 text-green-800'
+                                }`}>
+                                  {attr.dataSource}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-900">
+                                {attr.valueRange}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-500">
+                                {attr.comments || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {(!ticket.quality.attributes || ticket.quality.attributes.length === 0) && ticket.quality.mqQualityLevel === 'N/A' && (
+                  <div className="text-center py-6 text-gray-500">
+                    <p className="text-sm">No quality specifications defined</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Product Composition */}
+          {ticket.composition && ticket.composition.components && ticket.composition.components.length > 0 && (
+            <div className="card">
+              <div className="card-header">
+                <h3 className="text-lg font-medium text-gray-900">Product Composition</h3>
+              </div>
+              <div className="card-body">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Proprietary
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Component CAS
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Weight %
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Component Name
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Component Formula
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {ticket.composition.components.map((component, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-3 text-sm">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              component.proprietary
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {component.proprietary ? 'Yes' : 'No'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-mono">
+                            {component.componentCAS || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-semibold">
+                            {component.weightPercent}%
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {component.componentName || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 font-mono">
+                            {component.componentFormula || '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                  <p className="font-medium">
+                    Total Weight: {ticket.composition.components.reduce((sum, comp) => sum + parseFloat(comp.weightPercent || 0), 0).toFixed(2)}%
+                  </p>
+                  {Math.abs(ticket.composition.components.reduce((sum, comp) => sum + parseFloat(comp.weightPercent || 0), 0) - 100) > 0.01 && (
+                    <p className="text-orange-600 mt-1">⚠ Note: Total weight does not equal 100%</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Business Justification */}
           {ticket.businessJustification && (
             <div className="card">
@@ -1938,9 +2699,36 @@ const TicketDetails = () => {
                 <UserIcon className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-xs text-gray-500">Created by</p>
-                  <p className="text-sm text-gray-900">
-                    {ticket.createdBy?.firstName} {ticket.createdBy?.lastName}
+                  <p className="text-sm text-gray-900 font-medium">
+                    {(() => {
+                      // First check if createdBy is populated
+                      if (ticket.createdBy?.firstName && ticket.createdBy?.lastName) {
+                        return `${ticket.createdBy.firstName} ${ticket.createdBy.lastName}`;
+                      }
+                      if (ticket.createdBy?.name) return ticket.createdBy.name;
+                      if (ticket.createdBy?.email) return ticket.createdBy.email;
+
+                      // Fall back to statusHistory for creator info
+                      const creationEntry = ticket.statusHistory?.find(h => h.action === 'TICKET_CREATED');
+                      if (creationEntry?.userInfo?.firstName && creationEntry?.userInfo?.lastName) {
+                        return `${creationEntry.userInfo.firstName} ${creationEntry.userInfo.lastName}`;
+                      }
+                      if (creationEntry?.userInfo?.name) return creationEntry.userInfo.name;
+
+                      return 'Unknown User';
+                    })()}
                   </p>
+                  {(() => {
+                    // Show role if available from statusHistory
+                    const creationEntry = ticket.statusHistory?.find(h => h.action === 'TICKET_CREATED');
+                    if (creationEntry?.userInfo?.role) {
+                      return <p className="text-xs text-gray-500">{creationEntry.userInfo.role}</p>;
+                    }
+                    if (ticket.createdBy?.email && ticket.createdBy?.firstName) {
+                      return <p className="text-xs text-gray-500">{ticket.createdBy.email}</p>;
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
 
@@ -2029,45 +2817,43 @@ const TicketDetails = () => {
                             {getActionIcon(history.action)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
                               <div className="flex items-center space-x-2">
                                 <StatusBadge status={history.status} />
                                 <span className="text-xs font-medium text-gray-700 capitalize">
                                   {(history.action || 'status_change').replace('_', ' ').toLowerCase()}
                                 </span>
                               </div>
-                              <div className="text-right">
-                                <div className="text-xs text-gray-500">
-                                  {new Date(history.changedAt).toLocaleDateString()} at{' '}
-                                  {new Date(history.changedAt).toLocaleTimeString([], { 
-                                    hour: '2-digit', 
-                                    minute: '2-digit' 
-                                  })}
-                                </div>
-                                {(history.changedBy || history.userInfo) && (
-                                  <div className="text-xs text-gray-600 font-medium">
-                                    by {history.changedBy?.firstName || history.userInfo?.firstName}{' '}
-                                    {history.changedBy?.lastName || history.userInfo?.lastName}
-                                    {history.userInfo?.role && (
-                                      <span className="text-xs text-gray-500 ml-1">
-                                        ({history.userInfo.role})
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
+                              <div className="text-xs text-gray-500">
+                                {new Date(history.changedAt).toLocaleDateString()} at{' '}
+                                {new Date(history.changedAt).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
                               </div>
+                              {(history.changedBy || history.userInfo) && (
+                                <div className="text-xs text-gray-600 font-medium">
+                                  by {history.changedBy?.firstName || history.userInfo?.firstName}{' '}
+                                  {history.changedBy?.lastName || history.userInfo?.lastName}
+                                  {history.userInfo?.role && (
+                                    <span className="text-xs text-gray-500 ml-1">
+                                      ({history.userInfo.role})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             {history.reason && (
-                              <p className="text-sm text-gray-700 mt-1 leading-relaxed">
+                              <p className="text-sm text-gray-700 mt-1 leading-relaxed break-words overflow-wrap-anywhere">
                                 {history.reason}
                               </p>
                             )}
                             {history.details && (
-                              <div className="mt-2 text-xs text-gray-600 bg-white/50 rounded p-2">
-                                <strong>Details:</strong> 
-                                {typeof history.details === 'object' 
+                              <div className="mt-2 text-xs text-gray-600 bg-white/50 rounded p-2 break-words overflow-wrap-anywhere">
+                                <strong>Details:</strong>
+                                {typeof history.details === 'object'
                                   ? Object.entries(history.details).map(([key, value]) => (
-                                      <span key={key} className="ml-2">
+                                      <span key={key} className="ml-2 inline-block">
                                         {key}: {JSON.stringify(value)}
                                       </span>
                                     ))
@@ -2124,12 +2910,12 @@ const TicketDetails = () => {
                         <div className="flex items-center space-x-2">
                           <div className="h-8 w-8 bg-millipore-blue rounded-full flex items-center justify-center">
                             <span className="text-white text-sm font-medium">
-                              {comment.user?.firstName?.[0]}{comment.user?.lastName?.[0]}
+                              {comment.userInfo?.firstName?.[0]}{comment.userInfo?.lastName?.[0]}
                             </span>
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {comment.user?.firstName} {comment.user?.lastName}
+                              {comment.userInfo?.firstName} {comment.userInfo?.lastName}
                             </p>
                             <p className="text-xs text-gray-500">
                               {new Date(comment.timestamp).toLocaleString()}

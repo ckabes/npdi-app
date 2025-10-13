@@ -1,7 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
 const authController = require('../controllers/authController');
-const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -19,10 +18,9 @@ router.post('/login', [
   body('password').notEmpty()
 ], authController.login);
 
-router.get('/profile', authenticate, authController.getProfile);
+router.get('/profile', authController.getProfile);
 
 router.put('/profile', [
-  authenticate,
   body('firstName').notEmpty().trim(),
   body('lastName').notEmpty().trim()
 ], authController.updateProfile);

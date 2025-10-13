@@ -34,10 +34,10 @@ class PubChemService {
 
   async getCompoundData(cid) {
     try {
-      // Get enhanced compound properties including the requested physical properties
+      // Get enhanced compound properties including all available computed properties
       await this.delay(this.requestDelay);
       const propertiesResponse = await axios.get(
-        `${this.baseURL}/compound/cid/${cid}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName,XLogP,HeavyAtomCount,HBondDonorCount,HBondAcceptorCount,TPSA,Complexity,Charge/JSON`,
+        `${this.baseURL}/compound/cid/${cid}/property/MolecularFormula,MolecularWeight,CanonicalSMILES,IsomericSMILES,IUPACName,InChI,InChIKey,XLogP,HeavyAtomCount,HBondDonorCount,HBondAcceptorCount,RotatableBondCount,ExactMass,MonoisotopicMass,TPSA,Complexity,Charge/JSON`,
         { timeout: 10000 }
       );
 
@@ -55,12 +55,19 @@ class PubChemService {
         { timeout: 10000 }
       ).catch(() => ({ data: null })); // Don't fail if GHS not available
 
-      // Get experimental physical properties
+      // Get ALL experimental properties - requesting without heading filter to avoid 400 errors
       await this.delay(this.requestDelay);
-      const physicalPropsResponse = await axios.get(
-        `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=Physical+Description,Boiling+Point,Melting+Point,Flash+Point,Density,Solubility,Vapor+Pressure`,
-        { timeout: 10000 }
-      ).catch(() => ({ data: null })); // Don't fail if physical props not available
+      let physicalPropsResponse;
+      try {
+        physicalPropsResponse = await axios.get(
+          `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON`,
+          { timeout: 15000 }
+        );
+        console.log(`Physical properties API call successful for CID ${cid}`);
+      } catch (physError) {
+        console.warn(`Physical properties API call failed for CID ${cid}:`, physError.message);
+        physicalPropsResponse = { data: null };
+      }
 
       const properties = propertiesResponse.data?.PropertyTable?.Properties?.[0];
       const synonyms = synonymsResponse.data?.InformationList?.Information?.[0]?.Synonym || [];
@@ -71,13 +78,18 @@ class PubChemService {
         properties: {
           molecularFormula: properties?.MolecularFormula || null,
           molecularWeight: properties?.MolecularWeight || null,
-          canonicalSMILES: properties?.CanonicalSMILES || null,
-          isomericSMILES: properties?.IsomericSMILES || null,
+          canonicalSMILES: properties?.SMILES || properties?.CanonicalSMILES || null,
+          isomericSMILES: properties?.ConnectivitySMILES || properties?.IsomericSMILES || null,
           iupacName: properties?.IUPACName || null,
+          inchi: properties?.InChI || null,
+          inchiKey: properties?.InChIKey || null,
           xLogP: properties?.XLogP || null,
           heavyAtomCount: properties?.HeavyAtomCount || null,
           hBondDonorCount: properties?.HBondDonorCount || null,
           hBondAcceptorCount: properties?.HBondAcceptorCount || null,
+          rotatableBondCount: properties?.RotatableBondCount || null,
+          exactMass: properties?.ExactMass || null,
+          monoisotopicMass: properties?.MonoisotopicMass || null,
           tpsa: properties?.TPSA || null,
           complexity: properties?.Complexity || null,
           charge: properties?.Charge || null
@@ -158,62 +170,169 @@ class PubChemService {
         density: null,
         solubility: null,
         vaporPressure: null,
-        physicalState: null
+        vaporDensity: null,
+        refractiveIndex: null,
+        physicalState: null,
+        unNumber: null
+      };
+
+      // Helper function to prioritize Celsius values for temperature properties
+      const getCelsiusPreferredValue = (valuesList) => {
+        if (valuesList.length === 0) return '';
+        if (valuesList.length === 1) return valuesList[0];
+
+        // Find values containing Celsius indicators (°C has priority)
+        const celsiusValues = valuesList.filter(v =>
+          v.includes('°C') || v.includes('deg C') || v.includes('degC')
+        );
+
+        // If there's exactly one Celsius value among multiple options, use only that one
+        if (celsiusValues.length === 1) {
+          return celsiusValues[0];
+        }
+
+        // If we have multiple Celsius values, return all of them separated by semicolons
+        // The frontend will allow user to choose
+        if (celsiusValues.length > 1) {
+          return celsiusValues.join('; ');
+        }
+
+        // No Celsius values found, return all values
+        return valuesList.join('; ');
       };
 
       // Recursively search through sections for physical properties
       const searchSections = (sections) => {
         if (!Array.isArray(sections)) return;
-        
+
         sections.forEach(section => {
           if (section.TOCHeading) {
             const heading = section.TOCHeading.toLowerCase();
-            
+
             if (section.Information) {
+              // Collect ALL values from ALL Information items in this section first
+              let boilingPointValues = [];
+              let meltingPointValues = [];
+              let flashPointValues = [];
+              let densityValues = [];
+              let solubilityValues = [];
+              let vaporPressureValues = [];
+              let vaporDensityValues = [];
+              let refractiveIndexValues = [];
+              let unNumberValue = null;
+
               section.Information.forEach(info => {
-                if (info.Value && info.Value.StringWithMarkup) {
-                  const value = info.Value.StringWithMarkup[0]?.String || '';
-                  
-                  // Extract physical description/state
-                  if (heading.includes('physical description') || heading.includes('physical state')) {
-                    physicalProps.physicalDescription = value;
-                    // Try to extract state from description
-                    const stateMatch = value.toLowerCase();
-                    if (stateMatch.includes('liquid')) {
-                      physicalProps.physicalState = 'Liquid';
-                    } else if (stateMatch.includes('solid') || stateMatch.includes('crystal')) {
-                      physicalProps.physicalState = 'Solid';
-                    } else if (stateMatch.includes('gas')) {
-                      physicalProps.physicalState = 'Gas';
-                    } else if (stateMatch.includes('powder')) {
-                      physicalProps.physicalState = 'Powder';
+                if (info.Value) {
+                  // Collect all values from both StringWithMarkup and Number formats
+                  let allValuesList = [];
+
+                  // Handle StringWithMarkup format
+                  if (info.Value.StringWithMarkup) {
+                    const stringValues = info.Value.StringWithMarkup.map(item => item.String).filter(Boolean);
+                    allValuesList.push(...stringValues);
+                  }
+
+                  // Handle Number + Unit format (often more precise)
+                  if (info.Value.Number && info.Value.Unit) {
+                    const numericValue = Array.isArray(info.Value.Number) ? info.Value.Number[0] : info.Value.Number;
+                    if (numericValue !== null && numericValue !== undefined) {
+                      allValuesList.push(`${numericValue} ${info.Value.Unit}`);
                     }
                   }
-                  
-                  // Extract temperature-based properties
+
+                  if (allValuesList.length === 0) return;
+
+                  const value = allValuesList[0]; // First value for non-temperature properties
+
+                  // Extract physical description/state
+                  if (heading.includes('physical description') || heading.includes('physical state')) {
+                    if (!physicalProps.physicalDescription) {
+                      physicalProps.physicalDescription = value;
+                      // Try to extract state from description
+                      const stateMatch = value.toLowerCase();
+                      if (stateMatch.includes('liquid')) {
+                        physicalProps.physicalState = 'Liquid';
+                      } else if (stateMatch.includes('solid') || stateMatch.includes('crystal')) {
+                        physicalProps.physicalState = 'Solid';
+                      } else if (stateMatch.includes('gas')) {
+                        physicalProps.physicalState = 'Gas';
+                      } else if (stateMatch.includes('powder')) {
+                        physicalProps.physicalState = 'Powder';
+                      }
+                    }
+                  }
+
+                  // Collect temperature-based property values
                   if (heading.includes('boiling point') || info.Name?.toLowerCase().includes('boiling')) {
-                    physicalProps.boilingPoint = value;
+                    boilingPointValues.push(...allValuesList);
                   }
                   if (heading.includes('melting point') || info.Name?.toLowerCase().includes('melting')) {
-                    physicalProps.meltingPoint = value;
+                    meltingPointValues.push(...allValuesList);
                   }
                   if (heading.includes('flash point') || info.Name?.toLowerCase().includes('flash')) {
-                    physicalProps.flashPoint = value;
+                    flashPointValues.push(...allValuesList);
                   }
-                  if (heading.includes('density') || info.Name?.toLowerCase().includes('density')) {
-                    physicalProps.density = value;
+                  if ((heading.includes('density') && !heading.includes('vapor')) || (info.Name?.toLowerCase().includes('density') && !info.Name?.toLowerCase().includes('vapor'))) {
+                    densityValues.push(...allValuesList);
                   }
                   if (heading.includes('solubility') || info.Name?.toLowerCase().includes('solubility')) {
-                    physicalProps.solubility = value;
+                    solubilityValues.push(...allValuesList);
                   }
                   if (heading.includes('vapor pressure') || info.Name?.toLowerCase().includes('vapor pressure')) {
-                    physicalProps.vaporPressure = value;
+                    vaporPressureValues.push(...allValuesList);
+                  }
+                  if (heading.includes('vapor density') || info.Name?.toLowerCase().includes('vapor density')) {
+                    vaporDensityValues.push(...allValuesList);
+                  }
+                  if (heading.includes('refractive index') || info.Name?.toLowerCase().includes('refractive index')) {
+                    refractiveIndexValues.push(...allValuesList);
+                  }
+
+                  // Extract UN number from safety/transport sections
+                  if (heading.includes('un number') || heading.includes('un/na number') ||
+                      heading.includes('dot') || heading.includes('transport') ||
+                      info.Name?.toLowerCase().includes('un number') ||
+                      info.Name?.toLowerCase().includes('un/na')) {
+                    // Look for UN followed by numbers (e.g., UN1170, UN 1170)
+                    const unMatch = value.match(/UN\s*(\d{4})/i);
+                    if (unMatch && !unNumberValue) {
+                      unNumberValue = `UN${unMatch[1]}`;
+                    }
                   }
                 }
               });
+
+              // Now set properties using collected values with Celsius preference for temperatures
+              if (boilingPointValues.length > 0 && !physicalProps.boilingPoint) {
+                physicalProps.boilingPoint = getCelsiusPreferredValue(boilingPointValues);
+              }
+              if (meltingPointValues.length > 0 && !physicalProps.meltingPoint) {
+                physicalProps.meltingPoint = getCelsiusPreferredValue(meltingPointValues);
+              }
+              if (flashPointValues.length > 0 && !physicalProps.flashPoint) {
+                physicalProps.flashPoint = getCelsiusPreferredValue(flashPointValues);
+              }
+              if (densityValues.length > 0 && !physicalProps.density) {
+                physicalProps.density = densityValues.join('; ');
+              }
+              if (solubilityValues.length > 0 && !physicalProps.solubility) {
+                physicalProps.solubility = solubilityValues.join('; ');
+              }
+              if (vaporPressureValues.length > 0 && !physicalProps.vaporPressure) {
+                physicalProps.vaporPressure = vaporPressureValues.join('; ');
+              }
+              if (vaporDensityValues.length > 0 && !physicalProps.vaporDensity) {
+                physicalProps.vaporDensity = vaporDensityValues.join('; ');
+              }
+              if (refractiveIndexValues.length > 0 && !physicalProps.refractiveIndex) {
+                physicalProps.refractiveIndex = refractiveIndexValues.join('; ');
+              }
+              if (unNumberValue && !physicalProps.unNumber) {
+                physicalProps.unNumber = unNumberValue;
+              }
             }
           }
-          
+
           if (section.Section) {
             searchSections(section.Section);
           }
@@ -293,18 +412,35 @@ class PubChemService {
         iupacName: pubchemData.properties.iupacName,
         canonicalSMILES: pubchemData.properties.canonicalSMILES,
         isomericSMILES: pubchemData.properties.isomericSMILES,
+        inchi: pubchemData.properties.inchi,
+        inchiKey: pubchemData.properties.inchiKey,
+        synonyms: pubchemData.synonyms || [],
+        hazardStatements: pubchemData.ghsData?.hazardStatements || [],
+        unNumber: pubchemData.physicalProperties?.unNumber || null,
         pubchemCID: pubchemData.cid,
         // Add physical properties (only if they exist to avoid null enum validation)
         ...(pubchemData.physicalProperties?.physicalState && { physicalState: pubchemData.physicalProperties.physicalState }),
-        ...(pubchemData.physicalProperties?.boilingPoint && { boilingPoint: pubchemData.physicalProperties.boilingPoint }),
-        ...(pubchemData.physicalProperties?.meltingPoint && { meltingPoint: pubchemData.physicalProperties.meltingPoint }),
-        ...(pubchemData.physicalProperties?.flashPoint && { flashPoint: pubchemData.physicalProperties.flashPoint }),
-        ...(pubchemData.physicalProperties?.density && { density: pubchemData.physicalProperties.density }),
-        ...(pubchemData.physicalProperties?.physicalDescription && { physicalDescription: pubchemData.physicalProperties.physicalDescription }),
-        // Enhanced computed properties
-        tpsa: pubchemData.properties.tpsa,
-        complexity: pubchemData.properties.complexity,
-        charge: pubchemData.properties.charge,
+        // Store additional properties from PubChem (hidden by default, user can reveal)
+        additionalProperties: {
+          meltingPoint: pubchemData.physicalProperties?.meltingPoint || null,
+          boilingPoint: pubchemData.physicalProperties?.boilingPoint || null,
+          flashPoint: pubchemData.physicalProperties?.flashPoint || null,
+          density: pubchemData.physicalProperties?.density || null,
+          vaporPressure: pubchemData.physicalProperties?.vaporPressure || null,
+          vaporDensity: pubchemData.physicalProperties?.vaporDensity || null,
+          refractiveIndex: pubchemData.physicalProperties?.refractiveIndex || null,
+          logP: pubchemData.properties?.xLogP?.toString() || null,
+          polarSurfaceArea: pubchemData.properties?.tpsa?.toString() || null,
+          hydrogenBondDonor: pubchemData.properties?.hBondDonorCount || null,
+          hydrogenBondAcceptor: pubchemData.properties?.hBondAcceptorCount || null,
+          rotatableBonds: pubchemData.properties?.rotatableBondCount || null,
+          exactMass: pubchemData.properties?.exactMass?.toString() || null,
+          monoisotopicMass: pubchemData.properties?.monoisotopicMass?.toString() || null,
+          complexity: pubchemData.properties?.complexity?.toString() || null,
+          heavyAtomCount: pubchemData.properties?.heavyAtomCount || null,
+          charge: pubchemData.properties?.charge || null,
+          visibleProperties: [] // Hidden by default - user can selectively reveal them
+        },
         pubchemData: {
           lastUpdated: new Date(),
           compound: pubchemData,
@@ -314,18 +450,6 @@ class PubChemService {
         },
         autoPopulated: true
       };
-
-      // Generate enhanced hazard classification (without pictograms)
-      const hazardClassification = pubchemData.ghsData ? {
-        hazardStatements: pubchemData.ghsData.hazardStatements || [],
-        precautionaryStatements: pubchemData.ghsData.precautionaryStatements || [],
-        signalWord: pubchemData.ghsData.signalWord || 'WARNING',
-        pubchemGHS: {
-          autoImported: true,
-          lastUpdated: new Date(),
-          rawData: pubchemData.ghsData
-        }
-      } : {};
 
       // SKU variants will be assigned by PMOps team later
       const skuVariants = [];
@@ -359,11 +483,10 @@ class PubChemService {
 
       return {
         chemicalProperties,
-        hazardClassification,
         skuVariants,
         corpbaseData,
-        productName: pubchemData.properties.iupacName || 
-                    pubchemData.synonyms[0] || 
+        productName: pubchemData.properties.iupacName ||
+                    pubchemData.synonyms[0] ||
                     `Chemical compound (CAS: ${casNumber})`
       };
     } catch (error) {
@@ -374,7 +497,6 @@ class PubChemService {
           casNumber,
           autoPopulated: false
         },
-        hazardClassification: {},
         skuVariants: [],
         corpbaseData: {},
         error: error.message
