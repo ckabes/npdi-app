@@ -75,8 +75,33 @@ const cleanHazardClassificationEnums = (hazardClassification) => {
 const cleanTicketEnums = (ticketData) => {
   if (!ticketData) return;
 
-  const mainEnumFields = ['sbu', 'status', 'priority', 'productionType'];
+  const mainEnumFields = [
+    'sbu',
+    'status',
+    'priority',
+    'productionType',
+    'brand',
+    'countryOfOrigin',
+    'distributionType'
+  ];
   cleanEnumFields(ticketData, mainEnumFields);
+
+  // Clean nested productScope enum
+  if (ticketData.productScope && ticketData.productScope.scope === '') {
+    delete ticketData.productScope.scope;
+  }
+
+  // Clean nested retestOrExpiration enum
+  if (ticketData.retestOrExpiration) {
+    if (ticketData.retestOrExpiration.type === '') {
+      delete ticketData.retestOrExpiration.type;
+    }
+    if (ticketData.retestOrExpiration.shelfLife) {
+      if (ticketData.retestOrExpiration.shelfLife.unit === '') {
+        delete ticketData.retestOrExpiration.shelfLife.unit;
+      }
+    }
+  }
 };
 
 /**

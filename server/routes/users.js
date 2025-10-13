@@ -27,8 +27,9 @@ router.put('/:id', [
   body('firstName').notEmpty().trim(),
   body('lastName').notEmpty().trim(),
   body('role').isIn(['PRODUCT_MANAGER', 'PM_OPS', 'ADMIN']),
-  body('sbu').optional().isIn(['Life Science', 'Process Solutions', 'Electronics', 'Healthcare']),
-  body('isActive').optional().isBoolean()
+  body('sbu').optional({ checkFalsy: true }).isIn(['Life Science', 'Process Solutions', 'Electronics', 'Healthcare']),
+  body('isActive').optional().isBoolean(),
+  body('templateId').optional({ checkFalsy: true }).isString()
 ], devProfileController.updateProfile);
 
 // Toggle user/profile active status

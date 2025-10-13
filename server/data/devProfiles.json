@@ -6,6 +6,7 @@
     "email": "john.smith@milliporesigma.com",
     "role": "PRODUCT_MANAGER",
     "sbu": "Life Science",
+    "assignedTemplate": "Default",
     "isActive": true,
     "createdAt": "2024-01-01T00:00:00.000Z"
   },
@@ -25,8 +26,22 @@
     "lastName": "Wilson",
     "email": "mike.wilson@milliporesigma.com",
     "role": "ADMIN",
-    "sbu": "Electronics",
+    "assignedTemplate": "Default",
     "isActive": true,
-    "createdAt": "2024-01-01T00:00:00.000Z"
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2025-10-13T02:52:47.510Z"
+  },
+  {
+    "id": "john-doe-1760377632285",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@milliporesigma.com",
+    "role": "PRODUCT_MANAGER",
+    "sbu": "Life Science",
+    "isActive": true,
+    "createdAt": "2025-10-13T17:47:12.285Z",
+    "lastLogin": null,
+    "templateId": "68ed3c44c7b75bdac03b1912",
+    "updatedAt": "2025-10-13T18:09:15.015Z"
   }
 ]

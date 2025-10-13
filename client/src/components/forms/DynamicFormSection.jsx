@@ -6,15 +6,85 @@ const DynamicFormSection = ({
   errors,
   watch,
   readOnly = false,
-  data = {}
+  data = {},
+  previewMode = false  // New prop: when true, show all fields regardless of visibility conditions
 }) => {
   if (!section || !section.visible) return null;
+
+  // Helper function to check if a field would be visible
+  const isFieldVisible = (field) => {
+    if (!field.visible) return false;
+
+    // In preview mode, show all fields regardless of visibility conditions
+    if (previewMode) return true;
+
+    // Check field visibility dependencies
+    if (field.visibleWhen) {
+      const { fieldKey: dependentFieldKey, value: requiredValue } = field.visibleWhen;
+      // In read-only preview mode, get the default value of the dependent field
+      const dependentField = section.fields?.find(f => f.fieldKey === dependentFieldKey);
+      const currentValue = readOnly && dependentField?.defaultValue !== undefined
+        ? dependentField.defaultValue
+        : (watch ? watch(dependentFieldKey) : data[dependentFieldKey]);
+
+      // Convert checkbox string values to boolean for comparison
+      let compareValue = currentValue;
+      let compareRequired = requiredValue;
+
+      if (requiredValue === 'true' || requiredValue === 'false') {
+        compareRequired = requiredValue === 'true';
+        compareValue = Boolean(currentValue);
+      }
+
+      // Only show this field if the dependent field has the required value
+      if (compareValue !== compareRequired) {
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  // Check if any fields in this section would be visible
+  // If no fields are visible, hide the entire section (unless in preview mode)
+  if (!previewMode) {
+    const hasVisibleFields = section.fields?.some(field => isFieldVisible(field));
+    if (!hasVisibleFields) return null;
+  }
 
   const renderField = (field) => {
     if (!field.visible) return null;
 
+    // Check field visibility dependencies (skip in preview mode)
+    if (!previewMode && field.visibleWhen) {
+      const { fieldKey: dependentFieldKey, value: requiredValue } = field.visibleWhen;
+      // In read-only preview mode, get the default value of the dependent field
+      const dependentField = section.fields?.find(f => f.fieldKey === dependentFieldKey);
+      const currentValue = readOnly && dependentField?.defaultValue !== undefined
+        ? dependentField.defaultValue
+        : (watch ? watch(dependentFieldKey) : data[dependentFieldKey]);
+
+      // Convert checkbox string values to boolean for comparison
+      let compareValue = currentValue;
+      let compareRequired = requiredValue;
+
+      if (requiredValue === 'true' || requiredValue === 'false') {
+        compareRequired = requiredValue === 'true';
+        compareValue = Boolean(currentValue);
+      }
+
+      // Only show this field if the dependent field has the required value
+      if (compareValue !== compareRequired) {
+        return null;
+      }
+    }
+
     const fieldPath = field.fieldKey;
-    const value = watch ? watch(fieldPath) : data[field.fieldKey];
+    // In read-only preview mode, prefer field.defaultValue over watch/data
+    // This ensures the preview shows the configured default value
+    const value = readOnly && field.defaultValue !== undefined
+      ? field.defaultValue
+      : (watch ? watch(fieldPath) : data[field.fieldKey]);
     const error = errors?.[field.fieldKey];
     const isReadOnly = readOnly || !field.editable;
 
