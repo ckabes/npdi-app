@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  CogIcon, 
+import {
+  CogIcon,
   ServerIcon,
   CircleStackIcon,
   BellIcon,
@@ -10,84 +10,112 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { systemSettingsAPI } from '../../services/api';
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState({});
   const [activeSection, setActiveSection] = useState('general');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const defaultSettings = {
-      general: {
-        systemName: 'NPDI Application',
-        systemDescription: 'New Product Development & Introduction System',
-        companyName: 'Company Name',
-        supportEmail: 'support@company.com',
-        timezone: 'America/New_York',
-        dateFormat: 'MM/DD/YYYY',
-        timeFormat: '12-hour'
-      },
-      tickets: {
-        autoTicketNumbers: true,
-        ticketPrefix: 'NPDI',
-        defaultPriority: 'MEDIUM',
-        allowDraftEditing: true,
-        maxDraftAge: 30,
-        autoSubmitReminder: 7,
-        enableStatusHistory: true,
-        enableComments: true
-      },
-      notifications: {
-        emailNotifications: true,
-        newTicketNotification: true,
-        statusChangeNotification: true,
-        commentNotification: true,
-        assignmentNotification: true,
-        reminderNotifications: true,
-        smtpServer: 'smtp.company.com',
-        smtpPort: 587,
-        smtpUsername: 'noreply@company.com',
-        smtpPassword: '********'
-      },
-      security: {
-        sessionTimeout: 480,
-        maxLoginAttempts: 5,
-        lockoutDuration: 15,
-        passwordMinLength: 8,
-        requireSpecialCharacters: true,
-        requireNumbers: true,
-        passwordExpiry: 90,
-        enableTwoFactor: false,
-        auditLogging: true
-      },
-      integrations: {
-        pubchemEnabled: true,
-        pubchemTimeout: 30,
-        pubchemCacheTime: 24,
-        enableAutoPopulation: true,
-        externalAPITimeout: 10,
-        webhookEnabled: false,
-        webhookURL: '',
-        webhookSecret: ''
-      },
-      performance: {
-        cacheEnabled: true,
-        cacheTimeout: 300,
-        maxFileSize: 10,
-        maxFilesPerTicket: 10,
-        databaseBackupEnabled: true,
-        backupFrequency: 'daily',
-        logRetention: 30,
-        enableDebugMode: false
-      }
-    };
-
-    setSettings(defaultSettings);
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await systemSettingsAPI.getSettings();
+      setSettings(response.data);
+    } catch (error) {
+      console.error('Error fetching system settings:', error);
+      toast.error('Failed to load system settings');
+      // Set default settings on error
+      setSettings({
+        general: {
+          systemName: 'NPDI Application',
+          systemDescription: 'New Product Development & Introduction System',
+          companyName: 'Company Name',
+          supportEmail: 'support@company.com'
+        },
+        tickets: {
+          autoTicketNumbers: true,
+          ticketPrefix: 'NPDI',
+          defaultPriority: 'MEDIUM',
+          allowDraftEditing: true,
+          maxDraftAge: 30,
+          autoSubmitReminder: 7,
+          enableStatusHistory: true,
+          enableComments: true
+        },
+        email: {
+          enabled: false,
+          smtpServer: '',
+          smtpPort: 587,
+          smtpUsername: '',
+          smtpPassword: '********',
+          fromEmail: '',
+          fromName: 'NPDI System'
+        },
+        security: {
+          sessionTimeout: 480,
+          maxLoginAttempts: 5,
+          lockoutDuration: 15,
+          passwordMinLength: 8,
+          requireSpecialCharacters: true,
+          requireNumbers: true,
+          requireUppercase: true,
+          passwordExpiry: 90,
+          enableTwoFactor: false,
+          auditLogging: true
+        },
+        integrations: {
+          pubchem: {
+            enabled: true,
+            timeout: 30,
+            cacheTime: 24,
+            autoPopulation: true
+          },
+          webhook: {
+            enabled: false,
+            url: '',
+            secret: ''
+          },
+          externalAPI: {
+            timeout: 10,
+            retryAttempts: 3
+          }
+        },
+        performance: {
+          cache: {
+            enabled: true,
+            timeout: 300
+          },
+          files: {
+            maxFileSize: 10,
+            maxFilesPerTicket: 10
+          },
+          database: {
+            backupEnabled: true,
+            backupFrequency: 'daily',
+            backupRetention: 30
+          },
+          logging: {
+            logRetention: 30,
+            enableDebugMode: false,
+            logLevel: 'info'
+          }
+        }
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sections = [
     { id: 'general', name: 'General Settings', icon: CogIcon },
     { id: 'tickets', name: 'Ticket Configuration', icon: DocumentTextIcon },
-    { id: 'notifications', name: 'Notifications', icon: BellIcon },
+    { id: 'email', name: 'Email / SMTP', icon: BellIcon },
     { id: 'security', name: 'Security', icon: ShieldCheckIcon },
     { id: 'integrations', name: 'Integrations', icon: ServerIcon },
     { id: 'performance', name: 'Performance', icon: CircleStackIcon }
@@ -105,21 +133,52 @@ const SystemSettings = () => {
 
   const saveSettings = async () => {
     try {
-      // API call to save settings would go here
-      console.log('Saving system settings:', settings);
+      setSaving(true);
+      await systemSettingsAPI.updateSettings(settings);
       toast.success('System settings saved successfully');
+      // Refresh settings to get any server-side processing
+      await fetchSettings();
     } catch (error) {
+      console.error('Error saving system settings:', error);
       toast.error('Failed to save settings');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const testConnection = async (type) => {
+  const testSmtpConnection = async () => {
     try {
-      // Mock connection test
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success(`${type} connection test successful`);
+      const smtpConfig = {
+        smtpServer: settings.email?.smtpServer,
+        smtpPort: settings.email?.smtpPort,
+        smtpUsername: settings.email?.smtpUsername,
+        smtpPassword: settings.email?.smtpPassword,
+        smtpSecure: settings.email?.smtpSecure || false
+      };
+
+      const response = await systemSettingsAPI.testSmtp(smtpConfig);
+      if (response.data.success) {
+        toast.success('SMTP connection test successful');
+      } else {
+        toast.error('SMTP connection test failed');
+      }
     } catch (error) {
-      toast.error(`${type} connection test failed`);
+      console.error('SMTP test error:', error);
+      toast.error(error.response?.data?.message || 'SMTP connection test failed');
+    }
+  };
+
+  const testPubChemConnection = async () => {
+    try {
+      const response = await systemSettingsAPI.testPubChem();
+      if (response.data.success) {
+        toast.success(`PubChem connection successful - Test compound: ${response.data.testData?.compound}`);
+      } else {
+        toast.error('PubChem connection test failed');
+      }
+    } catch (error) {
+      console.error('PubChem test error:', error);
+      toast.error(error.response?.data?.message || 'PubChem connection test failed');
     }
   };
 
@@ -162,50 +221,26 @@ const SystemSettings = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Timezone
+            Support Email
           </label>
-          <select
-            value={settings.general?.timezone || ''}
-            onChange={(e) => updateSetting('general', 'timezone', e.target.value)}
-            className="form-select"
-          >
-            <option value="America/New_York">Eastern Time</option>
-            <option value="America/Chicago">Central Time</option>
-            <option value="America/Denver">Mountain Time</option>
-            <option value="America/Los_Angeles">Pacific Time</option>
-            <option value="UTC">UTC</option>
-          </select>
+          <input
+            type="email"
+            value={settings.general?.supportEmail || ''}
+            onChange={(e) => updateSetting('general', 'supportEmail', e.target.value)}
+            className="form-input"
+            placeholder="support@company.com"
+          />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Date Format
-          </label>
-          <select
-            value={settings.general?.dateFormat || ''}
-            onChange={(e) => updateSetting('general', 'dateFormat', e.target.value)}
-            className="form-select"
-          >
-            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Time Format
-          </label>
-          <select
-            value={settings.general?.timeFormat || ''}
-            onChange={(e) => updateSetting('general', 'timeFormat', e.target.value)}
-            className="form-select"
-          >
-            <option value="12-hour">12 Hour (AM/PM)</option>
-            <option value="24-hour">24 Hour</option>
-          </select>
-        </div>
+      </div>
+
+      <div className="mt-4 p-4 bg-blue-50 rounded-md">
+        <p className="text-sm text-blue-800">
+          <strong>Note:</strong> Timezone, date format, and time format are now user-specific preferences.
+          Each user can set their own preferences in their profile settings.
+        </p>
       </div>
     </div>
   );
@@ -295,30 +330,26 @@ const SystemSettings = () => {
     </div>
   );
 
-  const renderNotificationSettings = () => (
+  const renderEmailSettings = () => (
     <div className="space-y-6">
-      <div className="space-y-4">
-        {[
-          { key: 'emailNotifications', label: 'Enable email notifications' },
-          { key: 'newTicketNotification', label: 'Notify on new ticket creation' },
-          { key: 'statusChangeNotification', label: 'Notify on status changes' },
-          { key: 'commentNotification', label: 'Notify on new comments' },
-          { key: 'assignmentNotification', label: 'Notify on ticket assignment' },
-          { key: 'reminderNotifications', label: 'Send reminder notifications' }
-        ].map(setting => (
-          <div key={setting.key} className="flex items-center">
-            <input
-              id={setting.key}
-              type="checkbox"
-              checked={settings.notifications?.[setting.key] || false}
-              onChange={(e) => updateSetting('notifications', setting.key, e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor={setting.key} className="ml-3 text-sm text-gray-700">
-              {setting.label}
-            </label>
-          </div>
-        ))}
+      <div className="flex items-center">
+        <input
+          id="emailEnabled"
+          type="checkbox"
+          checked={settings.email?.enabled || false}
+          onChange={(e) => updateSetting('email', 'enabled', e.target.checked)}
+          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        <label htmlFor="emailEnabled" className="ml-3 text-sm font-medium text-gray-700">
+          Enable email notifications system-wide
+        </label>
+      </div>
+
+      <div className="mt-4 p-4 bg-blue-50 rounded-md">
+        <p className="text-sm text-blue-800">
+          <strong>Note:</strong> Individual notification preferences (which emails each user receives) are now user-specific.
+          Each user can customize their notification preferences in their profile settings.
+        </p>
       </div>
 
       <div className="border-t pt-6">
@@ -330,9 +361,10 @@ const SystemSettings = () => {
             </label>
             <input
               type="text"
-              value={settings.notifications?.smtpServer || ''}
-              onChange={(e) => updateSetting('notifications', 'smtpServer', e.target.value)}
+              value={settings.email?.smtpServer || ''}
+              onChange={(e) => updateSetting('email', 'smtpServer', e.target.value)}
               className="form-input"
+              placeholder="smtp.company.com"
             />
           </div>
           <div>
@@ -341,9 +373,10 @@ const SystemSettings = () => {
             </label>
             <input
               type="number"
-              value={settings.notifications?.smtpPort || ''}
-              onChange={(e) => updateSetting('notifications', 'smtpPort', parseInt(e.target.value))}
+              value={settings.email?.smtpPort || ''}
+              onChange={(e) => updateSetting('email', 'smtpPort', parseInt(e.target.value))}
               className="form-input"
+              placeholder="587"
             />
           </div>
           <div>
@@ -352,9 +385,10 @@ const SystemSettings = () => {
             </label>
             <input
               type="text"
-              value={settings.notifications?.smtpUsername || ''}
-              onChange={(e) => updateSetting('notifications', 'smtpUsername', e.target.value)}
+              value={settings.email?.smtpUsername || ''}
+              onChange={(e) => updateSetting('email', 'smtpUsername', e.target.value)}
               className="form-input"
+              placeholder="noreply@company.com"
             />
           </div>
           <div>
@@ -363,19 +397,57 @@ const SystemSettings = () => {
             </label>
             <input
               type="password"
-              value={settings.notifications?.smtpPassword || ''}
-              onChange={(e) => updateSetting('notifications', 'smtpPassword', e.target.value)}
+              value={settings.email?.smtpPassword || ''}
+              onChange={(e) => updateSetting('email', 'smtpPassword', e.target.value)}
               className="form-input"
+              placeholder="••••••••"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              From Email
+            </label>
+            <input
+              type="email"
+              value={settings.email?.fromEmail || ''}
+              onChange={(e) => updateSetting('email', 'fromEmail', e.target.value)}
+              className="form-input"
+              placeholder="noreply@company.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              From Name
+            </label>
+            <input
+              type="text"
+              value={settings.email?.fromName || ''}
+              onChange={(e) => updateSetting('email', 'fromName', e.target.value)}
+              className="form-input"
+              placeholder="NPDI System"
             />
           </div>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 flex items-center gap-4">
           <button
-            onClick={() => testConnection('SMTP')}
+            onClick={testSmtpConnection}
             className="btn btn-secondary"
+            disabled={!settings.email?.smtpServer || !settings.email?.smtpPort}
           >
             Test SMTP Connection
           </button>
+          <div className="flex items-center">
+            <input
+              id="smtpSecure"
+              type="checkbox"
+              checked={settings.email?.smtpSecure || false}
+              onChange={(e) => updateSetting('email', 'smtpSecure', e.target.checked)}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="smtpSecure" className="ml-2 text-sm text-gray-700">
+              Use TLS/SSL
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -483,6 +555,7 @@ const SystemSettings = () => {
 
   const renderIntegrationsSettings = () => (
     <div className="space-y-6">
+      {/* PubChem Integration */}
       <div className="border rounded-lg p-4">
         <h4 className="text-lg font-medium text-gray-900 mb-4">PubChem Integration</h4>
         <div className="space-y-4">
@@ -490,24 +563,32 @@ const SystemSettings = () => {
             <input
               id="pubchemEnabled"
               type="checkbox"
-              checked={settings.integrations?.pubchemEnabled || false}
-              onChange={(e) => updateSetting('integrations', 'pubchemEnabled', e.target.checked)}
+              checked={settings.integrations?.pubchem?.enabled || false}
+              onChange={(e) => {
+                const newIntegrations = { ...settings.integrations };
+                newIntegrations.pubchem = { ...newIntegrations.pubchem, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+              }}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
             <label htmlFor="pubchemEnabled" className="ml-3 text-sm text-gray-700">
               Enable PubChem auto-population
             </label>
           </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Timeout (seconds)
               </label>
               <input
                 type="number"
-                value={settings.integrations?.pubchemTimeout || ''}
-                onChange={(e) => updateSetting('integrations', 'pubchemTimeout', parseInt(e.target.value))}
+                value={settings.integrations?.pubchem?.timeout || ''}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.pubchem = { ...newIntegrations.pubchem, timeout: parseInt(e.target.value) };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
                 className="form-input"
                 min="5"
                 max="60"
@@ -519,21 +600,99 @@ const SystemSettings = () => {
               </label>
               <input
                 type="number"
-                value={settings.integrations?.pubchemCacheTime || ''}
-                onChange={(e) => updateSetting('integrations', 'pubchemCacheTime', parseInt(e.target.value))}
+                value={settings.integrations?.pubchem?.cacheTime || ''}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.pubchem = { ...newIntegrations.pubchem, cacheTime: parseInt(e.target.value) };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
                 className="form-input"
                 min="1"
                 max="168"
               />
             </div>
+            <div className="flex items-center">
+              <input
+                id="pubchemAutoPopulation"
+                type="checkbox"
+                checked={settings.integrations?.pubchem?.autoPopulation || false}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.pubchem = { ...newIntegrations.pubchem, autoPopulation: e.target.checked };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="pubchemAutoPopulation" className="ml-2 text-sm text-gray-700">
+                Auto-populate fields
+              </label>
+            </div>
           </div>
-          
+
           <button
-            onClick={() => testConnection('PubChem')}
+            onClick={testPubChemConnection}
             className="btn btn-secondary"
           >
             Test PubChem Connection
           </button>
+        </div>
+      </div>
+
+      {/* Webhook Integration */}
+      <div className="border rounded-lg p-4">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Webhook Integration</h4>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="webhookEnabled"
+              type="checkbox"
+              checked={settings.integrations?.webhook?.enabled || false}
+              onChange={(e) => {
+                const newIntegrations = { ...settings.integrations };
+                newIntegrations.webhook = { ...newIntegrations.webhook, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="webhookEnabled" className="ml-3 text-sm text-gray-700">
+              Enable webhook notifications
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Webhook URL
+              </label>
+              <input
+                type="url"
+                value={settings.integrations?.webhook?.url || ''}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.webhook = { ...newIntegrations.webhook, url: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="https://your-webhook-url.com/endpoint"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Webhook Secret
+              </label>
+              <input
+                type="password"
+                value={settings.integrations?.webhook?.secret || ''}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.webhook = { ...newIntegrations.webhook, secret: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="••••••••"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -541,54 +700,204 @@ const SystemSettings = () => {
 
   const renderPerformanceSettings = () => (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Cache Timeout (seconds)
-          </label>
-          <input
-            type="number"
-            value={settings.performance?.cacheTimeout || ''}
-            onChange={(e) => updateSetting('performance', 'cacheTimeout', parseInt(e.target.value))}
-            className="form-input"
-            min="60"
-            max="3600"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Log Retention (days)
-          </label>
-          <input
-            type="number"
-            value={settings.performance?.logRetention || ''}
-            onChange={(e) => updateSetting('performance', 'logRetention', parseInt(e.target.value))}
-            className="form-input"
-            min="7"
-            max="365"
-          />
+      {/* Cache Settings */}
+      <div className="border rounded-lg p-4">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Cache Settings</h4>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="cacheEnabled"
+              type="checkbox"
+              checked={settings.performance?.cache?.enabled || false}
+              onChange={(e) => {
+                const newPerformance = { ...settings.performance };
+                newPerformance.cache = { ...newPerformance.cache, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, performance: newPerformance }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="cacheEnabled" className="ml-3 text-sm text-gray-700">
+              Enable caching
+            </label>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Cache Timeout (seconds)
+            </label>
+            <input
+              type="number"
+              value={settings.performance?.cache?.timeout || ''}
+              onChange={(e) => {
+                const newPerformance = { ...settings.performance };
+                newPerformance.cache = { ...newPerformance.cache, timeout: parseInt(e.target.value) };
+                setSettings(prev => ({ ...prev, performance: newPerformance }));
+              }}
+              className="form-input"
+              min="60"
+              max="3600"
+            />
+          </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {[
-          { key: 'cacheEnabled', label: 'Enable caching' },
-          { key: 'databaseBackupEnabled', label: 'Enable automatic database backups' },
-          { key: 'enableDebugMode', label: 'Enable debug mode' }
-        ].map(setting => (
-          <div key={setting.key} className="flex items-center">
+      {/* File Settings */}
+      <div className="border rounded-lg p-4">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">File Upload Settings</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Max File Size (MB)
+            </label>
             <input
-              id={setting.key}
+              type="number"
+              value={settings.performance?.files?.maxFileSize || ''}
+              onChange={(e) => {
+                const newPerformance = { ...settings.performance };
+                newPerformance.files = { ...newPerformance.files, maxFileSize: parseInt(e.target.value) };
+                setSettings(prev => ({ ...prev, performance: newPerformance }));
+              }}
+              className="form-input"
+              min="1"
+              max="100"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Max Files Per Ticket
+            </label>
+            <input
+              type="number"
+              value={settings.performance?.files?.maxFilesPerTicket || ''}
+              onChange={(e) => {
+                const newPerformance = { ...settings.performance };
+                newPerformance.files = { ...newPerformance.files, maxFilesPerTicket: parseInt(e.target.value) };
+                setSettings(prev => ({ ...prev, performance: newPerformance }));
+              }}
+              className="form-input"
+              min="1"
+              max="50"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Database Settings */}
+      <div className="border rounded-lg p-4">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Database & Backup</h4>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="backupEnabled"
               type="checkbox"
-              checked={settings.performance?.[setting.key] || false}
-              onChange={(e) => updateSetting('performance', setting.key, e.target.checked)}
+              checked={settings.performance?.database?.backupEnabled || false}
+              onChange={(e) => {
+                const newPerformance = { ...settings.performance };
+                newPerformance.database = { ...newPerformance.database, backupEnabled: e.target.checked };
+                setSettings(prev => ({ ...prev, performance: newPerformance }));
+              }}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <label htmlFor={setting.key} className="ml-3 text-sm text-gray-700">
-              {setting.label}
+            <label htmlFor="backupEnabled" className="ml-3 text-sm text-gray-700">
+              Enable automatic database backups
             </label>
           </div>
-        ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Backup Frequency
+              </label>
+              <select
+                value={settings.performance?.database?.backupFrequency || 'daily'}
+                onChange={(e) => {
+                  const newPerformance = { ...settings.performance };
+                  newPerformance.database = { ...newPerformance.database, backupFrequency: e.target.value };
+                  setSettings(prev => ({ ...prev, performance: newPerformance }));
+                }}
+                className="form-select"
+              >
+                <option value="hourly">Hourly</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Backup Retention (days)
+              </label>
+              <input
+                type="number"
+                value={settings.performance?.database?.backupRetention || ''}
+                onChange={(e) => {
+                  const newPerformance = { ...settings.performance };
+                  newPerformance.database = { ...newPerformance.database, backupRetention: parseInt(e.target.value) };
+                  setSettings(prev => ({ ...prev, performance: newPerformance }));
+                }}
+                className="form-input"
+                min="7"
+                max="365"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Logging Settings */}
+      <div className="border rounded-lg p-4">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Logging</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Log Retention (days)
+            </label>
+            <input
+              type="number"
+              value={settings.performance?.logging?.logRetention || ''}
+              onChange={(e) => {
+                const newPerformance = { ...settings.performance };
+                newPerformance.logging = { ...newPerformance.logging, logRetention: parseInt(e.target.value) };
+                setSettings(prev => ({ ...prev, performance: newPerformance }));
+              }}
+              className="form-input"
+              min="7"
+              max="365"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Log Level
+            </label>
+            <select
+              value={settings.performance?.logging?.logLevel || 'info'}
+              onChange={(e) => {
+                const newPerformance = { ...settings.performance };
+                newPerformance.logging = { ...newPerformance.logging, logLevel: e.target.value };
+                setSettings(prev => ({ ...prev, performance: newPerformance }));
+              }}
+              className="form-select"
+            >
+              <option value="error">Error</option>
+              <option value="warn">Warning</option>
+              <option value="info">Info</option>
+              <option value="debug">Debug</option>
+            </select>
+          </div>
+        </div>
+        <div className="mt-4 flex items-center">
+          <input
+            id="debugMode"
+            type="checkbox"
+            checked={settings.performance?.logging?.enableDebugMode || false}
+            onChange={(e) => {
+              const newPerformance = { ...settings.performance };
+              newPerformance.logging = { ...newPerformance.logging, enableDebugMode: e.target.checked };
+              setSettings(prev => ({ ...prev, performance: newPerformance }));
+            }}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <label htmlFor="debugMode" className="ml-3 text-sm text-gray-700">
+            Enable debug mode
+          </label>
+        </div>
       </div>
     </div>
   );
@@ -599,8 +908,8 @@ const SystemSettings = () => {
         return renderGeneralSettings();
       case 'tickets':
         return renderTicketSettings();
-      case 'notifications':
-        return renderNotificationSettings();
+      case 'email':
+        return renderEmailSettings();
       case 'security':
         return renderSecuritySettings();
       case 'integrations':
@@ -612,6 +921,17 @@ const SystemSettings = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading settings...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -622,10 +942,20 @@ const SystemSettings = () => {
         </div>
         <button
           onClick={saveSettings}
+          disabled={saving}
           className="btn btn-primary flex items-center space-x-2"
         >
-          <CogIcon className="h-5 w-5" />
-          <span>Save Settings</span>
+          {saving ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <CogIcon className="h-5 w-5" />
+              <span>Save Settings</span>
+            </>
+          )}
         </button>
       </div>
 
