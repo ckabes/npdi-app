@@ -21,7 +21,11 @@
       "Bash(sudo docker:*)",
       "Bash(ss:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:pubchem.ncbi.nlm.nih.gov)"
+      "WebFetch(domain:pubchem.ncbi.nlm.nih.gov)",
+      "Bash(systemctl status:*)",
+      "Bash(sudo systemctl:*)",
+      "Bash(timeout 5 npm start:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

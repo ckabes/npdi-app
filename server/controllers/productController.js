@@ -3,18 +3,29 @@ const ProductTicket = require('../models/ProductTicket');
 const User = require('../models/User');
 const { notifyNewTicket, notifyStatusChange, notifyCommentAdded } = require('../utils/notifications');
 const pubchemService = require('../services/pubchemService');
+const { cleanTicketData, ensureDefaultSKU, ensureDefaultSBU } = require('../utils/enumCleaner');
 
-// Temporary hardcoded user mapping for demonstration (until auth is implemented)
+// Extract current user information from request headers
 const getCurrentUser = (req) => {
-  // In a real system, this would come from authentication middleware
-  // For now, we'll use a simple role-based approach
+  // Read user information from headers sent by the frontend
+  const firstName = req.headers['x-user-firstname'] || 'Unknown';
+  const lastName = req.headers['x-user-lastname'] || 'User';
+  const email = req.headers['x-user-email'] || '';
   const userRole = req.headers['x-user-role'] || 'PRODUCT_MANAGER';
-  const userMap = {
-    'PRODUCT_MANAGER': { firstName: 'John', lastName: 'Doe', role: 'Product Manager' },
-    'PM_OPS': { firstName: 'Sarah', lastName: 'Johnson', role: 'PMOps' },
-    'ADMIN': { firstName: 'Admin', lastName: 'User', role: 'Administrator' }
+
+  // Map role to friendly display name
+  const roleDisplayMap = {
+    'PRODUCT_MANAGER': 'Product Manager',
+    'PM_OPS': 'PMOps',
+    'ADMIN': 'Administrator'
   };
-  return userMap[userRole] || userMap['PRODUCT_MANAGER'];
+
+  return {
+    firstName,
+    lastName,
+    email,
+    role: roleDisplayMap[userRole] || userRole
+  };
 };
 
 const createTicket = async (req, res) => {
@@ -26,17 +37,7 @@ const createTicket = async (req, res) => {
 
     let ticketData = {
       ...req.body,
-      createdBy: null, // Remove authentication requirement
-      sbu: req.body.sbu || 'P90', // Default to P90 instead of Life Science
-      // Ensure skuVariants exists with at least one default entry
-      skuVariants: req.body.skuVariants && req.body.skuVariants.length > 0 
-        ? req.body.skuVariants 
-        : [{
-            type: 'PREPACK',
-            sku: '',
-            packageSize: { value: 100, unit: 'g' },
-            pricing: { listPrice: 0, currency: 'USD' }
-          }]
+      createdBy: null // Remove authentication requirement
     };
 
     // All submitted tickets should have SUBMITTED status initially
@@ -44,88 +45,11 @@ const createTicket = async (req, res) => {
     if (!ticketData.status || ticketData.status === '') {
       ticketData.status = 'SUBMITTED';
     }
-    // Only keep the submitted status if explicitly provided, otherwise default to SUBMITTED
 
-    // Transform corpbaseData fields if they are strings instead of arrays
-    if (ticketData.corpbaseData) {
-      if (typeof ticketData.corpbaseData.keyFeatures === 'string' && ticketData.corpbaseData.keyFeatures) {
-        ticketData.corpbaseData.keyFeatures = ticketData.corpbaseData.keyFeatures
-          .split('\n')
-          .map(f => f.trim())
-          .filter(f => f.length > 0);
-      }
-      if (typeof ticketData.corpbaseData.applications === 'string' && ticketData.corpbaseData.applications) {
-        ticketData.corpbaseData.applications = ticketData.corpbaseData.applications
-          .split('\n')
-          .map(a => a.trim())
-          .filter(a => a.length > 0);
-      }
-    }
-
-    // Clean up enum fields to handle empty string values
-    if (ticketData.hazardClassification) {
-      // Convert empty strings to undefined to avoid enum validation errors
-      if (ticketData.hazardClassification.ghsClass === '') {
-        delete ticketData.hazardClassification.ghsClass;
-      }
-      if (ticketData.hazardClassification.signalWord === '') {
-        delete ticketData.hazardClassification.signalWord;
-      }
-      if (ticketData.hazardClassification.transportClass === '') {
-        delete ticketData.hazardClassification.transportClass;
-      }
-      if (ticketData.hazardClassification.unNumber === '') {
-        delete ticketData.hazardClassification.unNumber;
-      }
-    }
-
-    // Clean up chemical properties enum fields
-    if (ticketData.chemicalProperties) {
-      if (ticketData.chemicalProperties.physicalState === '' || ticketData.chemicalProperties.physicalState === null) {
-        delete ticketData.chemicalProperties.physicalState;
-      }
-    }
-
-    // Clean up main ticket enum fields
-    if (ticketData.sbu === '') {
-      delete ticketData.sbu;
-    }
-    if (ticketData.status === '') {
-      delete ticketData.status;
-    }
-    if (ticketData.priority === '') {
-      delete ticketData.priority;
-    }
-
-    // Clean up SKU variants enum fields and provide defaults
-    if (ticketData.skuVariants && Array.isArray(ticketData.skuVariants)) {
-      ticketData.skuVariants = ticketData.skuVariants.map(sku => {
-        // Provide default type if missing or empty
-        if (!sku.type || sku.type === '') {
-          sku.type = 'PREPACK';
-        }
-        // Ensure packageSize exists and has valid unit
-        if (!sku.packageSize) {
-          sku.packageSize = { value: 100, unit: 'g' };
-        } else {
-          if (!sku.packageSize.unit || sku.packageSize.unit === '') {
-            sku.packageSize.unit = 'g';
-          }
-          if (!sku.packageSize.value) {
-            sku.packageSize.value = 100;
-          }
-        }
-        // Ensure pricing exists
-        if (!sku.pricing) {
-          sku.pricing = { listPrice: 0, currency: 'USD' };
-        } else {
-          if (!sku.pricing.currency) {
-            sku.pricing.currency = 'USD';
-          }
-        }
-        return sku;
-      });
-    }
+    // Use utility functions to clean and ensure defaults
+    ticketData = ensureDefaultSBU(ticketData, 'P90');
+    ticketData = ensureDefaultSKU(ticketData);
+    ticketData = cleanTicketData(ticketData);
 
     // Auto-populate from PubChem if CAS number provided
     if (ticketData.chemicalProperties?.casNumber && !ticketData.skipAutopopulate) {
@@ -140,10 +64,6 @@ const createTicket = async (req, res) => {
           chemicalProperties: {
             ...enrichedData.chemicalProperties,
             ...ticketData.chemicalProperties // User input takes priority
-          },
-          hazardClassification: {
-            ...enrichedData.hazardClassification,
-            ...ticketData.hazardClassification // User input takes priority
           },
           // No auto-generated SKUs for product managers - PMOps will assign
           // Add CorpBase data
@@ -209,62 +129,13 @@ const saveDraft = async (req, res) => {
     let ticketData = {
       ...req.body,
       status: 'DRAFT',
-      createdBy: null,
-      sbu: req.body.sbu || 'P90',
-      // Ensure skuVariants exists with at least one default entry if not provided
-      skuVariants: req.body.skuVariants && req.body.skuVariants.length > 0 
-        ? req.body.skuVariants 
-        : [{
-            type: 'PREPACK',
-            sku: '',
-            packageSize: { value: 100, unit: 'g' },
-            pricing: { listPrice: 0, currency: 'USD' }
-          }]
+      createdBy: null
     };
 
-    // Clean up enum fields (same logic as createTicket but simplified for drafts)
-    if (ticketData.corpbaseData) {
-      if (typeof ticketData.corpbaseData.keyFeatures === 'string' && ticketData.corpbaseData.keyFeatures) {
-        ticketData.corpbaseData.keyFeatures = ticketData.corpbaseData.keyFeatures
-          .split('\n').map(f => f.trim()).filter(f => f.length > 0);
-      }
-      if (typeof ticketData.corpbaseData.applications === 'string' && ticketData.corpbaseData.applications) {
-        ticketData.corpbaseData.applications = ticketData.corpbaseData.applications
-          .split('\n').map(a => a.trim()).filter(a => a.length > 0);
-      }
-    }
-
-    // Clean up enum fields for validation
-    if (ticketData.hazardClassification) {
-      if (ticketData.hazardClassification.ghsClass === '') delete ticketData.hazardClassification.ghsClass;
-      if (ticketData.hazardClassification.signalWord === '') delete ticketData.hazardClassification.signalWord;
-    }
-
-    if (ticketData.chemicalProperties) {
-      if (ticketData.chemicalProperties.physicalState === '' || ticketData.chemicalProperties.physicalState === null) {
-        delete ticketData.chemicalProperties.physicalState;
-      }
-    }
-
-    // Clean up main enum fields
-    ['sbu', 'status', 'priority'].forEach(field => {
-      if (ticketData[field] === '') delete ticketData[field];
-    });
-
-    // Clean up SKU variants
-    if (ticketData.skuVariants && Array.isArray(ticketData.skuVariants)) {
-      ticketData.skuVariants = ticketData.skuVariants.map(sku => {
-        if (!sku.type || sku.type === '') sku.type = 'PREPACK';
-        if (!sku.packageSize) sku.packageSize = { value: 100, unit: 'g' };
-        else {
-          if (!sku.packageSize.unit || sku.packageSize.unit === '') sku.packageSize.unit = 'g';
-          if (!sku.packageSize.value) sku.packageSize.value = 100;
-        }
-        if (!sku.pricing) sku.pricing = { listPrice: 0, currency: 'USD' };
-        else if (!sku.pricing.currency) sku.pricing.currency = 'USD';
-        return sku;
-      });
-    }
+    // Use utility functions to clean and ensure defaults
+    ticketData = ensureDefaultSBU(ticketData, 'P90');
+    ticketData = ensureDefaultSKU(ticketData);
+    ticketData = cleanTicketData(ticketData);
 
     const ticket = new ProductTicket(ticketData);
     
@@ -427,9 +298,12 @@ const updateTicket = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found or access denied' });
     }
 
-    const updateData = { ...req.body };
+    let updateData = { ...req.body };
     delete updateData.createdBy;
     delete updateData.ticketNumber;
+
+    // Clean enum fields before applying updates
+    updateData = cleanTicketData(updateData);
 
     // Track status changes
     const oldStatus = ticket.status;
@@ -516,7 +390,7 @@ const updateTicketStatus = async (req, res) => {
     const { id } = req.params;
     const { status, reason } = req.body;
 
-    if (!['DRAFT', 'SUBMITTED', 'IN_PROCESS', 'COMPLETED', 'CANCELED'].includes(status)) {
+    if (!['DRAFT', 'SUBMITTED', 'IN_PROCESS', 'NPDI_INITIATED', 'COMPLETED', 'CANCELED'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
@@ -583,13 +457,16 @@ const addComment = async (req, res) => {
       return res.status(404).json({ message: 'Ticket not found or access denied' });
     }
 
+    // Get current user info
+    const currentUser = getCurrentUser(req);
+
     ticket.comments.push({
       user: null,
-      content: content.trim()
+      content: content.trim(),
+      userInfo: currentUser
     });
 
     // Track comment addition in status history
-    const currentUser = getCurrentUser(req);
     ticket.statusHistory.push({
       status: ticket.status,
       changedBy: null, // Object ID would go here in real system
@@ -617,64 +494,190 @@ const addComment = async (req, res) => {
 
 const getDashboardStats = async (req, res) => {
   try {
-    const filter = {};
+    const now = new Date();
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const stats = await Promise.all([
-      // Overall stats
-      ProductTicket.countDocuments({ ...filter, status: 'DRAFT' }),
-      ProductTicket.countDocuments({ ...filter, status: 'SUBMITTED' }),
-      ProductTicket.countDocuments({ ...filter, status: 'IN_PROCESS' }),
-      ProductTicket.countDocuments({ ...filter, status: 'COMPLETED' }),
-      ProductTicket.countDocuments({ ...filter, status: 'CANCELED' }),
-      ProductTicket.countDocuments(filter),
-      
-      // Sarah's 775 tickets (separate tracking)
-      ProductTicket.countDocuments({ sbu: '775', status: 'DRAFT' }),
-      ProductTicket.countDocuments({ sbu: '775', status: 'SUBMITTED' }),
-      ProductTicket.countDocuments({ sbu: '775', status: 'IN_PROCESS' }),
-      ProductTicket.countDocuments({ sbu: '775', status: 'COMPLETED' }),
-      ProductTicket.countDocuments({ sbu: '775', status: 'CANCELED' }),
-      ProductTicket.countDocuments({ sbu: '775' }),
-      
-      // Aggregations
-      ProductTicket.aggregate([
-        { $match: filter },
-        { $group: { _id: '$sbu', count: { $sum: 1 } } }
-      ]),
-      ProductTicket.aggregate([
-        { $match: filter },
-        { $group: { _id: '$priority', count: { $sum: 1 } } }
-      ]),
-      
-      // Active tickets (non-archived)
-      ProductTicket.countDocuments({ ...filter, status: { $nin: ['COMPLETED', 'CANCELED'] } }),
-      
-      // Archived tickets (completed/canceled)
-      ProductTicket.countDocuments({ ...filter, status: { $in: ['COMPLETED', 'CANCELED'] } })
-    ]);
+    // Get all active tickets with full details for time calculations
+    const allTickets = await ProductTicket.find({
+      status: { $nin: ['CANCELED'] }
+    }).select('ticketNumber status priority sbu createdAt updatedAt statusHistory');
+
+    // Status counts
+    const statusCounts = {
+      draft: 0,
+      submitted: 0,
+      inProcess: 0,
+      npdiInitiated: 0,
+      completed: 0,
+      canceled: 0,
+      urgent: 0
+    };
+
+    // Priority breakdown
+    const priorityCounts = {
+      LOW: 0,
+      MEDIUM: 0,
+      HIGH: 0,
+      URGENT: 0
+    };
+
+    // SBU breakdown
+    const sbuCounts = {};
+
+    // Time tracking
+    let submittedToInProcessTimes = [];
+    let submittedToNPDITimes = [];
+    let submittedToCompletedTimes = [];
+    let agingTickets = [];
+
+    // Process each ticket
+    allTickets.forEach(ticket => {
+      // Count by status
+      switch (ticket.status) {
+        case 'DRAFT': statusCounts.draft++; break;
+        case 'SUBMITTED': statusCounts.submitted++; break;
+        case 'IN_PROCESS': statusCounts.inProcess++; break;
+        case 'NPDI_INITIATED': statusCounts.npdiInitiated++; break;
+        case 'COMPLETED': statusCounts.completed++; break;
+        case 'CANCELED': statusCounts.canceled++; break;
+      }
+
+      // Count by priority
+      if (ticket.priority) {
+        priorityCounts[ticket.priority]++;
+        if (ticket.priority === 'URGENT') {
+          statusCounts.urgent++;
+        }
+      }
+
+      // Count by SBU
+      if (ticket.sbu) {
+        sbuCounts[ticket.sbu] = (sbuCounts[ticket.sbu] || 0) + 1;
+      }
+
+      // Calculate time metrics from status history
+      if (ticket.statusHistory && ticket.statusHistory.length > 0) {
+        const submittedEntry = ticket.statusHistory.find(h => h.status === 'SUBMITTED' || h.action === 'TICKET_CREATED');
+        const inProcessEntry = ticket.statusHistory.find(h => h.status === 'IN_PROCESS');
+        const npdiEntry = ticket.statusHistory.find(h => h.status === 'NPDI_INITIATED');
+        const completedEntry = ticket.statusHistory.find(h => h.status === 'COMPLETED');
+
+        const submittedDate = submittedEntry ? new Date(submittedEntry.changedAt || ticket.createdAt) : new Date(ticket.createdAt);
+
+        // Time from SUBMITTED to IN_PROCESS
+        if (inProcessEntry) {
+          const inProcessDate = new Date(inProcessEntry.changedAt);
+          const hoursToInProcess = (inProcessDate - submittedDate) / (1000 * 60 * 60);
+          submittedToInProcessTimes.push(hoursToInProcess);
+        }
+
+        // Time from SUBMITTED to NPDI_INITIATED
+        if (npdiEntry) {
+          const npdiDate = new Date(npdiEntry.changedAt);
+          const hoursToNPDI = (npdiDate - submittedDate) / (1000 * 60 * 60);
+          submittedToNPDITimes.push(hoursToNPDI);
+        }
+
+        // Time from SUBMITTED to COMPLETED
+        if (completedEntry) {
+          const completedDate = new Date(completedEntry.changedAt);
+          const hoursToCompleted = (completedDate - submittedDate) / (1000 * 60 * 60);
+          submittedToCompletedTimes.push(hoursToCompleted);
+        }
+
+        // Calculate aging for non-completed tickets
+        if (ticket.status !== 'COMPLETED' && ticket.status !== 'CANCELED') {
+          const waitingHours = (now - submittedDate) / (1000 * 60 * 60);
+          const waitingDays = Math.floor(waitingHours / 24);
+
+          agingTickets.push({
+            ticketId: ticket._id,
+            ticketNumber: ticket.ticketNumber,
+            status: ticket.status,
+            priority: ticket.priority,
+            sbu: ticket.sbu,
+            submittedDate,
+            waitingDays,
+            waitingHours: Math.round(waitingHours)
+          });
+        }
+      }
+    });
+
+    // Sort aging tickets by waiting time (longest first)
+    agingTickets.sort((a, b) => b.waitingDays - a.waitingDays);
+
+    // Calculate averages
+    const avgSubmittedToInProcess = submittedToInProcessTimes.length > 0
+      ? submittedToInProcessTimes.reduce((a, b) => a + b, 0) / submittedToInProcessTimes.length
+      : 0;
+
+    const avgSubmittedToNPDI = submittedToNPDITimes.length > 0
+      ? submittedToNPDITimes.reduce((a, b) => a + b, 0) / submittedToNPDITimes.length
+      : 0;
+
+    const avgSubmittedToCompleted = submittedToCompletedTimes.length > 0
+      ? submittedToCompletedTimes.reduce((a, b) => a + b, 0) / submittedToCompletedTimes.length
+      : 0;
+
+    // Count tickets completed this week and month
+    const completedThisWeek = await ProductTicket.countDocuments({
+      status: 'COMPLETED',
+      updatedAt: { $gte: oneWeekAgo }
+    });
+
+    const completedThisMonth = await ProductTicket.countDocuments({
+      status: 'COMPLETED',
+      updatedAt: { $gte: oneMonthAgo }
+    });
+
+    // Get tickets needing immediate attention (URGENT priority + waiting)
+    const urgentWaiting = agingTickets.filter(t =>
+      t.priority === 'URGENT' && (t.status === 'SUBMITTED' || t.status === 'IN_PROCESS')
+    );
+
+    // Calculate throughput (tickets per week)
+    const throughputPerWeek = completedThisWeek;
+    const estimatedThroughputPerMonth = throughputPerWeek * 4.33;
 
     res.json({
-      statusCounts: {
-        draft: stats[0],
-        submitted: stats[1],
-        inProcess: stats[2],
-        completed: stats[3],
-        canceled: stats[4],
-        total: stats[5]
+      statusCounts,
+      priorityCounts,
+      sbuBreakdown: Object.entries(sbuCounts).map(([sbu, count]) => ({
+        _id: sbu,
+        count
+      })),
+      averageTimes: {
+        submittedToInProcess: {
+          hours: Math.round(avgSubmittedToInProcess * 10) / 10,
+          days: Math.round((avgSubmittedToInProcess / 24) * 10) / 10
+        },
+        submittedToNPDI: {
+          hours: Math.round(avgSubmittedToNPDI * 10) / 10,
+          days: Math.round((avgSubmittedToNPDI / 24) * 10) / 10
+        },
+        submittedToCompleted: {
+          hours: Math.round(avgSubmittedToCompleted * 10) / 10,
+          days: Math.round((avgSubmittedToCompleted / 24) * 10) / 10
+        }
       },
-      sarahTickets: {
-        draft: stats[6],
-        submitted: stats[7],
-        inProcess: stats[8],
-        completed: stats[9],
-        canceled: stats[10],
-        total: stats[11]
+      agingAnalysis: {
+        totalAging: agingTickets.length,
+        longestWaiting: agingTickets.slice(0, 10),
+        urgentWaiting: urgentWaiting.slice(0, 5)
       },
-      sbuBreakdown: stats[12],
-      priorityBreakdown: stats[13],
-      activeCounts: {
-        active: stats[14],
-        archived: stats[15]
+      throughput: {
+        completedThisWeek,
+        completedThisMonth,
+        estimatedMonthlyRate: Math.round(estimatedThroughputPerMonth)
+      },
+      performance: {
+        backlogSize: statusCounts.submitted + statusCounts.inProcess,
+        activeTickets: statusCounts.submitted + statusCounts.inProcess + statusCounts.npdiInitiated,
+        completionRate: statusCounts.completed > 0
+          ? Math.round((statusCounts.completed / (statusCounts.completed + statusCounts.canceled)) * 100)
+          : 0
       }
     });
   } catch (error) {
@@ -686,14 +689,17 @@ const getDashboardStats = async (req, res) => {
 const lookupCAS = async (req, res) => {
   try {
     const { casNumber } = req.params;
-    
+
     if (!casNumber || !/^\d{1,7}-\d{2}-\d$/.test(casNumber)) {
       return res.status(400).json({ message: 'Invalid CAS number format' });
     }
 
     console.log(`CAS lookup request for: ${casNumber}`);
     const enrichedData = await pubchemService.enrichTicketData(casNumber);
-    
+
+    // Debug: Log additional properties
+    console.log('Additional properties returned:', JSON.stringify(enrichedData.chemicalProperties?.additionalProperties, null, 2));
+
     res.json({
       message: 'CAS lookup successful',
       data: enrichedData,
@@ -701,11 +707,90 @@ const lookupCAS = async (req, res) => {
     });
   } catch (error) {
     console.error('CAS lookup error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Failed to lookup CAS number',
       error: error.message,
       casNumber: req.params.casNumber
     });
+  }
+};
+
+const getRecentActivity = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    // Get all active tickets with status history and comments
+    const tickets = await ProductTicket.find({
+      status: { $nin: ['CANCELED'] }
+    }).select('ticketNumber productName status priority chemicalProperties statusHistory comments updatedAt')
+      .sort({ updatedAt: -1 })
+      .limit(parseInt(limit) * 3); // Get more tickets to ensure we have enough activities
+
+    const activities = [];
+
+    // Extract activities from each ticket
+    tickets.forEach(ticket => {
+      // Add status history entries
+      if (ticket.statusHistory && ticket.statusHistory.length > 0) {
+        ticket.statusHistory.forEach(history => {
+          if (history.action && history.changedAt) {
+            activities.push({
+              type: history.action,
+              ticketId: ticket._id,
+              ticketNumber: ticket.ticketNumber,
+              productName: ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled',
+              status: ticket.status,
+              priority: ticket.priority,
+              timestamp: history.changedAt,
+              description: history.reason,
+              user: history.userInfo ? `${history.userInfo.firstName} ${history.userInfo.lastName}` : 'Unknown User',
+              userInfo: history.userInfo,
+              details: {
+                action: history.action,
+                previousStatus: history.details?.previousStatus,
+                newStatus: history.details?.newStatus || history.status
+              }
+            });
+          }
+        });
+      }
+
+      // Add comment entries
+      if (ticket.comments && ticket.comments.length > 0) {
+        ticket.comments.forEach(comment => {
+          activities.push({
+            type: 'COMMENT_ADDED',
+            ticketId: ticket._id,
+            ticketNumber: ticket.ticketNumber,
+            productName: ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled',
+            status: ticket.status,
+            priority: ticket.priority,
+            timestamp: comment.timestamp,
+            description: `Comment: "${comment.content.substring(0, 100)}${comment.content.length > 100 ? '...' : ''}"`,
+            user: comment.userInfo ? `${comment.userInfo.firstName} ${comment.userInfo.lastName}` : 'Unknown User',
+            userInfo: comment.userInfo,
+            details: {
+              action: 'COMMENT_ADDED',
+              commentContent: comment.content
+            }
+          });
+        });
+      }
+    });
+
+    // Sort all activities by timestamp (newest first)
+    activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    // Return only the requested limit
+    const recentActivities = activities.slice(0, parseInt(limit));
+
+    res.json({
+      activities: recentActivities,
+      total: activities.length
+    });
+  } catch (error) {
+    console.error('Get recent activity error:', error);
+    res.status(500).json({ message: 'Server error while fetching recent activity' });
   }
 };
 
@@ -719,5 +804,6 @@ module.exports = {
   updateTicketStatus,
   addComment,
   getDashboardStats,
-  lookupCAS
+  lookupCAS,
+  getRecentActivity
 };

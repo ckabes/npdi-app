@@ -4,36 +4,7 @@ import { productAPI } from '../services/api';
 import { DocumentIcon, EyeIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../utils/AuthContext';
 import toast from 'react-hot-toast';
-
-const StatusBadge = ({ status }) => {
-  const badgeClasses = {
-    'DRAFT': 'badge-draft',
-    'IN_PROCESS': 'badge-in-process',
-    'COMPLETED': 'badge-completed',
-    'CANCELED': 'badge-canceled'
-  };
-
-  return (
-    <span className={`badge ${badgeClasses[status]}`}>
-      {status.replace('_', ' ')}
-    </span>
-  );
-};
-
-const PriorityBadge = ({ priority }) => {
-  const priorityClasses = {
-    'LOW': 'priority-low',
-    'MEDIUM': 'priority-medium',
-    'HIGH': 'priority-high',
-    'URGENT': 'priority-urgent'
-  };
-
-  return (
-    <span className={`badge ${priorityClasses[priority]}`}>
-      {priority}
-    </span>
-  );
-};
+import { StatusBadge, PriorityBadge } from '../components/badges';
 
 const TicketList = () => {
   const { isProductManager, isPMOPS, isAdmin } = useAuth();
@@ -124,6 +95,7 @@ const TicketList = () => {
                 <option value="">All Statuses</option>
                 <option value="DRAFT">Draft</option>
                 <option value="IN_PROCESS">In Process</option>
+                <option value="NPDI_INITIATED">NPDI Initiated</option>
                 <option value="COMPLETED">Completed</option>
                 <option value="CANCELED">Canceled</option>
               </select>
