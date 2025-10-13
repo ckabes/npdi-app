@@ -21,7 +21,8 @@
       "Bash(sudo docker:*)",
       "Bash(ss:*)",
       "Bash(curl:*)",
-      "WebFetch(domain:pubchem.ncbi.nlm.nih.gov)"
+      "WebFetch(domain:pubchem.ncbi.nlm.nih.gov)",
+      "Bash(git merge:*)"
     ],
     "deny": []
   }
