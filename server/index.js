@@ -13,6 +13,8 @@ const userRoutes = require('./routes/users');
 const permissionRoutes = require('./routes/permissions');
 const systemSettingsRoutes = require('./routes/systemSettings');
 const userPreferencesRoutes = require('./routes/userPreferences');
+const templateRoutes = require('./routes/templates');
+const adminRoutes = require('./routes/admin');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -33,9 +35,11 @@ app.use(cors({
 }));
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 100 : 500, // Higher limit for development
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use('/api', limiter);
 
@@ -122,6 +126,8 @@ app.use('/api/form-config', formConfigRoutes);
 app.use('/api/permissions', permissionRoutes);
 app.use('/api/system-settings', systemSettingsRoutes);
 app.use('/api/user-preferences', userPreferencesRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ 

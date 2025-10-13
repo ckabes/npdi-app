@@ -1,6 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { validationResult } = require('express-validator');
+const TicketTemplate = require('../models/TicketTemplate');
 
 const PROFILES_FILE = path.join(__dirname, '../data/devProfiles.json');
 
@@ -112,7 +113,7 @@ const createProfile = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, firstName, lastName, role, sbu, isActive } = req.body;
+    const { email, firstName, lastName, role, sbu, isActive, templateId } = req.body;
 
     const profiles = await readProfiles();
 
@@ -130,12 +131,36 @@ const createProfile = async (req, res) => {
       role,
       sbu: role === 'PRODUCT_MANAGER' ? sbu : undefined,
       isActive: isActive !== undefined ? isActive : true,
+      templateId: role === 'PRODUCT_MANAGER' && templateId ? templateId : undefined,
       createdAt: new Date().toISOString(),
       lastLogin: null
     };
 
     profiles.push(newProfile);
     await writeProfiles(profiles);
+
+    // If template was assigned and user is Product Manager, update template's assignedUsers
+    if (role === 'PRODUCT_MANAGER' && templateId) {
+      try {
+        const template = await TicketTemplate.findById(templateId);
+        if (template) {
+          // Remove user from all other templates first
+          await TicketTemplate.updateMany(
+            { _id: { $ne: templateId } },
+            { $pull: { assignedUsers: email } }
+          );
+
+          // Add user to the selected template
+          if (!template.assignedUsers.includes(email)) {
+            template.assignedUsers.push(email);
+            await template.save();
+          }
+        }
+      } catch (templateError) {
+        console.error('Error updating template assignment:', templateError);
+        // Don't fail the user creation if template update fails
+      }
+    }
 
     res.status(201).json({
       message: 'Profile created successfully',
@@ -152,10 +177,12 @@ const updateProfile = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { firstName, lastName, role, sbu, isActive } = req.body;
+    const { firstName, lastName, role, sbu, isActive, templateId } = req.body;
+    console.log('Updating profile:', req.params.id, 'with data:', { firstName, lastName, role, sbu, isActive, templateId });
 
     const profiles = await readProfiles();
     const profileIndex = profiles.findIndex(p => p.id === req.params.id);
@@ -163,6 +190,9 @@ const updateProfile = async (req, res) => {
     if (profileIndex === -1) {
       return res.status(404).json({ message: 'Profile not found' });
     }
+
+    const oldProfile = profiles[profileIndex];
+    const oldEmail = oldProfile.email;
 
     // Update profile
     profiles[profileIndex] = {
@@ -172,10 +202,55 @@ const updateProfile = async (req, res) => {
       role,
       sbu: role === 'PRODUCT_MANAGER' ? sbu : undefined,
       isActive: isActive !== undefined ? isActive : profiles[profileIndex].isActive,
+      templateId: role === 'PRODUCT_MANAGER' && templateId ? templateId : undefined,
       updatedAt: new Date().toISOString()
     };
 
     await writeProfiles(profiles);
+
+    // Handle template assignment changes
+    if (role === 'PRODUCT_MANAGER') {
+      try {
+        // Remove user from all templates first
+        await TicketTemplate.updateMany(
+          {},
+          { $pull: { assignedUsers: oldEmail } }
+        );
+
+        // If a template was specified, add user to it
+        if (templateId) {
+          try {
+            const template = await TicketTemplate.findById(templateId);
+            if (template) {
+              if (!template.assignedUsers.includes(oldEmail)) {
+                template.assignedUsers.push(oldEmail);
+                await template.save();
+              }
+            } else {
+              console.warn(`Template ${templateId} not found, user profile updated without template assignment`);
+            }
+          } catch (findError) {
+            console.error('Error finding template:', findError);
+            // Invalid ObjectId or other error - continue without template assignment
+          }
+        }
+      } catch (templateError) {
+        console.error('Error updating template assignment:', templateError);
+        // Don't fail the user update if template update fails
+      }
+    } else {
+      // If role changed from Product Manager to something else, remove from all templates
+      if (oldProfile.role === 'PRODUCT_MANAGER') {
+        try {
+          await TicketTemplate.updateMany(
+            {},
+            { $pull: { assignedUsers: oldEmail } }
+          );
+        } catch (templateError) {
+          console.error('Error removing template assignment:', templateError);
+        }
+      }
+    }
 
     res.json({
       message: 'Profile updated successfully',

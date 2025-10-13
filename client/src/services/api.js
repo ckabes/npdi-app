@@ -84,6 +84,10 @@ export const formConfigAPI = {
   getById: (id) => apiClient.get(`/form-config/${id}`),
   create: (data) => apiClient.post('/form-config', data),
   update: (id, data) => apiClient.put(`/form-config/${id}`, data),
+  publish: (id) => apiClient.post(`/form-config/${id}/publish`),
+  discardDraft: (id) => apiClient.post(`/form-config/${id}/discard-draft`),
+  rollback: (id) => apiClient.post(`/form-config/${id}/rollback`),
+  restoreDefault: (id) => apiClient.post(`/form-config/${id}/restore-default`),
   reorderSections: (id, sectionOrders) =>
     apiClient.patch(`/form-config/${id}/sections/reorder`, { sectionOrders }),
   addSection: (id, section) => apiClient.post(`/form-config/${id}/sections`, section),
@@ -130,6 +134,21 @@ export const userAPI = {
   updatePassword: (id, password) => apiClient.put(`/users/${id}/password`, { password }),
   delete: (id) => apiClient.delete(`/users/${id}`),
   toggleStatus: (id) => apiClient.patch(`/users/${id}/toggle-status`)
+};
+
+export const templatesAPI = {
+  getAll: () => apiClient.get('/templates'),
+  getById: (id) => apiClient.get(`/templates/${id}`),
+  getUserTemplate: (email, role) => apiClient.get(`/templates/user/${email}?role=${role}`),
+  create: (data) => apiClient.post('/templates', data),
+  update: (id, data) => apiClient.put(`/templates/${id}`, data),
+  delete: (id) => apiClient.delete(`/templates/${id}`),
+  assign: (id, data) => apiClient.patch(`/templates/${id}/assign`, data),
+  unassign: (id, data) => apiClient.patch(`/templates/${id}/unassign`, data)
+};
+
+export const adminAPI = {
+  getStats: () => apiClient.get('/admin/stats')
 };
 
 // Default export for convenience

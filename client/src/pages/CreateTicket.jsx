@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useAuth } from '../utils/AuthContext';
-import { productAPI } from '../services/api';
+import { productAPI, templatesAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import {
+  DynamicFormRenderer,
+  DynamicFormSection,
   ChemicalPropertiesForm,
   QualitySpecificationsForm,
   PricingCalculationForm,
@@ -18,7 +20,9 @@ const CreateTicket = () => {
   const [casLookupLoading, setCasLookupLoading] = useState(false);
   const [autoPopulated, setAutoPopulated] = useState(false);
   const [compositionLoadingIndex, setCompositionLoadingIndex] = useState(null);
-  const { user, isProductManager } = useAuth();
+  const [template, setTemplate] = useState(null);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const { user, isProductManager, isPMOPS } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
@@ -110,6 +114,43 @@ const CreateTicket = () => {
   const productScope = watch('productScope.scope');
   const retestOrExpirationType = watch('retestOrExpiration.type');
   const productionType = watch('productionType');
+
+  // Load user's template on mount and when returning to the page
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      if (!user?.email || !user?.role) return;
+
+      try {
+        setLoadingTemplate(true);
+        const response = await templatesAPI.getUserTemplate(user.email, user.role);
+
+        // Handle PM Ops case (no template)
+        if (isPMOPS || !response.data) {
+          setTemplate(null);
+        } else {
+          setTemplate(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching template:', error);
+        setTemplate(null);
+      } finally {
+        setLoadingTemplate(false);
+      }
+    };
+
+    fetchTemplate();
+
+    // Also reload template when window regains focus (user returns from another tab/window)
+    const handleFocus = () => {
+      fetchTemplate();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [user, isPMOPS]);
 
   const handleCASLookup = async () => {
     if (!casNumber || !/^\d{1,7}-\d{2}-\d$/.test(casNumber)) {
@@ -663,590 +704,362 @@ const CreateTicket = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Create New Product Ticket</h2>
-        <p className="text-gray-600">Enter a CAS number to automatically populate chemical properties, hazard data, and generate SKU variants.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Create New Product Ticket</h2>
+            <p className="text-gray-600">Enter a CAS number to automatically populate chemical properties, hazard data, and generate SKU variants.</p>
+          </div>
+          {!loadingTemplate && (
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={async () => {
+                  setLoadingTemplate(true);
+                  try {
+                    const response = await templatesAPI.getUserTemplate(user.email, user.role);
+                    if (isPMOPS || !response.data) {
+                      setTemplate(null);
+                    } else {
+                      setTemplate(response.data);
+                    }
+                    toast.success('Form configuration refreshed');
+                  } catch (error) {
+                    console.error('Error refreshing template:', error);
+                    toast.error('Failed to refresh form configuration');
+                  } finally {
+                    setLoadingTemplate(false);
+                  }
+                }}
+                className="text-xs text-millipore-blue hover:text-millipore-blue-dark flex items-center space-x-1"
+                title="Refresh form configuration"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Refresh Form</span>
+              </button>
+              <div className="text-right">
+                {isPMOPS ? (
+                  <p className="text-xs text-gray-400">
+                    PM Ops Role - No Template Assignment
+                  </p>
+                ) : template ? (
+                  <div className="text-xs text-gray-400">
+                    <p className="font-medium">Template: {template.name}</p>
+                    <p>Version: {template.formConfiguration?.version || '1.0.0'}</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-400">
+                    Using Default Template
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-        {/* Production Type Toggle */}
-        <div className="card">
-          <div className="card-body">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">
-                  Production Type
-                </label>
-                <p className="text-xs text-gray-500">
-                  Select whether this product is produced internally or procured from external suppliers
-                </p>
-              </div>
-              <div className="flex items-center space-x-4">
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    {...register('productionType')}
-                    value="Produced"
-                    className="form-radio h-4 w-4 text-millipore-blue"
-                  />
-                  <span className="ml-2 text-sm font-medium text-gray-700">Produced</span>
-                </label>
-                <label className="inline-flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    {...register('productionType')}
-                    value="Procured"
-                    className="form-radio h-4 w-4 text-millipore-blue"
-                  />
-                  <span className="ml-2 text-sm font-medium text-gray-700">Procured</span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Render all sections dynamically based on template configuration */}
+        {!loadingTemplate && template?.formConfiguration ? (
+          <>
+            {/* Render template-configured sections */}
+            {template.formConfiguration.sections
+              ?.filter(section => section.visible)
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map(section => {
+                // Use specialized components for sections that need special functionality
+                switch (section.sectionKey) {
+                  case 'chemical':
+                    return (
+                      <ChemicalPropertiesForm
+                        key={section.sectionKey}
+                        register={register}
+                        watch={watch}
+                        setValue={setValue}
+                        errors={errors}
+                        autoPopulated={autoPopulated}
+                        casLookupLoading={casLookupLoading}
+                        onCASLookup={handleCASLookup}
+                        readOnly={false}
+                        showAutoPopulateButton={true}
+                      />
+                    );
 
-        {/* Basic Information */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
-          </div>
-          <div className="card-body space-y-6">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Line *
-                </label>
-                <input
-                  {...register('productLine', { required: 'Product line is required' })}
-                  type="text"
-                  className="form-input"
-                  placeholder="Enter product line"
-                />
-                {errors.productLine && (
-                  <p className="mt-1 text-sm text-red-600">{errors.productLine.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Strategic Business Unit *
-                </label>
-                <select {...register('sbu')} className="form-select">
-                  <option value="775">SBU 775</option>
-                  <option value="P90">SBU P90</option>
-                  <option value="440">SBU 440</option>
-                  <option value="P87">SBU P87</option>
-                  <option value="P89">SBU P89</option>
-                  <option value="P85">SBU P85</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Priority
-                </label>
-                <select {...register('priority')} className="form-select">
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
-                </select>
-              </div>
-            </div>
-
-            {/* New Fields - Row 2 */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Primary Plant
-                </label>
-                <input
-                  {...register('primaryPlant')}
-                  type="text"
-                  className="form-input"
-                  placeholder="Enter primary manufacturing plant"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Scope
-                </label>
-                <select {...register('productScope.scope')} className="form-select">
-                  <option value="Worldwide">Worldwide</option>
-                  <option value="North America">North America</option>
-                  <option value="South America">South America</option>
-                  <option value="Europe">Europe</option>
-                  <option value="Asia">Asia</option>
-                  <option value="Africa">Africa</option>
-                  <option value="Oceania">Oceania</option>
-                  <option value="Other">Other (Specify)</option>
-                </select>
-              </div>
-
-              {productScope === 'Other' && (
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Specify Product Scope
-                  </label>
-                  <input
-                    {...register('productScope.otherSpecification')}
-                    type="text"
-                    className="form-input"
-                    placeholder="Enter specific product scope details"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* New Fields - Row 3 */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Distribution Type
-                </label>
-                <select {...register('distributionType')} className="form-select">
-                  <option value="Standard">Standard</option>
-                  <option value="Purchase on Demand">Purchase on Demand</option>
-                  <option value="Dock-to-Stock">Dock-to-Stock</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Retest/Expiration
-                </label>
-                <select {...register('retestOrExpiration.type')} className="form-select">
-                  <option value="None">None</option>
-                  <option value="Retest">Retest Date</option>
-                  <option value="Expiration">Expiration Date</option>
-                </select>
-              </div>
-
-              {(retestOrExpirationType === 'Retest' || retestOrExpirationType === 'Expiration') && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Shelf Life Value
-                    </label>
-                    <input
-                      {...register('retestOrExpiration.shelfLife.value')}
-                      type="number"
-                      className="form-input"
-                      placeholder="Enter value"
-                      min="1"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Shelf Life Unit
-                    </label>
-                    <select {...register('retestOrExpiration.shelfLife.unit')} className="form-select">
-                      <option value="days">Days</option>
-                      <option value="months">Months</option>
-                      <option value="years">Years</option>
-                    </select>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* New Fields - Row 4 */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  SIAL Product Hierarchy
-                </label>
-                <input
-                  {...register('sialProductHierarchy')}
-                  type="text"
-                  className="form-input"
-                  placeholder="Enter SIAL product hierarchy"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Material Group
-                </label>
-                <input
-                  {...register('materialGroup')}
-                  type="text"
-                  className="form-input"
-                  placeholder="Enter material group"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country of Origin
-                </label>
-                <select {...register('countryOfOrigin')} className="form-select">
-                  <option value="">Select country...</option>
-                  <option value="United States">United States</option>
-                  <option value="Canada">Canada</option>
-                  <option value="Mexico">Mexico</option>
-                  <option value="United Kingdom">United Kingdom</option>
-                  <option value="Germany">Germany</option>
-                  <option value="France">France</option>
-                  <option value="Italy">Italy</option>
-                  <option value="Spain">Spain</option>
-                  <option value="Netherlands">Netherlands</option>
-                  <option value="Belgium">Belgium</option>
-                  <option value="Switzerland">Switzerland</option>
-                  <option value="Austria">Austria</option>
-                  <option value="Sweden">Sweden</option>
-                  <option value="Denmark">Denmark</option>
-                  <option value="Norway">Norway</option>
-                  <option value="Finland">Finland</option>
-                  <option value="Poland">Poland</option>
-                  <option value="Czech Republic">Czech Republic</option>
-                  <option value="Ireland">Ireland</option>
-                  <option value="China">China</option>
-                  <option value="Japan">Japan</option>
-                  <option value="South Korea">South Korea</option>
-                  <option value="India">India</option>
-                  <option value="Singapore">Singapore</option>
-                  <option value="Taiwan">Taiwan</option>
-                  <option value="Hong Kong">Hong Kong</option>
-                  <option value="Australia">Australia</option>
-                  <option value="New Zealand">New Zealand</option>
-                  <option value="Brazil">Brazil</option>
-                  <option value="Argentina">Argentina</option>
-                  <option value="Chile">Chile</option>
-                  <option value="South Africa">South Africa</option>
-                  <option value="Israel">Israel</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Brand
-                </label>
-                <select {...register('brand')} className="form-select">
-                  <option value="">Select brand...</option>
-                  <option value="Sigma-Aldrich">Sigma-Aldrich</option>
-                  <option value="SAFC">SAFC</option>
-                  <option value="Supelco">Supelco</option>
-                  <option value="Milli-Q">Milli-Q</option>
-                  <option value="Millipore">Millipore</option>
-                  <option value="BioReliance">BioReliance</option>
-                  <option value="Calbiochem">Calbiochem</option>
-                  <option value="Merck">Merck</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Vendor Information - Only shown if Procured */}
-            {productionType === 'Procured' && (
-              <div className="border-t border-gray-200 pt-6 mt-6">
-                <h4 className="text-md font-medium text-gray-900 mb-4">Vendor Information</h4>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vendor Name
-                    </label>
-                    <input
-                      {...register('vendorInformation.vendorName')}
-                      type="text"
-                      className="form-input"
-                      placeholder="Enter vendor name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vendor Product Name
-                    </label>
-                    <input
-                      {...register('vendorInformation.vendorProductName')}
-                      type="text"
-                      className="form-input"
-                      placeholder="Enter vendor product name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vendor SAP Number
-                    </label>
-                    <input
-                      {...register('vendorInformation.vendorSAPNumber')}
-                      type="text"
-                      className="form-input"
-                      placeholder="Enter vendor SAP number"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vendor Product #
-                    </label>
-                    <input
-                      {...register('vendorInformation.vendorProductNumber')}
-                      type="text"
-                      className="form-input"
-                      placeholder="Enter vendor product number"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Chemical Properties */}
-        <ChemicalPropertiesForm
-          register={register}
-          watch={watch}
-          setValue={setValue}
-          errors={errors}
-          autoPopulated={autoPopulated}
-          casLookupLoading={casLookupLoading}
-          onCASLookup={handleCASLookup}
-          readOnly={false}
-          showAutoPopulateButton={true}
-        />
-
-        {/* Composition Section */}
-        <div className="card">
-          <div className="card-header">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900">Product Composition</h3>
-                <p className="text-sm text-gray-500 mt-1">Define the chemical components that make up this product</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => appendComposition({
-                  proprietary: false,
-                  componentCAS: '',
-                  weightPercent: 0,
-                  componentName: '',
-                  componentFormula: ''
-                })}
-                className="btn btn-sm btn-secondary"
-              >
-                + Add Component
-              </button>
-            </div>
-          </div>
-          <div className="card-body">
-            {compositionFields.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p>No components added yet.</p>
-                {casNumber && productName && molecularFormula && (
-                  <button
-                    type="button"
-                    onClick={() => appendComposition({
-                      proprietary: false,
-                      componentCAS: casNumber,
-                      weightPercent: 100,
-                      componentName: productName,
-                      componentFormula: molecularFormula
-                    })}
-                    className="mt-3 btn btn-sm btn-primary"
-                  >
-                    Populate with Chemical Data (100%)
-                  </button>
-                )}
-                <p className="text-sm mt-2">Or click "+ Add Component" above to add manually.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Proprietary
-                      </th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Component CAS
-                      </th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Weight %
-                      </th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Component Name
-                      </th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Component Formula
-                      </th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {compositionFields.map((field, index) => (
-                      <tr key={field.id}>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <select
-                            {...register(`composition.components.${index}.proprietary`)}
-                            className="form-select text-sm"
-                          >
-                            <option value="false">No</option>
-                            <option value="true">Yes</option>
-                          </select>
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <input
-                            {...register(`composition.components.${index}.componentCAS`)}
-                            type="text"
-                            className="form-input text-sm w-32"
-                            placeholder="CAS Number"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault(); // Prevent form submission
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const casValue = e.target.value;
-                              handleCompositionCASLookup(index, casValue);
-                            }}
-                          />
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <input
-                            {...register(`composition.components.${index}.weightPercent`, {
-                              valueAsNumber: true,
-                              min: 0,
-                              max: 100
-                            })}
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            className="form-input text-sm w-24"
-                            placeholder="0-100"
-                            onChange={(e) => {
-                              const newWeight = e.target.value;
-                              handleWeightChange(index, newWeight);
-                            }}
-                          />
-                        </td>
-                        <td className="px-3 py-4">
-                          <div className="relative">
-                            <input
-                              {...register(`composition.components.${index}.componentName`)}
-                              type="text"
-                              className="form-input text-sm w-48"
-                              placeholder="Component Name"
-                            />
-                            {compositionLoadingIndex === index && (
-                              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                <svg className="animate-spin h-4 w-4 text-millipore-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
+                  case 'composition':
+                    // Check if composition section is visible
+                    if (!section.visible) return null;
+                    return (
+                      <div key={section.sectionKey} className="card">
+                          <div className="card-header">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="text-lg font-medium text-gray-900">Product Composition</h3>
+                                <p className="text-sm text-gray-500 mt-1">Define the chemical components that make up this product</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => appendComposition({
+                                  proprietary: false,
+                                  componentCAS: '',
+                                  weightPercent: 0,
+                                  componentName: '',
+                                  componentFormula: ''
+                                })}
+                                className="btn btn-sm btn-secondary"
+                              >
+                                + Add Component
+                              </button>
+                            </div>
+                          </div>
+                          <div className="card-body">
+                            {compositionFields.length === 0 ? (
+                              <div className="text-center py-8 text-gray-500">
+                                <p>No components added yet.</p>
+                                {casNumber && productName && molecularFormula && (
+                                  <button
+                                    type="button"
+                                    onClick={() => appendComposition({
+                                      proprietary: false,
+                                      componentCAS: casNumber,
+                                      weightPercent: 100,
+                                      componentName: productName,
+                                      componentFormula: molecularFormula
+                                    })}
+                                    className="mt-3 btn btn-sm btn-primary"
+                                  >
+                                    Populate with Chemical Data (100%)
+                                  </button>
+                                )}
+                                <p className="text-sm mt-2">Or click "+ Add Component" above to add manually.</p>
+                              </div>
+                            ) : (
+                              <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                  <thead className="bg-gray-50">
+                                    <tr>
+                                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Proprietary
+                                      </th>
+                                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Component CAS
+                                      </th>
+                                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Weight %
+                                      </th>
+                                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Component Name
+                                      </th>
+                                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Component Formula
+                                      </th>
+                                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                      </th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="bg-white divide-y divide-gray-200">
+                                    {compositionFields.map((field, index) => (
+                                      <tr key={field.id}>
+                                        <td className="px-3 py-4 whitespace-nowrap">
+                                          <select
+                                            {...register(`composition.components.${index}.proprietary`)}
+                                            className="form-select text-sm"
+                                          >
+                                            <option value="false">No</option>
+                                            <option value="true">Yes</option>
+                                          </select>
+                                        </td>
+                                        <td className="px-3 py-4 whitespace-nowrap">
+                                          <input
+                                            {...register(`composition.components.${index}.componentCAS`)}
+                                            type="text"
+                                            className="form-input text-sm w-32"
+                                            placeholder="CAS Number"
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                              }
+                                            }}
+                                            onBlur={(e) => {
+                                              const casValue = e.target.value;
+                                              handleCompositionCASLookup(index, casValue);
+                                            }}
+                                          />
+                                        </td>
+                                        <td className="px-3 py-4 whitespace-nowrap">
+                                          <input
+                                            {...register(`composition.components.${index}.weightPercent`, {
+                                              valueAsNumber: true,
+                                              min: 0,
+                                              max: 100
+                                            })}
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            max="100"
+                                            className="form-input text-sm w-24"
+                                            placeholder="0-100"
+                                            onChange={(e) => {
+                                              const newWeight = e.target.value;
+                                              handleWeightChange(index, newWeight);
+                                            }}
+                                          />
+                                        </td>
+                                        <td className="px-3 py-4">
+                                          <div className="relative">
+                                            <input
+                                              {...register(`composition.components.${index}.componentName`)}
+                                              type="text"
+                                              className="form-input text-sm w-48"
+                                              placeholder="Component Name"
+                                            />
+                                            {compositionLoadingIndex === index && (
+                                              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <svg className="animate-spin h-4 w-4 text-millipore-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td className="px-3 py-4">
+                                          <div className="relative">
+                                            <input
+                                              {...register(`composition.components.${index}.componentFormula`)}
+                                              type="text"
+                                              className="form-input text-sm w-32"
+                                              placeholder="Formula"
+                                            />
+                                            {compositionLoadingIndex === index && (
+                                              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <svg className="animate-spin h-4 w-4 text-millipore-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td className="px-3 py-4 whitespace-nowrap">
+                                          <button
+                                            type="button"
+                                            onClick={() => removeComposition(index)}
+                                            className="text-red-600 hover:text-red-900 text-sm"
+                                          >
+                                            Remove
+                                          </button>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                            {compositionFields.length > 0 && (
+                              <div className="mt-4 text-sm text-gray-600">
+                                <p className="font-medium">Total Weight: {compositionFields.reduce((sum, _, idx) => {
+                                  const weight = watch(`composition.components.${idx}.weightPercent`) || 0;
+                                  return sum + parseFloat(weight);
+                                }, 0).toFixed(2)}%</p>
+                                {Math.abs(compositionFields.reduce((sum, _, idx) => {
+                                  const weight = watch(`composition.components.${idx}.weightPercent`) || 0;
+                                  return sum + parseFloat(weight);
+                                }, 0) - 100) > 0.01 && (
+                                  <p className="text-orange-600 mt-1">⚠ Warning: Total weight should equal 100%</p>
+                                )}
                               </div>
                             )}
                           </div>
-                        </td>
-                        <td className="px-3 py-4">
-                          <div className="relative">
-                            <input
-                              {...register(`composition.components.${index}.componentFormula`)}
-                              type="text"
-                              className="form-input text-sm w-32"
-                              placeholder="Formula"
-                            />
-                            {compositionLoadingIndex === index && (
-                              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                                <svg className="animate-spin h-4 w-4 text-millipore-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-3 py-4 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => removeComposition(index)}
-                            className="text-red-600 hover:text-red-900 text-sm"
-                          >
-                            Remove
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {compositionFields.length > 0 && (
-              <div className="mt-4 text-sm text-gray-600">
-                <p className="font-medium">Total Weight: {compositionFields.reduce((sum, _, idx) => {
-                  const weight = watch(`composition.components.${idx}.weightPercent`) || 0;
-                  return sum + parseFloat(weight);
-                }, 0).toFixed(2)}%</p>
-                {Math.abs(compositionFields.reduce((sum, _, idx) => {
-                  const weight = watch(`composition.components.${idx}.weightPercent`) || 0;
-                  return sum + parseFloat(weight);
-                }, 0) - 100) > 0.01 && (
-                  <p className="text-orange-600 mt-1">⚠ Warning: Total weight should equal 100%</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+                        </div>
 
-        {/* Quality Section */}
-        <QualitySpecificationsForm
-          register={register}
-          watch={watch}
-          qualityFields={qualityFields}
-          appendQuality={appendQuality}
-          removeQuality={removeQuality}
-          readOnly={false}
-          editMode={false}
-        />
+                    );
 
-        {/* Margin & Pricing Calculation */}
-        <PricingCalculationForm
-          register={register}
-          watch={watch}
-          readOnly={false}
-        />
+                  case 'quality':
+                    // Check if quality section is visible
+                    if (!section.visible) return null;
+                    return (
+                      <QualitySpecificationsForm
+                        key={section.sectionKey}
+                        register={register}
+                        watch={watch}
+                        qualityFields={qualityFields}
+                        appendQuality={appendQuality}
+                        removeQuality={removeQuality}
+                        readOnly={false}
+                        editMode={false}
+                      />
+                    );
 
-        {/* SKU Variants */}
-        <SKUVariantsForm
-          register={register}
-          watch={watch}
-          setValue={setValue}
-          fields={fields}
-          append={append}
-          remove={remove}
-          onCalculatePricing={calculatePricing}
-          onGenerateStandardSKUs={generateStandardSKUs}
-          onSKUTypeChange={handleSKUTypeChange}
-          onPackageUnitChange={handlePackageUnitChange}
-          onPackageValueChange={handlePackageValueChange}
-          readOnly={false}
-          showActionButtons={true}
-          errors={errors}
-        />
+                  case 'pricing':
+                    return (
+                      <React.Fragment key={section.sectionKey}>
+                        <PricingCalculationForm
+                          register={register}
+                          watch={watch}
+                          readOnly={false}
+                        />
 
-        {/* CorpBase Section */}
-        <CorpBaseDataForm
-          register={register}
-          onGenerateDescription={generateProductDescription}
-          readOnly={false}
-          showGenerateButton={true}
-        />
+                        {/* SKU Variants - shown after pricing */}
+                        <SKUVariantsForm
+                          register={register}
+                          watch={watch}
+                          setValue={setValue}
+                          fields={fields}
+                          append={append}
+                          remove={remove}
+                          onCalculatePricing={calculatePricing}
+                          onGenerateStandardSKUs={generateStandardSKUs}
+                          onSKUTypeChange={handleSKUTypeChange}
+                          onPackageUnitChange={handlePackageUnitChange}
+                          onPackageValueChange={handlePackageValueChange}
+                          readOnly={false}
+                          showActionButtons={true}
+                          errors={errors}
+                        />
+                      </React.Fragment>
+                    );
 
-        {/* Dynamic Custom Sections (added by admin via Form Configuration) */}
-        <DynamicCustomSections
-          register={register}
-          errors={errors}
-          watch={watch}
-          readOnly={false}
-        />
+                  case 'corpbase':
+                    return (
+                      <CorpBaseDataForm
+                        key={section.sectionKey}
+                        register={register}
+                        onGenerateDescription={generateProductDescription}
+                        readOnly={false}
+                        showGenerateButton={true}
+                      />
+                    );
+
+                  // For all other sections (productionType, basic, vendor, custom sections), use DynamicFormSection
+                  default:
+                    return (
+                      <DynamicFormSection
+                        key={section.sectionKey}
+                        section={section}
+                        register={register}
+                        errors={errors}
+                        watch={watch}
+                        setValue={setValue}
+                        readOnly={false}
+                      />
+                    );
+                }
+              })}
+          </>
+        ) : (
+          // Fallback: use full dynamic renderer if template not loaded
+          <DynamicFormRenderer
+            register={register}
+            errors={errors}
+            watch={watch}
+            setValue={setValue}
+            readOnly={false}
+            formConfiguration={template?.formConfiguration}
+          />
+        )}
 
         {/* Submit Button */}
         <div className="flex justify-end space-x-4">

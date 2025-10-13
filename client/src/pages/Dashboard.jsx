@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { useAuth } from '../utils/AuthContext';
 import {
@@ -12,17 +12,21 @@ import {
   ArrowPathIcon,
   ChatBubbleLeftIcon,
   PencilIcon,
-  CheckIcon
+  CheckIcon,
+  InformationCircleIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { StatusBadge, PriorityBadge } from '../components/badges';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const { user, isPMOPS } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recentTickets, setRecentTickets] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [showMonthlyRateModal, setShowMonthlyRateModal] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -139,7 +143,10 @@ const Dashboard = () => {
 
         {/* Key Metrics Row 1 - Status Overview */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="card bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+          <Link
+            to="/tickets?status=SUBMITTED"
+            className="card bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
@@ -152,9 +159,12 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <Link
+            to="/tickets?status=IN_PROCESS"
+            className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
@@ -167,9 +177,12 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="card bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <Link
+            to="/tickets?status=NPDI_INITIATED"
+            className="card bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
@@ -182,9 +195,12 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
 
-          <div className="card bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <Link
+            to="/tickets?status=COMPLETED"
+            className="card bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="card-body">
               <div className="flex items-center justify-between">
                 <div>
@@ -197,40 +213,57 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Key Metrics Row 2 - Performance Indicators */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="card">
+          <Link
+            to="/tickets?priority=URGENT"
+            className="card hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="card-body">
               <p className="text-xs font-medium text-gray-500 uppercase">Urgent Priority</p>
               <p className="text-2xl font-bold text-red-600 mt-1">{statusCounts.urgent}</p>
               <p className="text-xs text-gray-500 mt-1">Requires immediate attention</p>
             </div>
-          </div>
+          </Link>
 
-          <div className="card">
+          <Link
+            to="/tickets?status=SUBMITTED,IN_PROCESS"
+            className="card hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="card-body">
               <p className="text-xs font-medium text-gray-500 uppercase">Total Backlog</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{performance.backlogSize}</p>
               <p className="text-xs text-gray-500 mt-1">Submitted + In Process</p>
             </div>
-          </div>
+          </Link>
 
-          <div className="card">
+          <Link
+            to="/tickets?status=COMPLETED"
+            className="card hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <div className="card-body">
               <p className="text-xs font-medium text-gray-500 uppercase">This Week</p>
               <p className="text-2xl font-bold text-gray-900 mt-1">{throughput.completedThisWeek}</p>
               <p className="text-xs text-gray-500 mt-1">Completed tickets</p>
             </div>
-          </div>
+          </Link>
 
-          <div className="card">
+          <div
+            onClick={() => setShowMonthlyRateModal(true)}
+            className="card hover:shadow-lg transition-shadow cursor-pointer relative"
+          >
             <div className="card-body">
-              <p className="text-xs font-medium text-gray-500 uppercase">Monthly Rate</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{throughput.estimatedMonthlyRate}</p>
-              <p className="text-xs text-gray-500 mt-1">Estimated throughput</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">Monthly Rate</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{throughput.estimatedMonthlyRate}</p>
+                  <p className="text-xs text-gray-500 mt-1">Estimated throughput</p>
+                </div>
+                <InformationCircleIcon className="h-5 w-5 text-millipore-blue" />
+              </div>
             </div>
           </div>
         </div>
@@ -466,6 +499,99 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+
+        {/* Monthly Rate Explanation Modal */}
+        {showMonthlyRateModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center">
+                  <InformationCircleIcon className="h-6 w-6 text-millipore-blue mr-2" />
+                  <h3 className="text-xl font-semibold text-gray-900">Monthly Rate Calculation</h3>
+                </div>
+                <button
+                  onClick={() => setShowMonthlyRateModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">How This Metric is Calculated</h4>
+                  <p className="text-gray-700">
+                    The Monthly Rate represents the estimated number of tickets that can be completed per month
+                    based on recent performance trends.
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h5 className="font-semibold text-blue-900 mb-2">Formula:</h5>
+                  <code className="text-sm text-blue-800 block bg-white p-3 rounded border border-blue-100">
+                    Monthly Rate = (Completed This Week × 52) ÷ 12
+                  </code>
+                  <p className="text-sm text-blue-700 mt-2">
+                    Or approximately: <strong>Completed This Week × 4.33</strong>
+                  </p>
+                </div>
+
+                <div>
+                  <h5 className="font-semibold text-gray-900 mb-2">Current Calculation:</h5>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Tickets completed this week:</span>
+                      <span className="font-semibold text-gray-900">{throughput.completedThisWeek}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Weeks per year:</span>
+                      <span className="font-semibold text-gray-900">52</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Months per year:</span>
+                      <span className="font-semibold text-gray-900">12</span>
+                    </div>
+                    <div className="border-t border-gray-300 pt-2 mt-2 flex justify-between">
+                      <span className="font-semibold text-gray-900">Estimated Monthly Rate:</span>
+                      <span className="text-lg font-bold text-millipore-blue">
+                        {throughput.estimatedMonthlyRate} tickets/month
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h5 className="font-semibold text-yellow-900 mb-2">Tickets Used in Calculation:</h5>
+                  <p className="text-sm text-yellow-800">
+                    This metric is based on tickets with status <strong>COMPLETED</strong> that were
+                    completed within the last 7 days. The calculation provides an estimate of team
+                    throughput and helps forecast capacity planning.
+                  </p>
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  <p>
+                    <strong>Note:</strong> This is an estimated projection based on current week's performance.
+                    Actual monthly completion rates may vary based on ticket complexity, team availability,
+                    and other factors.
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end p-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowMonthlyRateModal(false)}
+                  className="btn btn-primary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { DocumentIcon, EyeIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../utils/AuthContext';
@@ -8,25 +8,34 @@ import { StatusBadge, PriorityBadge } from '../components/badges';
 
 const TicketList = () => {
   const { isProductManager, isPMOPS, isAdmin } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    status: '',
-    priority: '',
-    search: '',
-    page: 1
+
+  // Initialize filters from URL params
+  const getFiltersFromURL = () => ({
+    status: searchParams.get('status') || '',
+    priority: searchParams.get('priority') || '',
+    search: searchParams.get('search') || '',
+    page: parseInt(searchParams.get('page')) || 1
   });
 
-  useEffect(() => {
-    fetchTickets();
-  }, [filters]);
+  const [filters, setFilters] = useState(getFiltersFromURL);
 
-  const fetchTickets = async () => {
+  // Fetch tickets when filters change, but use URL as source of truth
+  useEffect(() => {
+    const urlFilters = getFiltersFromURL();
+    fetchTickets(urlFilters);
+  }, [searchParams]); // Only depend on searchParams, not filters
+
+  const fetchTickets = async (filtersToUse) => {
+    setLoading(true);
     try {
-      const response = await productAPI.getTickets(filters);
+      const response = await productAPI.getTickets(filtersToUse);
       setTickets(response.data.tickets);
       setPagination(response.data.pagination);
+      setFilters(filtersToUse); // Update local filters state after successful fetch
     } catch (error) {
       console.error('Failed to fetch tickets:', error);
       toast.error('Failed to load tickets');
@@ -36,11 +45,29 @@ const TicketList = () => {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+    const newFilters = { ...filters, [key]: value, page: 1 };
+    setFilters(newFilters);
+
+    // Update URL params
+    const params = new URLSearchParams();
+    if (newFilters.status) params.set('status', newFilters.status);
+    if (newFilters.priority) params.set('priority', newFilters.priority);
+    if (newFilters.search) params.set('search', newFilters.search);
+    if (newFilters.page > 1) params.set('page', newFilters.page.toString());
+    setSearchParams(params);
   };
 
   const handlePageChange = (newPage) => {
-    setFilters(prev => ({ ...prev, page: newPage }));
+    const newFilters = { ...filters, page: newPage };
+    setFilters(newFilters);
+
+    // Update URL params
+    const params = new URLSearchParams();
+    if (newFilters.status) params.set('status', newFilters.status);
+    if (newFilters.priority) params.set('priority', newFilters.priority);
+    if (newFilters.search) params.set('search', newFilters.search);
+    if (newFilters.page > 1) params.set('page', newFilters.page.toString());
+    setSearchParams(params);
   };
 
   if (loading) {
@@ -117,7 +144,10 @@ const TicketList = () => {
 
             <div>
               <button
-                onClick={() => setFilters({ status: '', priority: '', search: '', page: 1 })}
+                onClick={() => {
+                  setFilters({ status: '', priority: '', search: '', page: 1 });
+                  setSearchParams(new URLSearchParams());
+                }}
                 className="btn btn-secondary w-full"
               >
                 Clear Filters
