@@ -7,21 +7,24 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { userAPI } from '../../services/api';
+import { userAPI, templatesAPI } from '../../services/api';
 import UserForm from './UserForm';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedSBU, setSelectedSBU] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [formRefreshKey, setFormRefreshKey] = useState(0); // Key to trigger template refresh
 
-  // Fetch users from API
+  // Fetch users and templates from API
   useEffect(() => {
     fetchUsers();
+    fetchTemplates();
   }, []);
 
   const fetchUsers = async () => {
@@ -34,6 +37,16 @@ const UserManagement = () => {
       toast.error('Failed to load users');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await templatesAPI.getAll();
+      setTemplates(response.data || []);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      // Don't show error toast for templates, just log it
     }
   };
 
@@ -97,8 +110,15 @@ const UserManagement = () => {
     );
   };
 
+  const getTemplateName = (templateId) => {
+    if (!templateId) return null;
+    const template = templates.find(t => t._id === templateId);
+    return template ? template.name : 'Unknown Template';
+  };
+
   const handleEditUser = (user) => {
     setEditingUser(user);
+    setFormRefreshKey(prev => prev + 1); // Trigger template refresh
     setShowAddModal(true);
   };
 
@@ -131,6 +151,7 @@ const UserManagement = () => {
       setShowAddModal(false);
       setEditingUser(null);
       fetchUsers();
+      fetchTemplates(); // Refresh templates to ensure display is up-to-date
     } catch (error) {
       console.error('Error saving profile:', error);
       const message = error.response?.data?.message || 'Failed to save profile';
@@ -149,6 +170,7 @@ const UserManagement = () => {
         <button
           onClick={() => {
             setEditingUser(null);
+            setFormRefreshKey(prev => prev + 1); // Trigger template refresh
             setShowAddModal(true);
           }}
           className="btn btn-primary flex items-center space-x-2"
@@ -250,6 +272,9 @@ const UserManagement = () => {
                   SBU
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Template
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -263,7 +288,7 @@ const UserManagement = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
                     Loading users...
                   </td>
                 </tr>
@@ -284,6 +309,17 @@ const UserManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {user.sbu || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {user.role === 'PRODUCT_MANAGER' ? (
+                      user.templateId ? (
+                        <span className="text-blue-600">{getTemplateName(user.templateId)}</span>
+                      ) : (
+                        <span className="text-gray-500">Default</span>
+                      )
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(user.isActive)}
@@ -330,6 +366,7 @@ const UserManagement = () => {
             setShowAddModal(false);
             setEditingUser(null);
           }}
+          refreshKey={formRefreshKey}
         />
       )}
     </div>

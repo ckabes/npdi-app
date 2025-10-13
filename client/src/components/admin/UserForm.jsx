@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { templatesAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 
-const UserForm = ({ user, onSave, onCancel }) => {
+const UserForm = ({ user, onSave, onCancel, refreshKey }) => {
+  const [templates, setTemplates] = useState([]);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: user || {
       email: '',
@@ -11,12 +16,32 @@ const UserForm = ({ user, onSave, onCancel }) => {
       role: 'PRODUCT_MANAGER',
       sbu: '',
       password: '',
-      isActive: true
+      isActive: true,
+      templateId: ''
     }
   });
 
   const selectedRole = watch('role');
   const isEditing = !!user;
+
+  // Fetch available templates - refetch when modal opens (refreshKey changes)
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      setLoadingTemplates(true);
+      try {
+        const response = await templatesAPI.getAll();
+        // API returns templates array directly, not wrapped in an object
+        setTemplates(response.data || []);
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+        toast.error('Failed to load templates');
+      } finally {
+        setLoadingTemplates(false);
+      }
+    };
+
+    fetchTemplates();
+  }, [refreshKey]); // Refetch when refreshKey changes
 
   const roles = [
     { value: 'PRODUCT_MANAGER', label: 'Product Manager' },
@@ -32,6 +57,10 @@ const UserForm = ({ user, onSave, onCancel }) => {
   ];
 
   const onSubmit = (data) => {
+    // If editing, ensure email is included even though field is disabled
+    if (isEditing && user?.email) {
+      data.email = user.email;
+    }
     onSave(data);
   };
 
@@ -154,6 +183,33 @@ const UserForm = ({ user, onSave, onCancel }) => {
                 </select>
                 {errors.sbu && (
                   <p className="mt-1 text-sm text-red-600">{errors.sbu.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Template Assignment - Only for Product Managers */}
+            {selectedRole === 'PRODUCT_MANAGER' && (
+              <div>
+                <label htmlFor="templateId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Ticket Template
+                </label>
+                <select
+                  {...register('templateId')}
+                  className="form-select"
+                  disabled={loadingTemplates}
+                >
+                  <option value="">Use Default Template</option>
+                  {templates.map(template => (
+                    <option key={template._id} value={template._id}>
+                      {template.name} {template.isDefault ? '(Default)' : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Assign a specific template to this Product Manager. Leave empty to use the default template.
+                </p>
+                {loadingTemplates && (
+                  <p className="mt-1 text-xs text-gray-500">Loading templates...</p>
                 )}
               </div>
             )}

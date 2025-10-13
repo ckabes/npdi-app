@@ -19,6 +19,35 @@ const defaultFormConfig = {
   isActive: true,
   sections: [
     {
+      sectionKey: 'productionType',
+      name: 'Production Type',
+      description: 'Select whether this product is produced internally or procured from external suppliers',
+      visible: true,
+      collapsible: false,
+      defaultExpanded: true,
+      order: 0,
+      isCustom: false,
+      fields: [
+        {
+          fieldKey: 'productionType',
+          label: 'Production Type',
+          type: 'radio',
+          required: true,
+          visible: true,
+          editable: true,
+          defaultValue: 'Produced',
+          helpText: 'Select whether this product is produced internally or procured from external suppliers',
+          gridColumn: 'full',
+          order: 1,
+          isCustom: false,
+          options: [
+            { value: 'Produced', label: 'Produced' },
+            { value: 'Procured', label: 'Procured' }
+          ]
+        }
+      ]
+    },
+    {
       sectionKey: 'basic',
       name: 'Basic Information',
       description: 'Essential product information and categorization',
@@ -96,23 +125,6 @@ const defaultFormConfig = {
           ]
         },
         {
-          fieldKey: 'productionType',
-          label: 'Production Type',
-          type: 'radio',
-          required: true,
-          visible: true,
-          editable: true,
-          defaultValue: 'Produced',
-          helpText: 'Whether this product is produced internally or procured from external suppliers',
-          gridColumn: 'half',
-          order: 5,
-          isCustom: false,
-          options: [
-            { value: 'Produced', label: 'Produced' },
-            { value: 'Procured', label: 'Procured' }
-          ]
-        },
-        {
           fieldKey: 'primaryPlant',
           label: 'Primary Plant',
           type: 'text',
@@ -122,7 +134,7 @@ const defaultFormConfig = {
           placeholder: 'Enter primary manufacturing plant',
           helpText: 'Primary manufacturing location',
           gridColumn: 'half',
-          order: 6,
+          order: 5,
           isCustom: false
         },
         {
@@ -135,7 +147,7 @@ const defaultFormConfig = {
           placeholder: 'Select brand...',
           helpText: 'Product brand',
           gridColumn: 'half',
-          order: 7,
+          order: 6,
           isCustom: false,
           options: [
             { value: 'Sigma-Aldrich', label: 'Sigma-Aldrich' },
@@ -151,13 +163,93 @@ const defaultFormConfig = {
       ]
     },
     {
+      sectionKey: 'vendor',
+      name: 'Vendor Information',
+      description: 'External supplier and vendor details (shown only for procured products)',
+      visible: true,
+      collapsible: true,
+      defaultExpanded: true,
+      order: 2,
+      isCustom: false,
+      fields: [
+        {
+          fieldKey: 'vendorName',
+          label: 'Vendor Name',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter vendor name',
+          helpText: 'Name of the external supplier',
+          gridColumn: 'half',
+          order: 1,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorProductName',
+          label: 'Vendor Product Name',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter vendor product name',
+          helpText: 'Product name as listed by vendor',
+          gridColumn: 'half',
+          order: 2,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorSAPNumber',
+          label: 'Vendor SAP Number',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter vendor SAP number',
+          helpText: 'SAP vendor identification number',
+          gridColumn: 'half',
+          order: 3,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorProductNumber',
+          label: 'Vendor Product Number',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter vendor product number',
+          helpText: 'Vendor\'s product catalog number',
+          gridColumn: 'half',
+          order: 4,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        }
+      ]
+    },
+    {
       sectionKey: 'chemical',
       name: 'Chemical Properties',
       description: 'Chemical composition and physical properties',
       visible: true,
       collapsible: true,
       defaultExpanded: false,
-      order: 2,
+      order: 3,
       isCustom: false,
       fields: [
         {
@@ -248,7 +340,7 @@ const defaultFormConfig = {
       visible: true,
       collapsible: true,
       defaultExpanded: false,
-      order: 3,
+      order: 4,
       isCustom: false,
       fields: [
         {
@@ -346,13 +438,63 @@ const defaultFormConfig = {
       ]
     },
     {
+      sectionKey: 'composition',
+      name: 'Product Composition',
+      description: 'Define the chemical components that make up this product',
+      visible: true,
+      collapsible: true,
+      defaultExpanded: false,
+      order: 5,
+      isCustom: false,
+      fields: [
+        {
+          fieldKey: 'composition',
+          label: 'Composition Components',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Add composition components',
+          helpText: 'This section uses a specialized component for managing product composition',
+          gridColumn: 'full',
+          order: 1,
+          isCustom: false
+        }
+      ]
+    },
+    {
+      sectionKey: 'quality',
+      name: 'Quality Specifications',
+      description: 'Define quality attributes and specifications for the product',
+      visible: true,
+      collapsible: true,
+      defaultExpanded: false,
+      order: 6,
+      isCustom: false,
+      fields: [
+        {
+          fieldKey: 'qualityAttributes',
+          label: 'Quality Attributes',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Add quality attributes',
+          helpText: 'This section uses a specialized component for managing quality specifications',
+          gridColumn: 'full',
+          order: 1,
+          isCustom: false
+        }
+      ]
+    },
+    {
       sectionKey: 'corpbase',
       name: 'CorpBase Website Information',
       description: 'Product information for corporate website and marketing',
       visible: true,
       collapsible: true,
       defaultExpanded: false,
-      order: 4,
+      order: 7,
       isCustom: false,
       fields: [
         {
@@ -435,14 +577,19 @@ const seedFormConfig = async () => {
     // Check if default config already exists
     const existingConfig = await FormConfiguration.findOne({ name: defaultFormConfig.name });
 
+    let config;
     if (existingConfig) {
-      console.log('Default form configuration already exists. Skipping seed.');
-      process.exit(0);
+      console.log('Default form configuration already exists. Updating...');
+      // Update existing configuration
+      Object.assign(existingConfig, defaultFormConfig);
+      config = await existingConfig.save();
+      console.log('✓ Default form configuration updated successfully');
+    } else {
+      // Create new default configuration
+      config = new FormConfiguration(defaultFormConfig);
+      await config.save();
+      console.log('✓ Default form configuration created successfully');
     }
-
-    // Create new default configuration
-    const config = new FormConfiguration(defaultFormConfig);
-    await config.save();
 
     console.log('✓ Default form configuration created successfully');
     console.log(`  - Name: ${config.name}`);

@@ -22,7 +22,7 @@ const formFieldSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['text', 'textarea', 'number', 'select', 'checkbox', 'date', 'email', 'url'],
+    enum: ['text', 'textarea', 'number', 'select', 'radio', 'checkbox', 'date', 'email', 'url'],
     required: true
   },
   required: {
@@ -53,6 +53,10 @@ const formFieldSchema = new mongoose.Schema({
   },
   conditionalDisplay: {
     dependsOn: String,
+    value: mongoose.Schema.Types.Mixed
+  },
+  visibleWhen: {
+    fieldKey: String,
     value: mongoose.Schema.Types.Mixed
   },
   gridColumn: {
@@ -109,11 +113,32 @@ const formConfigurationSchema = new mongoose.Schema({
     required: true,
     default: 'Product Ticket Form'
   },
+  templateName: {
+    type: String,
+    default: 'Default',
+    required: true
+  },
   description: String,
   version: {
     type: String,
     required: true,
     default: '1.0.0'
+  },
+  isDraft: {
+    type: Boolean,
+    default: false
+  },
+  publishedVersion: {
+    type: String,
+    default: '1.0.0'
+  },
+  lastPublishedAt: {
+    type: Date
+  },
+  // Store the last published version's sections for rollback
+  lastPublishedSections: {
+    type: [formSectionSchema],
+    default: undefined
   },
   isActive: {
     type: Boolean,

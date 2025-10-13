@@ -5,20 +5,28 @@ import {
   ComputerDesktopIcon,
   ClockIcon,
   EyeIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  DocumentDuplicateIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { userPreferencesAPI } from '../services/api';
+import { userPreferencesAPI, templatesAPI } from '../services/api';
+import { useAuth } from '../utils/AuthContext';
 
 const UserPreferences = () => {
+  const { user, isProductManager, isPMOPS } = useAuth();
   const [preferences, setPreferences] = useState({});
   const [activeSection, setActiveSection] = useState('display');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [template, setTemplate] = useState(null);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
 
   useEffect(() => {
     fetchPreferences();
-  }, []);
+    if (isProductManager) {
+      fetchUserTemplate();
+    }
+  }, [isProductManager]);
 
   const fetchPreferences = async () => {
     try {
@@ -30,6 +38,19 @@ const UserPreferences = () => {
       toast.error('Failed to load preferences');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserTemplate = async () => {
+    try {
+      setLoadingTemplate(true);
+      const response = await templatesAPI.getUserTemplate(user.email, user.role);
+      setTemplate(response.data);
+    } catch (error) {
+      console.error('Error fetching user template:', error);
+      // Don't show error toast as this is optional info
+    } finally {
+      setLoadingTemplate(false);
     }
   };
 
@@ -76,6 +97,7 @@ const UserPreferences = () => {
     { id: 'display', name: 'Display', icon: ComputerDesktopIcon },
     { id: 'notifications', name: 'Notifications', icon: BellIcon },
     { id: 'dashboard', name: 'Dashboard', icon: Cog6ToothIcon },
+    ...(isProductManager ? [{ id: 'template', name: 'My Template', icon: DocumentDuplicateIcon }] : []),
     { id: 'accessibility', name: 'Accessibility', icon: EyeIcon }
   ];
 
@@ -388,6 +410,98 @@ const UserPreferences = () => {
     </div>
   );
 
+  const renderTemplateSettings = () => {
+    if (isPMOPS) {
+      return (
+        <div className="space-y-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-800">
+              <strong>PM Ops Role:</strong> As a PM Ops user, you do not have an assigned template.
+              You can edit any ticket regardless of its template assignment.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (loadingTemplate) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      );
+    }
+
+    if (!template) {
+      return (
+        <div className="space-y-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-yellow-800">
+              <strong>No Template Assigned:</strong> You are currently using the default template.
+              Contact your administrator if you need a specific template assigned.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
+          <div className="flex items-start">
+            <DocumentDuplicateIcon className="h-6 w-6 text-green-600 mr-3 mt-1 flex-shrink-0" />
+            <div className="flex-1">
+              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                {template.name}
+                {template.isDefault && (
+                  <span className="ml-2 text-xs bg-green-600 text-white px-2 py-1 rounded-full">
+                    Default
+                  </span>
+                )}
+              </h4>
+              {template.description && (
+                <p className="text-sm text-gray-700 mb-4">{template.description}</p>
+              )}
+
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center text-gray-600">
+                  <strong className="w-32">Form Configuration:</strong>
+                  <span>{template.formConfiguration?.name || 'Loading...'}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <strong className="w-32">Total Sections:</strong>
+                  <span>{template.formConfiguration?.sections?.length || 0}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <strong className="w-32">Total Fields:</strong>
+                  <span>{template.formConfiguration?.metadata?.totalFields || 0}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <strong className="w-32">Version:</strong>
+                  <span>{template.formConfiguration?.version || '1.0.0'}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-green-300">
+                <p className="text-xs text-gray-600">
+                  <strong>Last Updated:</strong> {new Date(template.updatedAt).toLocaleDateString()} by {template.updatedBy}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> This template determines the form structure you see when creating new tickets.
+            Only administrators can modify templates or assign different templates to users.
+            Contact your administrator if you need changes to your template.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'display':
@@ -396,6 +510,8 @@ const UserPreferences = () => {
         return renderNotificationSettings();
       case 'dashboard':
         return renderDashboardSettings();
+      case 'template':
+        return renderTemplateSettings();
       case 'accessibility':
         return renderAccessibilitySettings();
       default:
