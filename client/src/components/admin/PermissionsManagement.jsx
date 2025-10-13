@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ShieldCheckIcon, 
+import {
+  ShieldCheckIcon,
   ShieldExclamationIcon,
   UserIcon,
   EyeIcon,
@@ -10,15 +10,47 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { permissionAPI } from '../../services/api';
 
 const PermissionsManagement = () => {
   const [permissions, setPermissions] = useState({});
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState('PRODUCT_MANAGER');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // Initialize permissions matrix
-    const defaultPermissions = {
+    fetchPermissions();
+  }, []);
+
+  const fetchPermissions = async () => {
+    try {
+      setLoading(true);
+      const response = await permissionAPI.getAll();
+
+      // Convert array of permission objects to a map by role
+      const permissionsMap = {};
+      response.data.forEach(perm => {
+        permissionsMap[perm.role] = perm.privileges;
+      });
+
+      setPermissions(permissionsMap);
+
+      // Set up roles
+      const rolesList = [
+        { value: 'PRODUCT_MANAGER', label: 'Product Manager', icon: UserIcon, color: 'blue' },
+        { value: 'PM_OPS', label: 'PMOps', icon: ShieldCheckIcon, color: 'purple' },
+        { value: 'ADMIN', label: 'Administrator', icon: ShieldExclamationIcon, color: 'red' }
+      ];
+      setRoles(rolesList);
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+      toast.error('Failed to load permissions. Using defaults.');
+
+      // Fallback to defaults if API fails
+      const defaultPermissions = {
       'PRODUCT_MANAGER': {
         tickets: {
           create: true,
@@ -227,17 +259,20 @@ const PermissionsManagement = () => {
       }
     };
 
-    const rolesList = [
-      { value: 'PRODUCT_MANAGER', label: 'Product Manager', icon: UserIcon, color: 'blue' },
-      { value: 'PM_OPS', label: 'PMOps', icon: ShieldCheckIcon, color: 'purple' },
-      { value: 'ADMIN', label: 'Administrator', icon: ShieldExclamationIcon, color: 'red' }
-    ];
+      const rolesList = [
+        { value: 'PRODUCT_MANAGER', label: 'Product Manager', icon: UserIcon, color: 'blue' },
+        { value: 'PM_OPS', label: 'PMOps', icon: ShieldCheckIcon, color: 'purple' },
+        { value: 'ADMIN', label: 'Administrator', icon: ShieldExclamationIcon, color: 'red' }
+      ];
 
-    setPermissions(defaultPermissions);
-    setRoles(rolesList);
-  }, []);
+      setPermissions(defaultPermissions);
+      setRoles(rolesList);
+      setLoading(false);
+    }
+  };
 
-  const updatePermission = (role, section, permission, value) => {
+  const updatePermission = async (role, section, permission, value) => {
+    // Optimistically update UI
     setPermissions(prev => ({
       ...prev,
       [role]: {
@@ -249,16 +284,44 @@ const PermissionsManagement = () => {
       }
     }));
 
-    toast.success(`Updated ${permission} permission for ${section}`);
+    try {
+      // Update on backend
+      await permissionAPI.updatePrivilege(role, section, permission, value);
+      toast.success(`Updated ${permission} permission for ${section}`);
+    } catch (error) {
+      console.error('Error updating permission:', error);
+      toast.error('Failed to update permission. Please try again.');
+
+      // Revert on error
+      setPermissions(prev => ({
+        ...prev,
+        [role]: {
+          ...prev[role],
+          [section]: {
+            ...prev[role][section],
+            [permission]: !value
+          }
+        }
+      }));
+    }
   };
 
   const savePermissions = async () => {
     try {
-      // API call to save permissions would go here
-      console.log('Saving permissions:', permissions);
-      toast.success('Permissions saved successfully');
+      setSaving(true);
+
+      // Save all role permissions
+      const savePromises = Object.keys(permissions).map(role =>
+        permissionAPI.updateRole(role, permissions[role])
+      );
+
+      await Promise.all(savePromises);
+      toast.success('All permissions saved successfully');
     } catch (error) {
-      toast.error('Failed to save permissions');
+      console.error('Error saving permissions:', error);
+      toast.error('Failed to save some permissions. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -270,22 +333,14 @@ const PermissionsManagement = () => {
     );
   };
 
-  const getPermissionActions = ['create', 'read', 'update', 'delete'];
-  const specialActions = {
-    tickets: ['viewAll'],
-    drafts: ['submit'],
-    skuAssignment: ['assignBaseNumbers'],
-    admin: ['access', 'userManagement', 'systemSettings', 'formConfiguration']
-  };
+  const getPermissionActions = ['view', 'edit'];
 
   const renderPermissionRow = (section, sectionName) => {
     const rolePermissions = permissions[selectedRole];
     if (!rolePermissions || !rolePermissions[section]) return null;
 
     const sectionPerms = rolePermissions[section];
-    const actions = section === 'admin' 
-      ? specialActions[section] 
-      : getPermissionActions.concat(specialActions[section] || []);
+    const actions = getPermissionActions;
 
     return (
       <div key={section} className="border border-gray-200 rounded-lg p-4">
@@ -317,6 +372,14 @@ const PermissionsManagement = () => {
 
   const selectedRoleData = roles.find(role => role.value === selectedRole);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -327,10 +390,20 @@ const PermissionsManagement = () => {
         </div>
         <button
           onClick={savePermissions}
-          className="btn btn-primary flex items-center space-x-2"
+          disabled={saving}
+          className="btn btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ShieldCheckIcon className="h-5 w-5" />
-          <span>Save Permissions</span>
+          {saving ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <ShieldCheckIcon className="h-5 w-5" />
+              <span>Save All Permissions</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -377,14 +450,14 @@ const PermissionsManagement = () => {
             {renderPermissionRow('tickets', 'Tickets')}
             {renderPermissionRow('drafts', 'Draft Management')}
             {renderPermissionRow('skuVariants', 'SKU Variants')}
-            {selectedRole === 'PM_OPS' && renderPermissionRow('skuAssignment', 'SKU Assignment')}
+            {renderPermissionRow('skuAssignment', 'SKU Assignment')}
             {renderPermissionRow('chemicalProperties', 'Chemical Properties')}
             {renderPermissionRow('hazardClassification', 'Hazard Classification')}
             {renderPermissionRow('corpbaseData', 'CorpBase Data')}
             {renderPermissionRow('pricingData', 'Pricing Data')}
             {renderPermissionRow('comments', 'Comments')}
             {renderPermissionRow('statusHistory', 'Status History')}
-            {renderPermissionRow('admin', 'Administrative Functions')}
+            {renderPermissionRow('adminPanel', 'Administrative Panel')}
           </div>
         </div>
       )}

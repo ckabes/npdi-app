@@ -22,6 +22,11 @@
       "Bash(ss:*)",
       "Bash(curl:*)",
       "WebFetch(domain:pubchem.ncbi.nlm.nih.gov)",
+      "Bash(systemctl status:*)",
+      "Bash(sudo systemctl:*)",
+      "Bash(timeout 5 npm start:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd comprehensive form configuration system with radio button support\n\nMajor Enhancements:\n- Implemented dynamic form configuration editor with split-screen live preview\n- Added radio button field type support across entire form system\n- Enhanced permissions management with view/edit privileges\n- Implemented profile-based authentication system\n- Added user preferences and system settings management\n\nForm Configuration Features:\n- Visual split-screen editor with gradient headers and live preview\n- Inline options editor for dropdown and radio button fields\n- Default value selection from dropdown/radio options\n- Drag-and-drop section reordering\n- Custom field and section creation\n- Restore default configuration button\n- Field visibility and editability controls\n\nRadio Button Support:\n- Added radio button rendering in DynamicFormSection\n- Updated form configuration editor to support radio field type\n- Modified seedFormConfig to use radio buttons for productionType\n- Implemented default value handling for radio fields\n\nAdditional Features:\n- Profile-based access control (Product Manager, PM Ops, Admin)\n- Enhanced dashboard with role-specific views\n- Activity feed and comments with user tracking\n- PubChem integration for chemical data auto-population\n- SKU variant generation and pricing calculations\n- User management interface with role assignments\n- System settings for SMTP and PubChem configuration\n\nTechnical Improvements:\n- Refactored authentication to use profile selection\n- Simplified permissions from CRUD to view/edit model\n- Added comprehensive form validation\n- Improved error handling and user feedback\n- Enhanced UI with Tailwind CSS styling\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git merge:*)"
     ],
     "deny": []

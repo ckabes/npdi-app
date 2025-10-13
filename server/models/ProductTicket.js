@@ -56,8 +56,8 @@ const skuVariantSchema = new mongoose.Schema({
     supplier: String
   },
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    type: String,  // Email address from profile
+    default: 'system'
   },
   assignedAt: {
     type: Date,
@@ -98,6 +98,12 @@ const chemicalPropertiesSchema = new mongoose.Schema({
   molecularWeight: Number,
   iupacName: String,
   canonicalSMILES: String,
+  isomericSMILES: String,
+  inchi: String,
+  inchiKey: String,
+  synonyms: [String],
+  hazardStatements: [String],
+  unNumber: String,
   pubchemCID: String,
   pubchemData: {
     lastUpdated: Date,
@@ -113,12 +119,40 @@ const chemicalPropertiesSchema = new mongoose.Schema({
     type: String,
     enum: ['Solid', 'Liquid', 'Gas', 'Powder', 'Crystal']
   },
-  purity: {
-    min: Number,
-    max: Number,
-    unit: {
-      type: String,
-      default: '%'
+  materialSource: {
+    type: String,
+    enum: ['Human', 'Plant', 'Fermentation', 'Recombinant', 'Synthetic']
+  },
+  animalComponent: {
+    type: String,
+    enum: ['Animal Component Free', 'Animal Component Containing']
+  },
+  storageTemperature: {
+    type: String,
+    enum: ['CL (2-8 deg)', 'F0 (-20 C)', 'F7 (-70 C)', 'RT (RT Controlled)', 'RT (Ambient)', 'F0 (-196 C)']
+  },
+  // Additional PubChem properties (hidden by default, shown via "Add Property")
+  additionalProperties: {
+    meltingPoint: String,
+    boilingPoint: String,
+    flashPoint: String,
+    density: String,
+    vaporPressure: String,
+    vaporDensity: String,
+    refractiveIndex: String,
+    logP: String,
+    polarSurfaceArea: String,
+    hydrogenBondDonor: Number,
+    hydrogenBondAcceptor: Number,
+    rotatableBonds: Number,
+    exactMass: String,
+    monoisotopicMass: String,
+    complexity: String,
+    heavyAtomCount: Number,
+    charge: Number,
+    visibleProperties: {
+      type: [String],
+      default: []
     }
   },
   solubility: [{
@@ -143,7 +177,72 @@ const chemicalPropertiesSchema = new mongoose.Schema({
       type: String,
       enum: ['Air', 'Inert gas', 'Dry atmosphere']
     }
+  },
+  shippingConditions: {
+    type: String,
+    enum: ['Standard', 'Wet Ice', 'Dry Ice', 'Liquid Nitrogen'],
+    default: 'Standard'
   }
+});
+
+const qualityAttributeSchema = new mongoose.Schema({
+  testAttribute: {
+    type: String,
+    required: true
+  },
+  dataSource: {
+    type: String,
+    enum: ['QC', 'Vendor'],
+    required: true
+  },
+  valueRange: {
+    type: String,
+    required: true
+  },
+  comments: {
+    type: String
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const qualitySchema = new mongoose.Schema({
+  mqQualityLevel: {
+    type: String,
+    enum: ['N/A', 'MQ100', 'MQ200', 'MQ300', 'MQ400', 'MQ500', 'MQ600'],
+    default: 'N/A'
+  },
+  attributes: [qualityAttributeSchema]
+});
+
+const compositionComponentSchema = new mongoose.Schema({
+  proprietary: {
+    type: Boolean,
+    default: false
+  },
+  componentCAS: {
+    type: String
+  },
+  weightPercent: {
+    type: Number,
+    required: true
+  },
+  componentName: {
+    type: String
+  },
+  componentFormula: {
+    type: String
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+const compositionSchema = new mongoose.Schema({
+  components: [compositionComponentSchema]
 });
 
 const regulatoryInfoSchema = new mongoose.Schema({
@@ -172,8 +271,7 @@ const documentSchema = new mongoose.Schema({
     required: true
   },
   uploadedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,  // Email address from profile
     required: true
   },
   uploadedAt: {
@@ -200,14 +298,67 @@ const productTicketSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  productionType: {
+    type: String,
+    enum: ['Produced', 'Procured'],
+    default: 'Produced'
+  },
   sbu: {
     type: String,
     enum: ['775', 'P90', '440', 'P87', 'P89', 'P85'],
     required: true
   },
+  primaryPlant: {
+    type: String
+  },
+  productScope: {
+    scope: {
+      type: String,
+      enum: ['Worldwide', 'North America', 'South America', 'Europe', 'Asia', 'Africa', 'Oceania', 'Other']
+    },
+    otherSpecification: {
+      type: String
+    }
+  },
+  distributionType: {
+    type: String,
+    enum: ['Standard', 'Purchase on Demand', 'Dock-to-Stock']
+  },
+  retestOrExpiration: {
+    type: {
+      type: String,
+      enum: ['None', 'Retest', 'Expiration']
+    },
+    shelfLife: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['days', 'months', 'years']
+      }
+    }
+  },
+  sialProductHierarchy: {
+    type: String
+  },
+  materialGroup: {
+    type: String
+  },
+  countryOfOrigin: {
+    type: String
+  },
+  brand: {
+    type: String,
+    enum: ['Sigma-Aldrich', 'SAFC', 'Supelco', 'Milli-Q', 'Millipore', 'BioReliance', 'Calbiochem', 'Merck']
+  },
+  vendorInformation: {
+    vendorName: String,
+    vendorProductName: String,
+    vendorSAPNumber: String,
+    vendorProductNumber: String
+  },
   status: {
     type: String,
-    enum: ['DRAFT', 'SUBMITTED', 'IN_PROCESS', 'COMPLETED', 'CANCELED'],
+    enum: ['DRAFT', 'SUBMITTED', 'IN_PROCESS', 'NPDI_INITIATED', 'COMPLETED', 'CANCELED'],
     default: 'DRAFT'
   },
   priority: {
@@ -216,16 +367,17 @@ const productTicketSchema = new mongoose.Schema({
     default: 'MEDIUM'
   },
   createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String,  // Email address from profile
     required: false
   },
   assignedTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+    type: String,  // Email address from profile
+    required: false
   },
   chemicalProperties: chemicalPropertiesSchema,
   hazardClassification: hazardClassificationSchema,
+  quality: qualitySchema,
+  composition: compositionSchema,
   skuVariants: [skuVariantSchema],
   regulatoryInfo: regulatoryInfoSchema,
   launchTimeline: {
@@ -254,8 +406,7 @@ const productTicketSchema = new mongoose.Schema({
   partNumber: {
     baseNumber: String,
     assignedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      type: String  // Email address from profile
     },
     assignedAt: Date
   },
@@ -303,23 +454,9 @@ const productTicketSchema = new mongoose.Schema({
         default: 5.00
       }
     },
-    targetMargins: {
-      smallSize: {
-        type: Number,
-        default: 75
-      },
-      mediumSize: {
-        type: Number,
-        default: 65
-      },
-      largeSize: {
-        type: Number,
-        default: 55
-      },
-      bulkSize: {
-        type: Number,
-        default: 45
-      }
+    targetMargin: {
+      type: Number,
+      default: 65
     },
     calculatedAt: Date
   },
@@ -327,8 +464,7 @@ const productTicketSchema = new mongoose.Schema({
   statusHistory: [{
     status: String,
     changedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+      type: String  // Email address from profile
     },
     changedAt: {
       type: Date,
@@ -349,8 +485,7 @@ const productTicketSchema = new mongoose.Schema({
   }],
   comments: [{
     user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      type: String,  // Email address from profile
       required: false
     },
     content: {
@@ -360,6 +495,12 @@ const productTicketSchema = new mongoose.Schema({
     timestamp: {
       type: Date,
       default: Date.now
+    },
+    userInfo: {
+      firstName: String,
+      lastName: String,
+      email: String,
+      role: String
     }
   }],
   createdAt: {

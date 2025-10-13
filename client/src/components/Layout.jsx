@@ -27,13 +27,10 @@ const Layout = () => {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+    { name: isPMOPS || isAdmin ? 'PMOps Dashboard' : 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Tickets', href: '/tickets', icon: DocumentIcon },
     ...(isProductManager || isPMOPS || isAdmin ? [
       { name: 'New Ticket', href: '/tickets/new', icon: PlusIcon }
-    ] : []),
-    ...(isPMOPS || isAdmin ? [
-      { name: 'PM-OPS Dashboard', href: '/pm-ops', icon: ChartBarIcon }
     ] : []),
     ...(isAdmin ? [
       { name: 'Admin Dashboard', href: '/admin', icon: CogIcon }
@@ -50,7 +47,7 @@ const Layout = () => {
         <div className={`fixed inset-y-0 left-0 flex w-64 transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="flex min-h-0 flex-1 flex-col bg-white shadow-xl">
             <div className="flex h-16 flex-shrink-0 items-center justify-between px-4 bg-millipore-blue">
-              <img className="h-8 w-auto" src="/logo-white.svg" alt="MilliporeSigma" />
+              <img className="h-10 w-auto" src="/M.png" alt="MilliporeSigma" />
               <button
                 type="button"
                 className="text-white hover:text-gray-200"
@@ -88,7 +85,7 @@ const Layout = () => {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-white shadow">
           <div className="flex h-16 flex-shrink-0 items-center px-4 bg-millipore-blue">
-            <img className="h-8 w-auto" src="/logo-white.svg" alt="MilliporeSigma" />
+            <img className="h-10 w-auto" src="/M.png" alt="MilliporeSigma" />
             <span className="ml-2 text-white font-semibold">NPDI Portal</span>
           </div>
           <nav className="flex-1 space-y-1 px-2 py-4">

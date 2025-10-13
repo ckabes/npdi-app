@@ -97,7 +97,14 @@ const login = async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    // Get user info from headers (no authentication needed)
+    const user = {
+      email: req.headers['x-user-email'],
+      firstName: req.headers['x-user-firstname'],
+      lastName: req.headers['x-user-lastname'],
+      role: req.headers['x-user-role'],
+      sbu: req.headers['x-user-sbu']
+    };
     res.json({ user });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -113,12 +120,15 @@ const updateProfile = async (req, res) => {
     }
 
     const { firstName, lastName } = req.body;
-    
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { firstName, lastName },
-      { new: true, runValidators: true }
-    );
+
+    // Just return the updated profile (no database update without authentication)
+    const user = {
+      email: req.headers['x-user-email'],
+      firstName,
+      lastName,
+      role: req.headers['x-user-role'],
+      sbu: req.headers['x-user-sbu']
+    };
 
     res.json({
       message: 'Profile updated successfully',

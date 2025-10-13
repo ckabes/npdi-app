@@ -6,6 +6,9 @@ const router = express.Router();
 
 router.get('/dashboard/stats', productController.getDashboardStats);
 
+// Recent activity endpoint
+router.get('/recent-activity', productController.getRecentActivity);
+
 // CAS number lookup endpoint
 router.get('/cas-lookup/:casNumber', productController.lookupCAS);
 

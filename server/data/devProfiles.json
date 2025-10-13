@@ -1,0 +1,32 @@
+[
+  {
+    "id": "product-manager",
+    "firstName": "John",
+    "lastName": "Smith",
+    "email": "john.smith@milliporesigma.com",
+    "role": "PRODUCT_MANAGER",
+    "sbu": "Life Science",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "pm-ops",
+    "firstName": "Sarah",
+    "lastName": "Johnson",
+    "email": "sarah.johnson@milliporesigma.com",
+    "role": "PM_OPS",
+    "sbu": "Process Solutions",
+    "isActive": true,
+    "createdAt": "2024-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "admin",
+    "firstName": "Mike",
+    "lastName": "Wilson",
+    "email": "mike.wilson@milliporesigma.com",
+    "role": "ADMIN",
+    "sbu": "Electronics",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+]
