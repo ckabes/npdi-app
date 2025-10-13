@@ -35,7 +35,7 @@ const Register = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-millipore-blue">
         <div className="flex flex-col justify-center px-12 text-white">
           <div className="mb-8">
-            <img src="/logo-white.svg" alt="MilliporeSigma" className="h-12" />
+            <img src="/M.png" alt="MilliporeSigma" className="h-16" />
           </div>
           <h1 className="text-4xl font-bold mb-6">
             Join NPDI Portal
@@ -44,7 +44,7 @@ const Register = () => {
             New Product Development & Introduction
           </p>
           <p className="text-lg opacity-90">
-            Create your account to start managing chemical product development 
+            Create your account to start managing chemical product development
             with our comprehensive platform designed for MilliporeSigma teams.
           </p>
         </div>
@@ -54,7 +54,7 @@ const Register = () => {
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-8">
         <div className="w-full max-w-md mx-auto">
           <div className="lg:hidden mb-8 text-center">
-            <img src="/logo.svg" alt="MilliporeSigma" className="h-12 mx-auto mb-4" />
+            <img src="/M.png" alt="MilliporeSigma" className="h-16 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900">NPDI Portal</h1>
           </div>
 
