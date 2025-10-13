@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI, apiClient } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -12,67 +13,105 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [profiles] = useState([
-    {
-      id: 'product-manager',
-      name: 'Product Manager',
-      role: 'PRODUCT_MANAGER',
-      firstName: 'John',
-      lastName: 'Smith',
-      email: 'john.smith@milliporesigma.com',
-      sbu: 'Life Science'
-    },
-    {
-      id: 'pm-ops',
-      name: 'PM Operations',
-      role: 'PM_OPS',
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      email: 'sarah.johnson@milliporesigma.com',
-      sbu: 'Process Solutions'
-    },
-    {
-      id: 'admin',
-      name: 'Administrator',
-      role: 'ADMIN',
-      firstName: 'Mike',
-      lastName: 'Wilson',
-      email: 'mike.wilson@milliporesigma.com',
-      sbu: 'Electronics'
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(null);
+  const [profiles, setProfiles] = useState([]);
+
+  // Fetch profiles from API
+  const fetchProfiles = async () => {
+    try {
+      const response = await apiClient.get('/profiles');
+      setProfiles(response.data || []);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      setProfiles([]);
     }
-  ]);
+  };
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem('selectedProfile');
-    if (savedProfile) {
-      const profile = profiles.find(p => p.id === savedProfile);
-      if (profile) {
-        setUser(profile);
-      }
+    // Fetch available profiles
+    fetchProfiles();
+
+    // Check for stored token on mount
+    const storedToken = localStorage.getItem('authToken');
+    const storedUser = localStorage.getItem('user');
+
+    if (storedToken && storedUser) {
+      setToken(storedToken);
+      setUser(JSON.parse(storedUser));
     }
-  }, [profiles]);
+    setLoading(false);
+  }, []);
+
+  const login = async (email, password) => {
+    try {
+      const response = await authAPI.login({ email, password });
+      const { token: authToken, user: userData } = response.data;
+
+      // Store token and user data
+      localStorage.setItem('authToken', authToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      setToken(authToken);
+      setUser(userData);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      const message = error.response?.data?.message || 'Login failed. Please try again.';
+      return { success: false, message };
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      const response = await authAPI.register(userData);
+      const { token: authToken, user: newUser } = response.data;
+
+      // Store token and user data
+      localStorage.setItem('authToken', authToken);
+      localStorage.setItem('user', JSON.stringify(newUser));
+
+      setToken(authToken);
+      setUser(newUser);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Registration error:', error);
+      const message = error.response?.data?.message || 'Registration failed. Please try again.';
+      return { success: false, message };
+    }
+  };
 
   const selectProfile = (profileId) => {
     const profile = profiles.find(p => p.id === profileId);
     if (profile) {
       setUser(profile);
       localStorage.setItem('selectedProfile', profileId);
+      localStorage.setItem('currentProfileData', JSON.stringify(profile));
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
     localStorage.removeItem('selectedProfile');
+    localStorage.removeItem('currentProfileData');
+    setToken(null);
     setUser(null);
   };
 
   const value = {
     user,
+    token,
     profiles,
     loading,
+    login,
+    register,
     selectProfile,
     logout,
-    isAuthenticated: !!user,
+    refreshProfiles: fetchProfiles,
+    isAuthenticated: !!user && !!token,
     isProductManager: user?.role === 'PRODUCT_MANAGER',
     isPMOPS: user?.role === 'PM_OPS',
     isAdmin: user?.role === 'ADMIN'

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  UserPlusIcon, 
-  PencilIcon, 
+import {
+  UserPlusIcon,
+  PencilIcon,
   TrashIcon,
   EyeIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { userAPI } from '../../services/api';
+import UserForm from './UserForm';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -17,44 +19,23 @@ const UserManagement = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
 
-  // Mock user data - replace with actual API call
+  // Fetch users from API
   useEffect(() => {
-    setUsers([
-      {
-        id: 1,
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@company.com',
-        role: 'PRODUCT_MANAGER',
-        sbu: 'P90',
-        status: 'Active',
-        lastLogin: '2024-01-15T10:30:00Z',
-        createdAt: '2024-01-01T00:00:00Z'
-      },
-      {
-        id: 2,
-        firstName: 'Sarah',
-        lastName: 'Johnson',
-        email: 'sarah.johnson@company.com',
-        role: 'PM_OPS',
-        sbu: '775',
-        status: 'Active',
-        lastLogin: '2024-01-15T14:20:00Z',
-        createdAt: '2024-01-02T00:00:00Z'
-      },
-      {
-        id: 3,
-        firstName: 'Admin',
-        lastName: 'User',
-        email: 'admin@company.com',
-        role: 'ADMIN',
-        sbu: null,
-        status: 'Active',
-        lastLogin: '2024-01-15T16:45:00Z',
-        createdAt: '2024-01-01T00:00:00Z'
-      }
-    ]);
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await userAPI.getAll();
+      setUsers(response.data.users || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const roles = [
     { value: 'PRODUCT_MANAGER', label: 'Product Manager' },
@@ -63,12 +44,10 @@ const UserManagement = () => {
   ];
 
   const sbuOptions = [
-    { value: '775', label: 'SBU 775' },
-    { value: 'P90', label: 'SBU P90' },
-    { value: '440', label: 'SBU 440' },
-    { value: 'P87', label: 'SBU P87' },
-    { value: 'P89', label: 'SBU P89' },
-    { value: 'P85', label: 'SBU P85' }
+    { value: 'Life Science', label: 'Life Science' },
+    { value: 'Process Solutions', label: 'Process Solutions' },
+    { value: 'Electronics', label: 'Electronics' },
+    { value: 'Healthcare', label: 'Healthcare' }
   ];
 
   const filteredUsers = users.filter(user => {
@@ -107,15 +86,12 @@ const UserManagement = () => {
     );
   };
 
-  const getStatusBadge = (status) => {
-    const badges = {
-      'Active': 'bg-green-100 text-green-800',
-      'Inactive': 'bg-gray-100 text-gray-800',
-      'Suspended': 'bg-red-100 text-red-800'
-    };
-    
+  const getStatusBadge = (isActive) => {
+    const status = isActive ? 'Active' : 'Inactive';
+    const badgeClass = isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badges[status]}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}`}>
         {status}
       </span>
     );
@@ -127,39 +103,39 @@ const UserManagement = () => {
   };
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       try {
-        // API call would go here
-        setUsers(users.filter(user => user.id !== userId));
+        await userAPI.delete(userId);
         toast.success('User deleted successfully');
+        fetchUsers();
       } catch (error) {
-        toast.error('Failed to delete user');
+        console.error('Error deleting user:', error);
+        const message = error.response?.data?.message || 'Failed to delete user';
+        toast.error(message);
       }
     }
   };
 
-  const handleSaveUser = (userData) => {
-    if (editingUser) {
-      // Update existing user
-      setUsers(users.map(user => 
-        user.id === editingUser.id ? { ...user, ...userData } : user
-      ));
-      toast.success('User updated successfully');
-    } else {
-      // Add new user
-      const newUser = {
-        id: Math.max(...users.map(u => u.id)) + 1,
-        ...userData,
-        status: 'Active',
-        createdAt: new Date().toISOString(),
-        lastLogin: null
-      };
-      setUsers([...users, newUser]);
-      toast.success('User added successfully');
+  const handleSaveUser = async (userData) => {
+    try {
+      if (editingUser) {
+        // Update existing profile
+        await userAPI.update(editingUser.id || editingUser._id, userData);
+        toast.success('Profile updated successfully');
+      } else {
+        // Add new profile
+        await userAPI.create(userData);
+        toast.success('Profile created successfully');
+      }
+
+      setShowAddModal(false);
+      setEditingUser(null);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      const message = error.response?.data?.message || 'Failed to save profile';
+      toast.error(message);
     }
-    
-    setShowAddModal(false);
-    setEditingUser(null);
   };
 
   return (
@@ -168,7 +144,7 @@ const UserManagement = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
-          <p className="text-gray-600">Manage user accounts and permissions</p>
+          <p className="text-gray-600">Manage development/testing user profiles for login</p>
         </div>
         <button
           onClick={() => {
@@ -178,7 +154,7 @@ const UserManagement = () => {
           className="btn btn-primary flex items-center space-x-2"
         >
           <UserPlusIcon className="h-5 w-5" />
-          <span>Add User</span>
+          <span>Add Profile</span>
         </button>
       </div>
 
@@ -285,8 +261,14 @@ const UserManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
+                    Loading users...
+                  </td>
+                </tr>
+              ) : filteredUsers.map((user) => (
+                <tr key={user.id || user._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">
@@ -304,7 +286,7 @@ const UserManagement = () => {
                     {user.sbu || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(user.status)}
+                    {getStatusBadge(user.isActive)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {user.lastLogin ? formatDate(user.lastLogin) : 'Never'}
@@ -313,13 +295,15 @@ const UserManagement = () => {
                     <button
                       onClick={() => handleEditUser(user)}
                       className="text-blue-600 hover:text-blue-900"
+                      title="Edit profile"
                     >
                       <PencilIcon className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      className="text-red-600 hover:text-red-900"
+                      onClick={() => handleDeleteUser(user.id || user._id)}
+                      className="text-red-600 hover:text-red-900 disabled:text-gray-400 disabled:cursor-not-allowed"
                       disabled={user.role === 'ADMIN'}
+                      title={user.role === 'ADMIN' ? 'Cannot delete admin profiles' : 'Delete profile'}
                     >
                       <TrashIcon className="h-4 w-4" />
                     </button>
@@ -337,32 +321,16 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* Add/Edit User Modal would be implemented here */}
+      {/* Add/Edit User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {editingUser ? 'Edit User' : 'Add New User'}
-            </h3>
-            <p className="text-gray-600 mb-4">
-              User form implementation would go here
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="btn btn-secondary"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSaveUser({})}
-                className="btn btn-primary"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
+        <UserForm
+          user={editingUser}
+          onSave={handleSaveUser}
+          onCancel={() => {
+            setShowAddModal(false);
+            setEditingUser(null);
+          }}
+        />
       )}
     </div>
   );

@@ -15,6 +15,10 @@ const Login = () => {
     try {
       const result = await login(data.email, data.password);
       if (result.success) {
+        // Store profile data for API requests
+        if (result.user) {
+          localStorage.setItem('currentProfileData', JSON.stringify(result.user));
+        }
         toast.success('Login successful!');
         navigate('/dashboard');
       } else {
@@ -33,7 +37,7 @@ const Login = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-millipore-blue">
         <div className="flex flex-col justify-center px-12 text-white">
           <div className="mb-8">
-            <img src="/logo-white.svg" alt="MilliporeSigma" className="h-12" />
+            <img src="/M.png" alt="MilliporeSigma" className="h-16" />
           </div>
           <h1 className="text-4xl font-bold mb-6">
             NPDI Portal
@@ -42,7 +46,7 @@ const Login = () => {
             New Product Development & Introduction
           </p>
           <p className="text-lg opacity-90">
-            Streamline your chemical product development process with comprehensive 
+            Streamline your chemical product development process with comprehensive
             ticket management, regulatory compliance tracking, and collaborative workflows.
           </p>
         </div>
@@ -52,7 +56,7 @@ const Login = () => {
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 lg:px-8">
         <div className="w-full max-w-md mx-auto">
           <div className="lg:hidden mb-8 text-center">
-            <img src="/logo.svg" alt="MilliporeSigma" className="h-12 mx-auto mb-4" />
+            <img src="/M.png" alt="MilliporeSigma" className="h-16 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900">NPDI Portal</h1>
           </div>
 
