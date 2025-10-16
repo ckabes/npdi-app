@@ -25,18 +25,6 @@ const systemSettingsSchema = new mongoose.Schema({
     enableComments: { type: Boolean, default: true }
   },
 
-  // Email/Notifications (System-level SMTP configuration)
-  email: {
-    enabled: { type: Boolean, default: false },
-    smtpServer: { type: String, default: '' },
-    smtpPort: { type: Number, default: 587 },
-    smtpUsername: { type: String, default: '' },
-    smtpPassword: { type: String, default: '' }, // Should be encrypted
-    smtpSecure: { type: Boolean, default: false },
-    fromEmail: { type: String, default: '' },
-    fromName: { type: String, default: 'NPDI System' }
-  },
-
   // Security Policies
   security: {
     sessionTimeout: { type: Number, default: 480 }, // minutes

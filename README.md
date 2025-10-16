@@ -7,23 +7,27 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 ### Core Functionality
 - **Product Ticket Management**: Create and manage development tickets for new chemical products
 - **Multi-SKU Support**: Handle prepack, -CONF, -SPEC, and -VAR SKUs per product
-- **Role-Based Access**: Separate interfaces for Product Managers and PM-OPS team
-- **Status Workflow**: DRAFT → IN PROCESS → COMPLETED/CANCELED with audit trail
+- **Profile-Based Access**: Separate interfaces for Product Managers, PM-OPS team, and Administrators
+- **Status Workflow**: DRAFT → SUBMITTED → IN_PROCESS → COMPLETED/CANCELED with audit trail
 - **SBU Organization**: Tickets organized by Strategic Business Unit
+- **Dynamic Form Configuration**: Customizable form fields with live preview editor
 
 ### Chemical Data Management
 - **Chemical Properties**: CAS numbers, molecular formulas, physical states, purity ranges
 - **Hazard Classification**: GHS classes, signal words, transport classifications, UN numbers
 - **Storage Conditions**: Temperature, humidity, light, and atmosphere requirements
 - **Regulatory Information**: FDA, EPA, REACH, TSCA compliance tracking
+- **PubChem Integration**: Automatic chemical data population from CAS numbers
 
 ### Additional Features
 - **Business Justification**: Market analysis, competitive analysis, sales forecasts
 - **Document Management**: Attach SDSs, COAs, spec sheets, regulatory documents
-- **Commenting System**: Collaborative discussions on tickets
-- **Email Notifications**: Automatic alerts for status changes and comments
+- **Commenting System**: Collaborative discussions on tickets with user attribution
 - **Dashboard Analytics**: Statistics on ticket volumes, cycle times, SBU breakdowns
 - **Audit Trail**: Complete history of all changes with user attribution
+- **REST API**: External application integration with API key authentication
+- **User Preferences**: Customizable dashboard layouts and notification settings
+- **System Settings**: Configurable security policies, integrations, and performance options
 
 ## Tech Stack
 
@@ -31,9 +35,10 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 - **Node.js** with Express.js framework
 - **MongoDB** with Mongoose ODM
 - **JWT** authentication with bcrypt password hashing
-- **Nodemailer** for email notifications
 - **Express Validator** for input validation
 - **Helmet** and rate limiting for security
+- **Axios** for external API integration (PubChem)
+- **Compression** for response optimization
 
 ### Frontend
 - **React 18** with modern hooks
@@ -41,29 +46,67 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 - **Tailwind CSS** with custom MilliporeSigma branding
 - **React Hook Form** for form management
 - **Axios** for API communication
-- **React Hot Toast** for notifications
+- **React Hot Toast** for user notifications
 - **Headless UI** for accessible components
+- **Heroicons** for UI icons
 
 ## Project Structure
 
 ```
 npdi-app/
-├── server/                 # Backend API
-│   ├── config/            # Database configuration
-│   ├── controllers/       # Route handlers
-│   ├── middleware/        # Authentication & validation
-│   ├── models/           # Database schemas
-│   ├── routes/           # API endpoints
-│   ├── utils/            # Utilities (notifications, etc.)
-│   └── index.js          # Server entry point
-├── client/               # Frontend React app
-│   ├── public/           # Static assets
+├── server/                     # Backend API
+│   ├── config/                # Database configuration
+│   ├── controllers/           # Route handlers and business logic
+│   │   ├── apiKeyController.js
+│   │   ├── authController.js
+│   │   ├── devProfileController.js
+│   │   ├── productController.js
+│   │   ├── systemSettingsController.js
+│   │   ├── ticketApiController.js
+│   │   └── userController.js
+│   ├── data/                  # Development data and profiles
+│   ├── middleware/            # Authentication, validation, API auth
+│   │   ├── apiAuth.js        # API key authentication
+│   │   ├── auth.js           # JWT authentication
+│   │   └── validators.js
+│   ├── models/               # Database schemas (Mongoose)
+│   │   ├── ApiKey.js
+│   │   ├── FormConfiguration.js
+│   │   ├── ProductTicket.js
+│   │   ├── SystemSettings.js
+│   │   ├── TicketTemplate.js
+│   │   ├── User.js
+│   │   └── UserPreferences.js
+│   ├── routes/               # API endpoint definitions
+│   │   ├── admin.js          # Admin panel routes
+│   │   ├── auth.js           # Authentication routes
+│   │   ├── formConfig.js     # Form configuration routes
+│   │   ├── products.js       # Product ticket routes
+│   │   ├── ticketApi.js      # External API routes
+│   │   └── systemSettings.js
+│   ├── scripts/              # Utility scripts
+│   │   ├── generateApiKey.js
+│   │   └── seedApiKey.js
+│   ├── services/             # External service integrations
+│   │   └── pubchemService.js
+│   ├── utils/                # Helper utilities
+│   │   └── enumCleaner.js
+│   └── index.js              # Server entry point
+├── client/                   # Frontend React app
+│   ├── public/               # Static assets
 │   └── src/
-│       ├── components/   # Reusable UI components
-│       ├── pages/        # Page components
-│       ├── services/     # API client
-│       ├── utils/        # Auth context, helpers
-│       └── styles/       # CSS and styling
+│       ├── components/       # Reusable UI components
+│       │   ├── admin/       # Admin-specific components
+│       │   └── forms/       # Form components
+│       ├── pages/           # Page components
+│       ├── services/        # API client services
+│       ├── utils/           # Auth context, helpers
+│       └── styles/          # CSS and styling
+├── docs/                     # Project documentation
+│   └── archive/             # Archived documentation
+├── API_DOCUMENTATION.md      # API documentation
+├── API_KEY_SETUP.md         # API key setup guide
+├── FORM_CONFIGURATION_GUIDE.md
 └── README.md
 ```
 
@@ -134,42 +177,48 @@ PORT=5000
 NODE_ENV=development
 CLIENT_URL=http://localhost:5173
 
-# Email Notifications (Optional)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@company.com
-SMTP_PASS=your-email-password
+# API Keys (Optional - for external application integration)
+# Generate using: node server/scripts/generateApiKey.js
+# MASTER_API_KEY=your-master-api-key-here
 ```
 
-## User Roles
+## User Roles & Access
+
+The application uses a profile-based authentication system:
 
 ### Product Manager
-- Create new product tickets
-- View and edit their own tickets
+- Create and submit new product tickets
+- View and edit their own tickets (in DRAFT/SUBMITTED status)
 - Add comments and updates
-- Limited to their assigned SBU
+- Access to personal dashboard
+- Customizable user preferences
 
 ### PM-OPS Team
-- View all tickets across SBUs
-- Change ticket status
+- View all tickets across all SBUs
+- Change ticket status and workflow
 - Assign tickets to team members
-- Access comprehensive dashboard
+- Edit ticket details at any stage
+- Access comprehensive analytics dashboard
+- Manage ticket templates
 
 ### Administrator
-- Full system access
-- User management capabilities
-- System configuration
+- Full system access and configuration
+- User management and role assignments
+- API key management for external integrations
+- Form configuration editor
+- System settings management
 - All PM-OPS permissions
+- Access to admin dashboard
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/profile` - Get user profile
+### Authentication & Profiles
+- `POST /api/auth/login` - User login with profile selection
+- `GET /api/auth/profiles` - Get available profiles for user
+- `GET /api/auth/profile` - Get current user profile
 - `PUT /api/auth/profile` - Update user profile
 
-### Product Tickets
+### Product Tickets (Web Interface)
 - `POST /api/products` - Create new ticket
 - `GET /api/products` - List tickets (with filtering)
 - `GET /api/products/:id` - Get ticket details
@@ -177,6 +226,58 @@ SMTP_PASS=your-email-password
 - `PATCH /api/products/:id/status` - Update ticket status
 - `POST /api/products/:id/comments` - Add comment
 - `GET /api/products/dashboard/stats` - Dashboard statistics
+
+### External API (API Key Authentication)
+- `POST /api/v1/tickets` - Create ticket via API
+- `GET /api/v1/tickets/:id` - Get ticket details via API
+- `PUT /api/v1/tickets/:id` - Update ticket via API
+- `GET /api/v1/tickets` - List tickets via API
+- `POST /api/v1/tickets/:id/comments` - Add comment via API
+
+### Admin Routes
+- `GET /api/admin/users` - List all users
+- `POST /api/admin/users` - Create new user
+- `PUT /api/admin/users/:id` - Update user
+- `DELETE /api/admin/users/:id` - Delete user
+- `GET /api/admin/api-keys` - List API keys
+- `POST /api/admin/api-keys` - Generate new API key
+- `DELETE /api/admin/api-keys/:id` - Revoke API key
+
+### Form Configuration
+- `GET /api/form-config` - Get current form configuration
+- `PUT /api/form-config` - Update form configuration
+- `POST /api/form-config/restore-default` - Restore default configuration
+
+### System Settings
+- `GET /api/system-settings` - Get system settings
+- `PUT /api/system-settings` - Update system settings
+- `POST /api/system-settings/test-pubchem` - Test PubChem connection
+
+For detailed API documentation including request/response examples, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
+
+## External API Integration
+
+The application provides a REST API for external systems to integrate with the NPDI platform.
+
+### Setting Up API Access
+1. Generate an API key using the admin dashboard or CLI:
+   ```bash
+   node server/scripts/generateApiKey.js
+   ```
+2. Store the API key securely in your external application
+3. Include the API key in request headers:
+   ```
+   X-API-Key: your-api-key-here
+   ```
+
+### API Features
+- Create and manage product tickets programmatically
+- Retrieve ticket information and status
+- Add comments and updates
+- List tickets with filtering options
+- Full CRUD operations on tickets
+
+See [API_KEY_SETUP.md](./API_KEY_SETUP.md) for detailed setup instructions.
 
 ## Development
 
@@ -199,26 +300,34 @@ npm run build
 
 ### Production Environment
 1. Set `NODE_ENV=production`
-2. Configure production database
-3. Set secure JWT secret
-4. Configure SMTP for email notifications
-5. Set up reverse proxy (nginx)
-6. Enable HTTPS
+2. Configure production MongoDB database
+3. Set secure JWT secret (strong, random value)
+4. Generate API keys for external integrations
+5. Set up reverse proxy (nginx/Apache)
+6. Enable HTTPS with SSL certificates
 7. Configure monitoring and logging
+8. Set up automated database backups
+9. Configure CORS for production domains
 
-### Docker Support (Future)
-Docker configuration can be added for containerized deployments.
+### Docker Support
+Docker configuration can be added for containerized deployments. The application is designed to be containerizable with separate containers for:
+- Node.js application server
+- MongoDB database
+- Nginx reverse proxy
 
 ## Security Features
 
-- JWT-based authentication
-- Password hashing with bcrypt
-- Rate limiting on API endpoints
-- Input validation and sanitization
-- CORS configuration
-- Helmet security headers
-- SQL injection prevention
-- XSS protection
+- **JWT-based Authentication**: Secure token-based authentication for web interface
+- **API Key Authentication**: Separate authentication for external API access
+- **Password Hashing**: bcrypt for secure password storage
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Validation**: Express Validator for request validation
+- **CORS Configuration**: Controlled cross-origin resource sharing
+- **Helmet Security Headers**: Enhanced HTTP security headers
+- **NoSQL Injection Prevention**: Mongoose schema validation
+- **XSS Protection**: Input sanitization and output encoding
+- **Role-Based Access Control**: Profile-based permissions system
+- **Audit Logging**: Complete activity tracking with user attribution
 
 ## Contributing
 
