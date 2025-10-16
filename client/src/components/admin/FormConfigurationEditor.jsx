@@ -268,6 +268,10 @@ const FormConfigurationEditor = ({ configId, templateId, templateName }) => {
   };
 
   const addSection = (newSection) => {
+    if (!requireDefaultFormConfirmation(() => addSection(newSection))) {
+      return;
+    }
+
     setConfig(prev => {
       const updated = { ...prev };
       updated.sections.push({
@@ -309,6 +313,10 @@ const FormConfigurationEditor = ({ configId, templateId, templateName }) => {
   };
 
   const addField = (sectionKey, newField) => {
+    if (!requireDefaultFormConfirmation(() => addField(sectionKey, newField))) {
+      return;
+    }
+
     setConfig(prev => {
       const updated = { ...prev };
       const section = updated.sections.find(s => s.sectionKey === sectionKey);

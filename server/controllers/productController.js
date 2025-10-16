@@ -1,7 +1,6 @@
 const { validationResult } = require('express-validator');
 const ProductTicket = require('../models/ProductTicket');
 const User = require('../models/User');
-const { notifyNewTicket, notifyStatusChange, notifyCommentAdded } = require('../utils/notifications');
 const pubchemService = require('../services/pubchemService');
 const { cleanTicketData, ensureDefaultSKU, ensureDefaultSBU } = require('../utils/enumCleaner');
 
@@ -96,8 +95,6 @@ const createTicket = async (req, res) => {
 
     // Skip populate since createdBy is null
     // await ticket.populate('createdBy', 'firstName lastName email');
-
-    // notifyNewTicket(ticket);
 
     res.status(201).json({
       message: 'Product ticket created successfully',
@@ -424,8 +421,6 @@ const updateTicketStatus = async (req, res) => {
 
     await ticket.save();
 
-    // notifyStatusChange(ticket, oldStatus, status, null);
-
     res.json({
       message: 'Ticket status updated successfully',
       ticket: {
@@ -479,8 +474,6 @@ const addComment = async (req, res) => {
     await ticket.populate('comments.user', 'firstName lastName email');
 
     const newComment = ticket.comments[ticket.comments.length - 1];
-
-    notifyCommentAdded(ticket, newComment);
 
     res.json({
       message: 'Comment added successfully',
