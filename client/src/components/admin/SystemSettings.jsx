@@ -3,7 +3,6 @@ import {
   CogIcon,
   ServerIcon,
   CircleStackIcon,
-  BellIcon,
   ShieldCheckIcon,
   ClockIcon,
   DocumentTextIcon,
@@ -47,15 +46,6 @@ const SystemSettings = () => {
           autoSubmitReminder: 7,
           enableStatusHistory: true,
           enableComments: true
-        },
-        email: {
-          enabled: false,
-          smtpServer: '',
-          smtpPort: 587,
-          smtpUsername: '',
-          smtpPassword: '********',
-          fromEmail: '',
-          fromName: 'NPDI System'
         },
         security: {
           sessionTimeout: 480,
@@ -115,7 +105,6 @@ const SystemSettings = () => {
   const sections = [
     { id: 'general', name: 'General Settings', icon: CogIcon },
     { id: 'tickets', name: 'Ticket Configuration', icon: DocumentTextIcon },
-    { id: 'email', name: 'Email / SMTP', icon: BellIcon },
     { id: 'security', name: 'Security', icon: ShieldCheckIcon },
     { id: 'integrations', name: 'Integrations', icon: ServerIcon },
     { id: 'performance', name: 'Performance', icon: CircleStackIcon }
@@ -143,28 +132,6 @@ const SystemSettings = () => {
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const testSmtpConnection = async () => {
-    try {
-      const smtpConfig = {
-        smtpServer: settings.email?.smtpServer,
-        smtpPort: settings.email?.smtpPort,
-        smtpUsername: settings.email?.smtpUsername,
-        smtpPassword: settings.email?.smtpPassword,
-        smtpSecure: settings.email?.smtpSecure || false
-      };
-
-      const response = await systemSettingsAPI.testSmtp(smtpConfig);
-      if (response.data.success) {
-        toast.success('SMTP connection test successful');
-      } else {
-        toast.error('SMTP connection test failed');
-      }
-    } catch (error) {
-      console.error('SMTP test error:', error);
-      toast.error(error.response?.data?.message || 'SMTP connection test failed');
     }
   };
 
@@ -326,129 +293,6 @@ const SystemSettings = () => {
             </label>
           </div>
         ))}
-      </div>
-    </div>
-  );
-
-  const renderEmailSettings = () => (
-    <div className="space-y-6">
-      <div className="flex items-center">
-        <input
-          id="emailEnabled"
-          type="checkbox"
-          checked={settings.email?.enabled || false}
-          onChange={(e) => updateSetting('email', 'enabled', e.target.checked)}
-          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-        />
-        <label htmlFor="emailEnabled" className="ml-3 text-sm font-medium text-gray-700">
-          Enable email notifications system-wide
-        </label>
-      </div>
-
-      <div className="mt-4 p-4 bg-blue-50 rounded-md">
-        <p className="text-sm text-blue-800">
-          <strong>Note:</strong> Individual notification preferences (which emails each user receives) are now user-specific.
-          Each user can customize their notification preferences in their profile settings.
-        </p>
-      </div>
-
-      <div className="border-t pt-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">SMTP Configuration</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              SMTP Server
-            </label>
-            <input
-              type="text"
-              value={settings.email?.smtpServer || ''}
-              onChange={(e) => updateSetting('email', 'smtpServer', e.target.value)}
-              className="form-input"
-              placeholder="smtp.company.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              SMTP Port
-            </label>
-            <input
-              type="number"
-              value={settings.email?.smtpPort || ''}
-              onChange={(e) => updateSetting('email', 'smtpPort', parseInt(e.target.value))}
-              className="form-input"
-              placeholder="587"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Username
-            </label>
-            <input
-              type="text"
-              value={settings.email?.smtpUsername || ''}
-              onChange={(e) => updateSetting('email', 'smtpUsername', e.target.value)}
-              className="form-input"
-              placeholder="noreply@company.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={settings.email?.smtpPassword || ''}
-              onChange={(e) => updateSetting('email', 'smtpPassword', e.target.value)}
-              className="form-input"
-              placeholder="••••••••"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              From Email
-            </label>
-            <input
-              type="email"
-              value={settings.email?.fromEmail || ''}
-              onChange={(e) => updateSetting('email', 'fromEmail', e.target.value)}
-              className="form-input"
-              placeholder="noreply@company.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              From Name
-            </label>
-            <input
-              type="text"
-              value={settings.email?.fromName || ''}
-              onChange={(e) => updateSetting('email', 'fromName', e.target.value)}
-              className="form-input"
-              placeholder="NPDI System"
-            />
-          </div>
-        </div>
-        <div className="mt-4 flex items-center gap-4">
-          <button
-            onClick={testSmtpConnection}
-            className="btn btn-secondary"
-            disabled={!settings.email?.smtpServer || !settings.email?.smtpPort}
-          >
-            Test SMTP Connection
-          </button>
-          <div className="flex items-center">
-            <input
-              id="smtpSecure"
-              type="checkbox"
-              checked={settings.email?.smtpSecure || false}
-              onChange={(e) => updateSetting('email', 'smtpSecure', e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="smtpSecure" className="ml-2 text-sm text-gray-700">
-              Use TLS/SSL
-            </label>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -908,8 +752,6 @@ const SystemSettings = () => {
         return renderGeneralSettings();
       case 'tickets':
         return renderTicketSettings();
-      case 'email':
-        return renderEmailSettings();
       case 'security':
         return renderSecuritySettings();
       case 'integrations':

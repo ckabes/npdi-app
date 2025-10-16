@@ -33,7 +33,8 @@
       "Bash(npx eslint:*)",
       "Read(//home/ckabes/**)",
       "Bash(mongosh:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

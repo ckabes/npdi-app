@@ -13,12 +13,14 @@ import {
   ExclamationTriangleIcon,
   ArrowTrendingUpIcon,
   BoltIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  KeyIcon
 } from '@heroicons/react/24/outline';
 import UserManagement from '../components/admin/UserManagement';
 import PermissionsManagement from '../components/admin/PermissionsManagement';
 import SystemSettings from '../components/admin/SystemSettings';
 import TemplateFormManagement from '../components/admin/TemplateFormManagement';
+import ApiKeyManagement from '../components/admin/ApiKeyManagement';
 import { adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -51,6 +53,7 @@ const AdminDashboard = () => {
     { id: 'users', name: 'User Management', icon: UserGroupIcon },
     { id: 'templates', name: 'Templates & Forms', icon: DocumentDuplicateIcon },
     { id: 'permissions', name: 'Permissions', icon: ShieldCheckIcon },
+    { id: 'api-keys', name: 'API Keys', icon: KeyIcon },
     { id: 'system', name: 'System Settings', icon: CogIcon }
   ];
 
@@ -417,6 +420,8 @@ const AdminDashboard = () => {
         return <TemplateFormManagement />;
       case 'permissions':
         return <PermissionsManagement />;
+      case 'api-keys':
+        return <ApiKeyManagement />;
       case 'system':
         return <SystemSettings />;
       default:
