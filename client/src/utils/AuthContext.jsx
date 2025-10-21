@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI, apiClient } from '../services/api';
+import { apiClient } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -43,46 +43,6 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
-    try {
-      const response = await authAPI.login({ email, password });
-      const { token: authToken, user: userData } = response.data;
-
-      // Store token and user data
-      localStorage.setItem('authToken', authToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-
-      setToken(authToken);
-      setUser(userData);
-
-      return { success: true };
-    } catch (error) {
-      console.error('Login error:', error);
-      const message = error.response?.data?.message || 'Login failed. Please try again.';
-      return { success: false, message };
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await authAPI.register(userData);
-      const { token: authToken, user: newUser } = response.data;
-
-      // Store token and user data
-      localStorage.setItem('authToken', authToken);
-      localStorage.setItem('user', JSON.stringify(newUser));
-
-      setToken(authToken);
-      setUser(newUser);
-
-      return { success: true };
-    } catch (error) {
-      console.error('Registration error:', error);
-      const message = error.response?.data?.message || 'Registration failed. Please try again.';
-      return { success: false, message };
-    }
-  };
-
   const selectProfile = (profileId) => {
     const profile = profiles.find(p => p.id === profileId);
     if (profile) {
@@ -106,8 +66,6 @@ export const AuthProvider = ({ children }) => {
     token,
     profiles,
     loading,
-    login,
-    register,
     selectProfile,
     logout,
     refreshProfiles: fetchProfiles,

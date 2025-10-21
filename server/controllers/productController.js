@@ -265,8 +265,7 @@ const getTicketById = async (req, res) => {
       .populate('createdBy', 'firstName lastName email')
       .populate('assignedTo', 'firstName lastName email')
       .populate('comments.user', 'firstName lastName email')
-      .populate('statusHistory.changedBy', 'firstName lastName email')
-      .populate('documents.uploadedBy', 'firstName lastName email');
+      .populate('statusHistory.changedBy', 'firstName lastName email');
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found or access denied' });

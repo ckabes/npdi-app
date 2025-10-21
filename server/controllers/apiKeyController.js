@@ -28,11 +28,10 @@ exports.generateApiKey = async (req, res) => {
       expiresAt.setDate(expiresAt.getDate() + parseInt(expiresInDays));
     }
 
-    // Create the API key record
+    // Create the API key record (only store hash, never plain text)
     const apiKey = new ApiKey({
       name,
       description: description || '',
-      key,
       keyHash,
       keyPrefix,
       createdBy,
@@ -45,7 +44,9 @@ exports.generateApiKey = async (req, res) => {
 
     await apiKey.save();
 
-    // Return the full key only once (it won't be stored in plain text or returned again)
+    // Return the full key only once
+    // SECURITY: The key is NOT stored in the database - only the hash is stored
+    // This is the ONLY time the full key will ever be available
     res.status(201).json({
       success: true,
       message: 'API key generated successfully',
@@ -53,14 +54,14 @@ exports.generateApiKey = async (req, res) => {
         id: apiKey._id,
         name: apiKey.name,
         description: apiKey.description,
-        key: key, // IMPORTANT: This is the only time the full key is returned
+        key: key, // CRITICAL: This is the only time the full key is returned - not stored in DB
         keyPrefix: apiKey.keyPrefix,
         permissions: apiKey.permissions,
         expiresAt: apiKey.expiresAt,
         createdAt: apiKey.createdAt,
         application: apiKey.application
       },
-      warning: 'Save this API key securely. It will not be shown again.'
+      warning: 'IMPORTANT: Save this API key securely. It cannot be retrieved again. Only the hash is stored in the database.'
     });
   } catch (error) {
     console.error('Error generating API key:', error);
@@ -85,7 +86,7 @@ exports.getAllApiKeys = async (req, res) => {
     }
 
     const apiKeys = await ApiKey.find(filter)
-      .select('-key -keyHash')
+      .select('-keyHash')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -111,7 +112,7 @@ exports.getApiKeyById = async (req, res) => {
     const { id } = req.params;
 
     const apiKey = await ApiKey.findById(id)
-      .select('-key -keyHash')
+      .select('-keyHash')
       .lean();
 
     if (!apiKey) {

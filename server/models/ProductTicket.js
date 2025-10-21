@@ -55,6 +55,20 @@ const skuVariantSchema = new mongoose.Schema({
     leadTime: Number,
     supplier: String
   },
+  forecastedSalesVolume: {
+    year1: {
+      type: Number,
+      min: 0
+    },
+    year2: {
+      type: Number,
+      min: 0
+    },
+    year3: {
+      type: Number,
+      min: 0
+    }
+  },
   createdBy: {
     type: String,  // Email address from profile
     default: 'system'
@@ -256,33 +270,6 @@ const regulatoryInfoSchema = new mongoose.Schema({
   halalStatus: String
 });
 
-const documentSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    enum: ['SDS', 'COA', 'SPEC_SHEET', 'REGULATORY', 'OTHER'],
-    required: true
-  },
-  filename: {
-    type: String,
-    required: true
-  },
-  filepath: {
-    type: String,
-    required: true
-  },
-  uploadedBy: {
-    type: String,  // Email address from profile
-    required: true
-  },
-  uploadedAt: {
-    type: Date,
-    default: Date.now
-  },
-  version: {
-    type: String,
-    default: '1.0'
-  }
-});
 
 const productTicketSchema = new mongoose.Schema({
   ticketNumber: {
@@ -393,16 +380,6 @@ const productTicketSchema = new mongoose.Schema({
       notes: String
     }]
   },
-  businessJustification: {
-    marketAnalysis: String,
-    competitiveAnalysis: String,
-    salesForecast: {
-      year1: Number,
-      year2: Number,
-      year3: Number
-    },
-    roi: Number
-  },
   partNumber: {
     baseNumber: String,
     assignedBy: {
@@ -460,7 +437,6 @@ const productTicketSchema = new mongoose.Schema({
     },
     calculatedAt: Date
   },
-  documents: [documentSchema],
   statusHistory: [{
     status: String,
     changedBy: {

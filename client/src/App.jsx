@@ -9,9 +9,7 @@ import TicketDetails from './pages/TicketDetails';
 import TicketList from './pages/TicketList';
 import PMOPSDashboard from './pages/PMOPSDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import Profile from './pages/Profile';
 import TestCAS from './pages/TestCAS';
-import TestAuth from './pages/TestAuth';
 import Loading from './components/Loading';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
@@ -65,13 +63,11 @@ function App() {
             <AdminDashboard />
           </ProtectedRoute>
         } />
-        <Route path="profile" element={<Profile />} />
         <Route path="test-cas" element={
           <ProtectedRoute allowedRoles={['PRODUCT_MANAGER', 'PM_OPS', 'ADMIN']}>
             <TestCAS />
           </ProtectedRoute>
         } />
-        <Route path="test-auth" element={<TestAuth />} />
       </Route>
       
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
