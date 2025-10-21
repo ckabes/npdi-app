@@ -3,6 +3,33 @@ const TicketTemplate = require('../models/TicketTemplate');
 const FormConfiguration = require('../models/FormConfiguration');
 
 /**
+ * Transform ticket data for API response
+ * Ensures SKUs include part numbers and forecast data is properly attributed
+ */
+const transformTicketForAPI = (ticket) => {
+  const transformed = { ...ticket };
+
+  // If ticket has a base part number, ensure all SKUs include it in their full SKU
+  if (transformed.partNumber && transformed.partNumber.baseNumber && transformed.skuVariants) {
+    transformed.skuVariants = transformed.skuVariants.map(sku => ({
+      ...sku,
+      // Ensure full SKU is populated with base part number
+      partNumber: transformed.partNumber.baseNumber,
+      // Include forecast data for PREPACK SKUs
+      forecastedSalesVolume: sku.type === 'PREPACK' && sku.forecastedSalesVolume
+        ? {
+            year1: sku.forecastedSalesVolume.year1 || 0,
+            year2: sku.forecastedSalesVolume.year2 || 0,
+            year3: sku.forecastedSalesVolume.year3 || 0
+          }
+        : undefined
+    }));
+  }
+
+  return transformed;
+};
+
+/**
  * Get all tickets with filtering and pagination
  */
 exports.getAllTickets = async (req, res) => {
@@ -75,9 +102,12 @@ exports.getAllTickets = async (req, res) => {
     // Get total count for pagination
     const total = await ProductTicket.countDocuments(filter);
 
+    // Transform tickets for API response
+    const transformedTickets = tickets.map(transformTicketForAPI);
+
     res.json({
       success: true,
-      data: tickets,
+      data: transformedTickets,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -113,9 +143,12 @@ exports.getTicketById = async (req, res) => {
       });
     }
 
+    // Transform ticket for API response
+    const transformedTicket = transformTicketForAPI(ticket);
+
     res.json({
       success: true,
-      data: ticket
+      data: transformedTicket
     });
   } catch (error) {
     console.error('Error fetching ticket:', error);
@@ -145,9 +178,12 @@ exports.getTicketByNumber = async (req, res) => {
       });
     }
 
+    // Transform ticket for API response
+    const transformedTicket = transformTicketForAPI(ticket);
+
     res.json({
       success: true,
-      data: ticket
+      data: transformedTicket
     });
   } catch (error) {
     console.error('Error fetching ticket:', error);
@@ -189,9 +225,12 @@ exports.getTicketsByTemplate = async (req, res) => {
 
     const total = await ProductTicket.countDocuments();
 
+    // Transform tickets for API response
+    const transformedTickets = tickets.map(transformTicketForAPI);
+
     res.json({
       success: true,
-      data: tickets,
+      data: transformedTickets,
       template: {
         id: template._id,
         name: template.name,
@@ -306,9 +345,12 @@ exports.searchTickets = async (req, res) => {
     // Get total count
     const total = await ProductTicket.countDocuments(searchFilter);
 
+    // Transform tickets for API response
+    const transformedTickets = tickets.map(transformTicketForAPI);
+
     res.json({
       success: true,
-      data: tickets,
+      data: transformedTickets,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -466,12 +508,36 @@ exports.getTicketSchema = async (req, res) => {
         description: 'SKU variants for the product',
         items: {
           type: { type: 'string', enum: ['BULK', 'CONF', 'SPEC', 'VAR', 'PREPACK'] },
-          sku: { type: 'string' },
+          sku: { type: 'string', description: 'Full SKU (e.g., 176036-100G)' },
           description: { type: 'string' },
           packageSize: {
             value: { type: 'number' },
             unit: { type: 'string', enum: ['mg', 'g', 'kg', 'mL', 'L', 'units', 'vials', 'plates', 'bulk'] }
+          },
+          pricing: {
+            listPrice: { type: 'number', description: 'List price in USD' },
+            standardCost: { type: 'number', description: 'Standard cost' },
+            margin: { type: 'number', description: 'Margin percentage' },
+            currency: { type: 'string', description: 'Currency code (default: USD)' }
+          },
+          forecastedSalesVolume: {
+            type: 'object',
+            description: 'Forecasted annual sales volume (PREPACK only)',
+            fields: {
+              year1: { type: 'number', description: 'Forecasted containers for year 1' },
+              year2: { type: 'number', description: 'Forecasted containers for year 2' },
+              year3: { type: 'number', description: 'Forecasted containers for year 3' }
+            }
           }
+        }
+      },
+      partNumber: {
+        type: 'object',
+        description: 'Base part number assigned by PM-OPS',
+        fields: {
+          baseNumber: { type: 'string', description: 'Base part number (e.g., 176036)' },
+          assignedBy: { type: 'string', description: 'Email of PM-OPS who assigned the number' },
+          assignedAt: { type: 'date', description: 'Timestamp of assignment' }
         }
       },
       createdBy: { type: 'string', description: 'Email of ticket creator' },

@@ -11,16 +11,12 @@ const apiKeySchema = new mongoose.Schema({
     type: String,
     default: ''
   },
-  key: {
+  // Store only the hash of the key (never store plain text for security)
+  keyHash: {
     type: String,
     required: true,
     unique: true,
     index: true
-  },
-  // Store a hash of the key for additional security
-  keyHash: {
-    type: String,
-    required: true
   },
   // Prefix shown to users (first 8 characters)
   keyPrefix: {
@@ -114,10 +110,9 @@ apiKeySchema.methods.recordUsage = async function() {
   await this.save();
 };
 
-// Don't return the full key in JSON responses (only show prefix)
+// Don't return the key hash in JSON responses (only show prefix)
 apiKeySchema.methods.toJSON = function() {
   const obj = this.toObject();
-  delete obj.key;
   delete obj.keyHash;
   return obj;
 };

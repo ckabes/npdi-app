@@ -6,7 +6,6 @@ import {
   DocumentIcon,
   PlusIcon,
   ChartBarIcon,
-  UserCircleIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
@@ -142,12 +141,6 @@ const Layout = () => {
                   <span className="text-xs bg-gray-100 px-2 py-1 rounded">
                     {user?.sbu || user?.role}
                   </span>
-                  <Link
-                    to="/profile"
-                    className="text-gray-400 hover:text-gray-500"
-                  >
-                    <UserCircleIcon className="h-6 w-6" />
-                  </Link>
                   <button
                     onClick={handleLogout}
                     className="text-gray-400 hover:text-gray-500"

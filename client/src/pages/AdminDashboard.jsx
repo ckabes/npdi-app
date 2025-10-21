@@ -7,7 +7,6 @@ import {
   ChartBarIcon,
   ShieldCheckIcon,
   WrenchScrewdriverIcon,
-  DocumentDuplicateIcon,
   ClockIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -19,7 +18,6 @@ import {
 import UserManagement from '../components/admin/UserManagement';
 import PermissionsManagement from '../components/admin/PermissionsManagement';
 import SystemSettings from '../components/admin/SystemSettings';
-import TemplateFormManagement from '../components/admin/TemplateFormManagement';
 import ApiKeyManagement from '../components/admin/ApiKeyManagement';
 import { adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -51,7 +49,6 @@ const AdminDashboard = () => {
   const tabs = [
     { id: 'overview', name: 'System Overview', icon: ChartBarIcon },
     { id: 'users', name: 'User Management', icon: UserGroupIcon },
-    { id: 'templates', name: 'Templates & Forms', icon: DocumentDuplicateIcon },
     { id: 'permissions', name: 'Permissions', icon: ShieldCheckIcon },
     { id: 'api-keys', name: 'API Keys', icon: KeyIcon },
     { id: 'system', name: 'System Settings', icon: CogIcon }
@@ -416,8 +413,6 @@ const AdminDashboard = () => {
         return renderOverview();
       case 'users':
         return <UserManagement />;
-      case 'templates':
-        return <TemplateFormManagement />;
       case 'permissions':
         return <PermissionsManagement />;
       case 'api-keys':

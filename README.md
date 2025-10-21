@@ -20,11 +20,8 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 - **PubChem Integration**: Automatic chemical data population from CAS numbers
 
 ### Additional Features
-- **Business Justification**: Market analysis, competitive analysis, sales forecasts
-- **Document Management**: Attach SDSs, COAs, spec sheets, regulatory documents
 - **Commenting System**: Collaborative discussions on tickets with user attribution
 - **Dashboard Analytics**: Statistics on ticket volumes, cycle times, SBU breakdowns
-- **Audit Trail**: Complete history of all changes with user attribution
 - **REST API**: External application integration with API key authentication
 - **User Preferences**: Customizable dashboard layouts and notification settings
 - **System Settings**: Configurable security policies, integrations, and performance options
@@ -34,7 +31,6 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 ### Backend
 - **Node.js** with Express.js framework
 - **MongoDB** with Mongoose ODM
-- **JWT** authentication with bcrypt password hashing
 - **Express Validator** for input validation
 - **Helmet** and rate limiting for security
 - **Axios** for external API integration (PubChem)
@@ -58,16 +54,15 @@ npdi-app/
 │   ├── config/                # Database configuration
 │   ├── controllers/           # Route handlers and business logic
 │   │   ├── apiKeyController.js
-│   │   ├── authController.js
 │   │   ├── devProfileController.js
 │   │   ├── productController.js
 │   │   ├── systemSettingsController.js
 │   │   ├── ticketApiController.js
-│   │   └── userController.js
+│   │   └── userPreferencesController.js
 │   ├── data/                  # Development data and profiles
 │   ├── middleware/            # Authentication, validation, API auth
 │   │   ├── apiAuth.js        # API key authentication
-│   │   ├── auth.js           # JWT authentication
+│   │   ├── auth.js           # Profile-based authentication
 │   │   └── validators.js
 │   ├── models/               # Database schemas (Mongoose)
 │   │   ├── ApiKey.js
@@ -79,11 +74,14 @@ npdi-app/
 │   │   └── UserPreferences.js
 │   ├── routes/               # API endpoint definitions
 │   │   ├── admin.js          # Admin panel routes
-│   │   ├── auth.js           # Authentication routes
 │   │   ├── formConfig.js     # Form configuration routes
+│   │   ├── permissions.js    # Permission management routes
 │   │   ├── products.js       # Product ticket routes
+│   │   ├── systemSettings.js # System settings routes
+│   │   ├── templates.js      # Template management routes
 │   │   ├── ticketApi.js      # External API routes
-│   │   └── systemSettings.js
+│   │   ├── userPreferences.js # User preferences routes
+│   │   └── users.js          # User/profile management routes
 │   ├── scripts/              # Utility scripts
 │   │   ├── generateApiKey.js
 │   │   └── seedApiKey.js
@@ -213,10 +211,7 @@ The application uses a profile-based authentication system:
 ## API Endpoints
 
 ### Authentication & Profiles
-- `POST /api/auth/login` - User login with profile selection
-- `GET /api/auth/profiles` - Get available profiles for user
-- `GET /api/auth/profile` - Get current user profile
-- `PUT /api/auth/profile` - Update user profile
+- `GET /api/profiles` - Get available development profiles for selection
 
 ### Product Tickets (Web Interface)
 - `POST /api/products` - Create new ticket
@@ -317,17 +312,32 @@ Docker configuration can be added for containerized deployments. The application
 
 ## Security Features
 
-- **JWT-based Authentication**: Secure token-based authentication for web interface
-- **API Key Authentication**: Separate authentication for external API access
-- **Password Hashing**: bcrypt for secure password storage
+- **Profile-Based Authentication**: Development profile selection system for testing
+- **API Key Authentication**: Secure authentication for external API access
 - **Rate Limiting**: Protection against brute force attacks
 - **Input Validation**: Express Validator for request validation
 - **CORS Configuration**: Controlled cross-origin resource sharing
 - **Helmet Security Headers**: Enhanced HTTP security headers
 - **NoSQL Injection Prevention**: Mongoose schema validation
 - **XSS Protection**: Input sanitization and output encoding
-- **Role-Based Access Control**: Profile-based permissions system
-- **Audit Logging**: Complete activity tracking with user attribution
+- **Role-Based Access Control**: Granular permissions system by role
+- **Activity Tracking**: User attribution for all ticket actions and comments
+
+## Architecture Notes
+
+### Authentication System
+The application uses a **profile-based authentication** system for development and testing:
+- User profiles stored in file-based JSON (`/server/data/devProfiles.json`)
+- Profile data passed via request headers (`x-user-role`, `x-user-email`, etc.)
+- Managed by `devProfileController.js` and `authenticateProfile` middleware
+- Suitable for development; can be replaced with JWT/SSO for production
+
+### Future Enhancements
+The following features are planned for future implementation:
+- **Archived Tickets View**: UI to view and manage archived tickets (backend route exists)
+- **Document Management**: File upload system for SDSs, COAs, spec sheets (schema ready)
+- **Email Notifications**: SMTP integration for ticket status updates
+- **Advanced Analytics**: Deeper insights into ticket patterns and bottlenecks
 
 ## Contributing
 

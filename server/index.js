@@ -8,7 +8,6 @@ const connectDB = require('./config/database');
 
 const productRoutes = require('./routes/products');
 const formConfigRoutes = require('./routes/formConfig');
-const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const permissionRoutes = require('./routes/permissions');
 const systemSettingsRoutes = require('./routes/systemSettings');
@@ -120,7 +119,6 @@ app.get('/api/profiles', async (req, res) => {
   }
 });
 
-app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/form-config', formConfigRoutes);
