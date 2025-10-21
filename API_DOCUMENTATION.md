@@ -731,6 +731,62 @@ print(search_result)
 
 ---
 
+## Data Structure Details
+
+### Part Numbers and SKU Attribution
+
+When PM-OPS assigns a base part number to a ticket, all SKU variants are automatically associated with that part number:
+
+**Part Number Object:**
+```json
+{
+  "partNumber": {
+    "baseNumber": "176036",
+    "assignedBy": "sarah.johnson@milliporesigma.com",
+    "assignedAt": "2025-10-05T09:15:00.000Z"
+  }
+}
+```
+
+**SKU Variants with Part Number:**
+Each SKU variant in the response will include:
+- `partNumber`: The base part number from the ticket
+- `sku`: The full SKU code (e.g., "176036-100G")
+
+### Forecasted Sales Volume
+
+For PREPACK SKUs only, the API includes forecasted annual sales volume data:
+
+```json
+{
+  "type": "PREPACK",
+  "sku": "176036-100G",
+  "partNumber": "176036",
+  "packageSize": {
+    "value": 100,
+    "unit": "g"
+  },
+  "forecastedSalesVolume": {
+    "year1": 5000,
+    "year2": 7500,
+    "year3": 10000
+  }
+}
+```
+
+**Fields:**
+- `year1` (number): Forecasted number of containers for year 1
+- `year2` (number): Forecasted number of containers for year 2
+- `year3` (number): Forecasted number of containers for year 3
+
+**Notes:**
+- Forecast data is only present for PREPACK type SKUs
+- Values represent number of containers, not volume
+- Fields may be 0 if no forecast was provided
+- Non-PREPACK SKUs (CONF, SPEC, VAR, BULK) will not have this field
+
+---
+
 ## Support
 
 For issues or questions about the API:
@@ -742,6 +798,11 @@ For issues or questions about the API:
 ---
 
 ## Changelog
+
+### Version 1.1.0 (2025-10-19)
+- Added forecasted sales volume data for PREPACK SKUs
+- Enhanced SKU data to include part number attribution
+- Improved API response transformation
 
 ### Version 1.0.0 (2025-10-13)
 - Initial API release

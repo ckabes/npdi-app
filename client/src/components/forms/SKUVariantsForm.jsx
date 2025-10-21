@@ -255,6 +255,60 @@ const SKUVariantsForm = ({
                   </div>
                 )}
               </div>
+
+              {/* Forecasted Sales Volume - Only for PREPACK */}
+              {skuType === 'PREPACK' && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h5 className="text-sm font-medium text-gray-900 mb-3">Forecasted Sales Volume (Containers)</h5>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Year 1
+                      </label>
+                      <input
+                        {...register(`skuVariants.${index}.forecastedSalesVolume.year1`)}
+                        type="number"
+                        step="1"
+                        min="0"
+                        className="form-input"
+                        placeholder="0"
+                        readOnly={readOnly}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Year 2
+                      </label>
+                      <input
+                        {...register(`skuVariants.${index}.forecastedSalesVolume.year2`)}
+                        type="number"
+                        step="1"
+                        min="0"
+                        className="form-input"
+                        placeholder="0"
+                        readOnly={readOnly}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Year 3
+                      </label>
+                      <input
+                        {...register(`skuVariants.${index}.forecastedSalesVolume.year3`)}
+                        type="number"
+                        step="1"
+                        min="0"
+                        className="form-input"
+                        placeholder="0"
+                        readOnly={readOnly}
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Enter forecasted number of containers to be sold annually
+                  </p>
+                </div>
+              )}
             </div>
           );
         })}

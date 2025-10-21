@@ -1277,6 +1277,60 @@ const TicketDetails = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Forecasted Sales Volume - Only for PREPACK */}
+                        {watchEdit(`skuVariants.${index}.type`) === 'PREPACK' && (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <h5 className="text-sm font-medium text-gray-900 mb-3">Forecasted Sales Volume (Containers)</h5>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  Year 1
+                                </label>
+                                <input
+                                  {...registerEdit(`skuVariants.${index}.forecastedSalesVolume.year1`)}
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  className="form-input text-sm"
+                                  placeholder="0"
+                                  defaultValue={field.forecastedSalesVolume?.year1}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  Year 2
+                                </label>
+                                <input
+                                  {...registerEdit(`skuVariants.${index}.forecastedSalesVolume.year2`)}
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  className="form-input text-sm"
+                                  placeholder="0"
+                                  defaultValue={field.forecastedSalesVolume?.year2}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">
+                                  Year 3
+                                </label>
+                                <input
+                                  {...registerEdit(`skuVariants.${index}.forecastedSalesVolume.year3`)}
+                                  type="number"
+                                  step="1"
+                                  min="0"
+                                  className="form-input text-sm"
+                                  placeholder="0"
+                                  defaultValue={field.forecastedSalesVolume?.year3}
+                                />
+                              </div>
+                            </div>
+                            <p className="mt-2 text-xs text-gray-500">
+                              Enter forecasted number of containers to be sold annually
+                            </p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -2150,6 +2204,41 @@ const TicketDetails = () => {
                           </div>
                         </div>
                       )}
+
+                      {/* Forecasted Sales Volume - Only for PREPACK */}
+                      {!editMode && sku.type === 'PREPACK' && sku.forecastedSalesVolume && (
+                        sku.forecastedSalesVolume.year1 || sku.forecastedSalesVolume.year2 || sku.forecastedSalesVolume.year3
+                      ) && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                          <h5 className="text-xs font-medium text-blue-900 mb-2">Forecasted Sales Volume (Containers)</h5>
+                          <div className="grid grid-cols-3 gap-3 text-xs">
+                            {sku.forecastedSalesVolume.year1 && (
+                              <div>
+                                <span className="text-blue-700">Year 1:</span>
+                                <p className="font-medium text-blue-900">
+                                  {sku.forecastedSalesVolume.year1.toLocaleString()} containers
+                                </p>
+                              </div>
+                            )}
+                            {sku.forecastedSalesVolume.year2 && (
+                              <div>
+                                <span className="text-blue-700">Year 2:</span>
+                                <p className="font-medium text-blue-900">
+                                  {sku.forecastedSalesVolume.year2.toLocaleString()} containers
+                                </p>
+                              </div>
+                            )}
+                            {sku.forecastedSalesVolume.year3 && (
+                              <div>
+                                <span className="text-blue-700">Year 3:</span>
+                                <p className="font-medium text-blue-900">
+                                  {sku.forecastedSalesVolume.year3.toLocaleString()} containers
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -2629,58 +2718,6 @@ const TicketDetails = () => {
                     <p className="text-orange-600 mt-1">⚠ Note: Total weight does not equal 100%</p>
                   )}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Business Justification */}
-          {ticket.businessJustification && (
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Business Justification</h3>
-              </div>
-              <div className="card-body space-y-6">
-                {ticket.businessJustification.marketAnalysis && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Market Analysis</label>
-                    <p className="text-sm text-gray-900">
-                      {ticket.businessJustification.marketAnalysis}
-                    </p>
-                  </div>
-                )}
-                {ticket.businessJustification.competitiveAnalysis && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Competitive Analysis</label>
-                    <p className="text-sm text-gray-900">
-                      {ticket.businessJustification.competitiveAnalysis}
-                    </p>
-                  </div>
-                )}
-                {ticket.businessJustification.salesForecast && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Sales Forecast</label>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <p className="text-sm text-gray-500">Year 1</p>
-                        <p className="text-lg font-semibold text-gray-900">
-                          ${ticket.businessJustification.salesForecast.year1?.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-500">Year 2</p>
-                        <p className="text-lg font-semibold text-gray-900">
-                          ${ticket.businessJustification.salesForecast.year2?.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-500">Year 3</p>
-                        <p className="text-lg font-semibold text-gray-900">
-                          ${ticket.businessJustification.salesForecast.year3?.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}

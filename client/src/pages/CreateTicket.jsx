@@ -711,52 +711,6 @@ const CreateTicket = () => {
             <h2 className="text-xl font-bold text-gray-900">Create New Product Ticket</h2>
             <p className="text-gray-600">Enter a CAS number to automatically populate chemical properties, hazard data, and generate SKU variants.</p>
           </div>
-          {!loadingTemplate && (
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={async () => {
-                  setLoadingTemplate(true);
-                  try {
-                    const response = await templatesAPI.getUserTemplate(user.email, user.role);
-                    if (isPMOPS || !response.data) {
-                      setTemplate(null);
-                    } else {
-                      setTemplate(response.data);
-                    }
-                    toast.success('Form configuration refreshed');
-                  } catch (error) {
-                    console.error('Error refreshing template:', error);
-                    toast.error('Failed to refresh form configuration');
-                  } finally {
-                    setLoadingTemplate(false);
-                  }
-                }}
-                className="text-xs text-millipore-blue hover:text-millipore-blue-dark flex items-center space-x-1"
-                title="Refresh form configuration"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Refresh Form</span>
-              </button>
-              <div className="text-right">
-                {isPMOPS ? (
-                  <p className="text-xs text-gray-400">
-                    PM Ops Role - No Template Assignment
-                  </p>
-                ) : template ? (
-                  <div className="text-xs text-gray-400">
-                    <p className="font-medium">Template: {template.name}</p>
-                    <p>Version: {template.formConfiguration?.version || '1.0.0'}</p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-400">
-                    Using Default Template
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

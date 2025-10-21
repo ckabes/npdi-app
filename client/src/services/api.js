@@ -71,13 +71,6 @@ export const productAPI = {
   }
 };
 
-export const authAPI = {
-  login: (data) => apiClient.post('/auth/login', data),
-  register: (data) => apiClient.post('/auth/register', data),
-  getProfile: () => apiClient.get('/auth/profile'),
-  updateProfile: (data) => apiClient.put('/auth/profile', data)
-};
-
 export const formConfigAPI = {
   getActive: () => apiClient.get('/form-config/active'),
   getAll: () => apiClient.get('/form-config/all'),
@@ -131,7 +124,6 @@ export const userAPI = {
   getById: (id) => apiClient.get(`/users/${id}`),
   create: (data) => apiClient.post('/users', data),
   update: (id, data) => apiClient.put(`/users/${id}`, data),
-  updatePassword: (id, password) => apiClient.put(`/users/${id}/password`, { password }),
   delete: (id) => apiClient.delete(`/users/${id}`),
   toggleStatus: (id) => apiClient.patch(`/users/${id}/toggle-status`)
 };

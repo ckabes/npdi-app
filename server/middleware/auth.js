@@ -1,8 +1,6 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 const Permission = require('../models/Permission');
 
-// Profile-based authentication (no JWT required, just profile headers)
+// Profile-based authentication (profile headers)
 const authenticateProfile = async (req, res, next) => {
   try {
     const role = req.header('x-user-role');
@@ -29,29 +27,6 @@ const authenticateProfile = async (req, res, next) => {
   } catch (error) {
     console.error('Profile authentication error:', error);
     res.status(401).json({ message: 'Invalid profile data.' });
-  }
-};
-
-// JWT-based authentication (for real login if needed)
-const authenticate = async (req, res, next) => {
-  try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
-
-    if (!token) {
-      return res.status(401).json({ message: 'Access denied. No token provided.' });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
-
-    if (!user || !user.isActive) {
-      return res.status(401).json({ message: 'Invalid token or user inactive.' });
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    res.status(401).json({ message: 'Invalid token.' });
   }
 };
 
@@ -143,7 +118,6 @@ const hasPermission = (permissions, section, action) => {
 };
 
 module.exports = {
-  authenticate,
   authenticateProfile,
   authorize,
   checkSBUAccess,
@@ -152,6 +126,6 @@ module.exports = {
   attachPermissions,
   hasPermission,
   // Aliases for convenience
-  protect: authenticateProfile,  // Use profile-based by default
+  protect: authenticateProfile,
   adminOnly: requireAdmin
 };
