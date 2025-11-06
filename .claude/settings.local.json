@@ -40,7 +40,16 @@
       "Bash(git pull:*)",
       "Bash(git stash:*)",
       "Bash(find:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(grep:*)",
+      "Bash(for model in ProductTicket User Permission ApiKey FormConfiguration SystemSettings UserPreferences TicketTemplate)",
+      "Bash(do echo -n \"$model: \")",
+      "Bash(ls:*)",
+      "Bash(done)",
+      "Bash(for controller in productController userPreferencesController systemSettingsController permissionController adminController apiKeyController ticketApiController)",
+      "Bash(do echo -n \"$controller: \")",
+      "Bash(for route in products.js formConfig.js users.js permissions.js systemSettings.js userPreferences.js templates.js admin.js ticketApi.js)",
+      "Bash(do echo -n \"$route: \")"
     ],
     "deny": []
   }

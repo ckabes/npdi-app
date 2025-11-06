@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive security and data integrity risk assessment for all external dependencies used in the NPDI Application. The assessment concludes that the selected dependencies do not pose significant risks to data integrity in a production environment when properly managed and updated.
+This document provides a foundational understanding of security and data integrity risks associated with external dependencies in the NPDI Application. The goal is to help stakeholders understand how dependencies interact with application data, what potential risks exist, and what mitigation strategies are in place. This assessment serves as a reference for evaluating the dependency stack and maintaining secure practices as the application evolves.
 
 **Assessment Date:** 2025-10-21
 **Application:** MilliporeSigma NPDI Application
@@ -365,12 +365,26 @@ app.use('/api/', rateLimit({
 
 **2. API Key Authentication**
 ```javascript
-// server/middleware/auth.js
-const authMiddleware = async (req, res, next) => {
+// server/middleware/apiAuth.js
+async function authenticateApiKey(req, res, next) {
   const apiKey = req.headers['x-api-key'];
-  // Validates API key from database
-  // Prevents unauthorized access
-};
+
+  if (!apiKey) {
+    return res.status(401).json({ message: 'API key is required' });
+  }
+
+  // Hash the provided key and validate against database
+  const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
+  const apiKeyRecord = await ApiKey.findOne({ keyHash });
+
+  if (!apiKeyRecord || !apiKeyRecord.isValid()) {
+    return res.status(403).json({ message: 'Invalid API key' });
+  }
+
+  // Record usage and attach key info to request
+  req.apiKey = apiKeyRecord;
+  next();
+}
 ```
 
 **3. CORS Configuration**
@@ -559,103 +573,6 @@ React Component Rendering
 - Production vs. development dependencies clearly separated
 - Build tools not deployed to production
 
-### 6.2 Recommended Enhancements
-
-#### High Priority
-
-**1. Automated Security Scanning**
-```bash
-# Add to package.json scripts
-"scripts": {
-  "audit": "npm audit --production",
-  "audit:fix": "npm audit fix"
-}
-
-# Run weekly or before deployments
-npm run audit
-```
-
-**2. Dependency Update Policy**
-```yaml
-# .github/dependabot.yml
-version: 2
-updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
-```
-
-**3. Lock File Management**
-```bash
-# Commit package-lock.json to repository
-# Ensures reproducible builds
-# Prevents unexpected dependency updates
-```
-
-#### Medium Priority
-
-**4. Content Security Policy (Enhanced)**
-```javascript
-// server/index.js
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],  // Tailwind requires inline styles
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https://pubchem.ncbi.nlm.nih.gov"]
-    }
-  }
-}));
-```
-
-**5. Subresource Integrity (SRI)**
-```html
-<!-- If using CDN resources -->
-<script
-  src="https://cdn.example.com/library.js"
-  integrity="sha384-..."
-  crossorigin="anonymous">
-</script>
-```
-
-**6. MongoDB Security Hardening**
-```javascript
-// Production MongoDB configuration
-{
-  auth: true,
-  ssl: true,
-  sslValidate: true,
-  authSource: 'admin',
-  replicaSet: 'rs0',  // For high availability
-  readPreference: 'secondaryPreferred'
-}
-```
-
-#### Low Priority (Nice to Have)
-
-**7. Security Headers Monitoring**
-```javascript
-// Add security header testing
-const securityHeaders = require('helmet');
-const { expect } = require('chai');
-
-describe('Security Headers', () => {
-  it('should set X-Frame-Options', async () => {
-    const res = await request(app).get('/');
-    expect(res.headers['x-frame-options']).to.equal('DENY');
-  });
-});
-```
-
-**8. Dependency Vulnerability Dashboard**
-- Use Snyk.io or npm audit dashboard
-- Monitor CVE databases
-- Set up alerts for critical vulnerabilities
-
 ---
 
 ## 7. Specific Dependency Risk Assessment
@@ -668,15 +585,11 @@ describe('Security Headers', () => {
 
 **How Tailwind Works:**
 ```javascript
-// vite.config.js - Development/Build configuration
+// client/postcss.config.js - Build-time CSS processing
 export default {
-  css: {
-    postcss: {
-      plugins: [
-        tailwindcss,  // Processes CSS during build
-        autoprefixer
-      ]
-    }
+  plugins: {
+    tailwindcss: {},  // Processes CSS during build
+    autoprefixer: {}
   }
 }
 ```
@@ -772,44 +685,9 @@ productTicketSchema.pre('find', function() {
 
 ---
 
-## 8. Production Deployment Checklist
+## 8. Conclusion
 
-### 8.1 Pre-Deployment Security Audit
-
-- [ ] Run `npm audit --production` and resolve high/critical issues
-- [ ] Update dependencies with security patches
-- [ ] Review .env file - no sensitive data in code
-- [ ] Verify .gitignore excludes credentials
-- [ ] Test input validation on all API endpoints
-- [ ] Review mongoose schemas for required fields and validation
-- [ ] Enable MongoDB authentication
-- [ ] Configure MongoDB network access restrictions
-- [ ] Set up SSL/TLS for MongoDB connections
-- [ ] Configure CORS with specific allowed origins
-- [ ] Set up rate limiting on all API routes
-- [ ] Review error handling - no sensitive data in responses
-- [ ] Enable Helmet security headers
-- [ ] Configure Content Security Policy
-- [ ] Set up monitoring and logging
-- [ ] Create backup and recovery procedures
-
-### 8.2 Post-Deployment Monitoring
-
-- [ ] Monitor `npm audit` weekly
-- [ ] Subscribe to security advisories for critical dependencies
-- [ ] Review application logs for suspicious activity
-- [ ] Monitor rate limiting blocks
-- [ ] Track failed authentication attempts
-- [ ] Set up alerts for MongoDB connection failures
-- [ ] Monitor API response times (DoS detection)
-- [ ] Regular security penetration testing
-- [ ] Quarterly dependency update review
-
----
-
-## 9. Conclusion
-
-### 9.1 Overall Risk Assessment
+### 8.1 Overall Risk Assessment
 
 **Data Integrity Risk Level:** **LOW**
 
@@ -842,7 +720,7 @@ The external dependencies used in the NPDI Application do not pose significant r
    - Express-validator PREVENTS invalid data entry
    - These dependencies actively protect data integrity
 
-### 9.2 Key Findings
+### 8.2 Key Findings
 
 ✅ **No Direct Data Access by UI Dependencies**
 - React, Tailwind, UI libraries have zero backend access
@@ -866,7 +744,7 @@ The external dependencies used in the NPDI Application do not pose significant r
 - Active security monitoring and patching
 - Community and professional security audits
 
-### 9.3 Risk Summary Table
+### 8.3 Risk Summary Table
 
 | Dependency Category | Data Access | Runtime Execution | Data Integrity Risk | Recommendation |
 |---------------------|-------------|-------------------|---------------------|----------------|
@@ -878,49 +756,25 @@ The external dependencies used in the NPDI Application do not pose significant r
 | Build Tools (Vite, PostCSS) | None | Build-time only | NONE | ✅ Safe - Not deployed |
 | Dev Tools (nodemon, eslint) | None | Development only | NONE | ✅ Safe - Not deployed |
 
-### 9.4 Final Recommendation
-
-**The NPDI Application's dependency stack is APPROPRIATE for production use** with the following conditions:
-
-**Required:**
-1. ✅ Implement regular `npm audit` checks (weekly minimum)
-2. ✅ Keep dependencies updated with security patches
-3. ✅ Use `package-lock.json` for reproducible builds
-4. ✅ Deploy with `npm install --production` (exclude dev dependencies)
-5. ✅ Enable MongoDB authentication and network security
-
-**Recommended:**
-1. Set up Dependabot or similar automated update tool
-2. Implement CSP headers with appropriate directives
-3. Monitor security advisories for critical dependencies
-4. Conduct periodic security penetration testing
-5. Maintain separation between development and production environments
-
-**Optional:**
-1. Use npm package signing for supply chain verification
-2. Implement SRI for any CDN resources
-3. Set up security monitoring dashboard (Snyk, WhiteSource)
-4. Create automated security testing in CI/CD pipeline
-
 ---
 
-## 10. References and Resources
+## 9. References and Resources
 
-### 10.1 Security Best Practices
+### 9.1 Security Best Practices
 
 - **OWASP Top 10:** https://owasp.org/www-project-top-ten/
 - **Node.js Security Best Practices:** https://nodejs.org/en/docs/guides/security/
 - **Express Security Best Practices:** https://expressjs.com/en/advanced/best-practice-security.html
 - **MongoDB Security Checklist:** https://docs.mongodb.com/manual/administration/security-checklist/
 
-### 10.2 Dependency Security Tools
+### 9.2 Dependency Security Tools
 
 - **npm audit:** Built-in security auditing
 - **Snyk:** https://snyk.io
 - **Dependabot:** https://github.com/dependabot
 - **npm advisory database:** https://www.npmjs.com/advisories
 
-### 10.3 Package Documentation
+### 9.3 Package Documentation
 
 - **Mongoose:** https://mongoosejs.com/docs/validation.html
 - **Helmet:** https://helmetjs.github.io/
@@ -933,4 +787,4 @@ The external dependencies used in the NPDI Application do not pose significant r
 **Last Updated:** 2025-10-21
 **Next Review:** 2025-11-21 (monthly review recommended)
 **Prepared By:** Claude Code Security Assessment
-**Status:** ✅ APPROVED FOR PRODUCTION (with conditions listed in Section 9.4)
+**Status:** Under Review
