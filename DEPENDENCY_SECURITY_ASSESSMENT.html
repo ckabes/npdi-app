@@ -1,0 +1,966 @@
+<!DOCTYPE html><html><head>
+      <title>DEPENDENCY_SECURITY_ASSESSMENT</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////home/ckabes/.vscode-server/extensions/shd101wyy.markdown-preview-enhanced-0.8.19/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="dependency-security-and-data-integrity-risk-assessment">Dependency Security and Data Integrity Risk Assessment </h1>
+<h2 id="executive-summary">Executive Summary </h2>
+<p>This document provides a foundational understanding of security and data integrity risks associated with external dependencies in the NPDI Application. The goal is to help stakeholders understand how dependencies interact with application data, what potential risks exist, and what mitigation strategies are in place. This assessment serves as a reference for evaluating the dependency stack and maintaining secure practices as the application evolves.</p>
+<p><strong>Assessment Date:</strong> 2025-10-21<br>
+<strong>Application:</strong> MilliporeSigma NPDI Application<br>
+<strong>Version:</strong> 1.0.0<br>
+<strong>Risk Level:</strong> LOW (with proper dependency management)</p>
+<hr>
+<h2 id="1-dependency-inventory">1. Dependency Inventory </h2>
+<h3 id="11-backend-dependencies-production">1.1 Backend Dependencies (Production) </h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version</th>
+<th>Category</th>
+<th>Purpose</th>
+<th>Data Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>express</td>
+<td>^4.18.2</td>
+<td>Web Framework</td>
+<td>HTTP server and routing</td>
+<td>Request/Response handling only</td>
+</tr>
+<tr>
+<td>mongoose</td>
+<td>^7.5.0</td>
+<td>Database ODM</td>
+<td>MongoDB object modeling</td>
+<td><strong>Direct database access</strong></td>
+</tr>
+<tr>
+<td>axios</td>
+<td>^1.11.0</td>
+<td>HTTP Client</td>
+<td>External API calls (PubChem)</td>
+<td>No database access</td>
+</tr>
+<tr>
+<td>cors</td>
+<td>^2.8.5</td>
+<td>Security Middleware</td>
+<td>Cross-origin resource sharing</td>
+<td>No data access</td>
+</tr>
+<tr>
+<td>helmet</td>
+<td>^7.0.0</td>
+<td>Security Middleware</td>
+<td>HTTP security headers</td>
+<td>No data access</td>
+</tr>
+<tr>
+<td>express-rate-limit</td>
+<td>^6.10.0</td>
+<td>Security Middleware</td>
+<td>API rate limiting</td>
+<td>No data access</td>
+</tr>
+<tr>
+<td>express-validator</td>
+<td>^7.0.1</td>
+<td>Validation</td>
+<td>Input validation and sanitization</td>
+<td>No data access</td>
+</tr>
+<tr>
+<td>compression</td>
+<td>^1.7.4</td>
+<td>Performance</td>
+<td>HTTP response compression</td>
+<td>No data access</td>
+</tr>
+<tr>
+<td>dotenv</td>
+<td>^16.3.1</td>
+<td>Configuration</td>
+<td>Environment variable management</td>
+<td>No data access</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-frontend-dependencies-production">1.2 Frontend Dependencies (Production) </h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version</th>
+<th>Category</th>
+<th>Purpose</th>
+<th>Data Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>react</td>
+<td>^18.2.0</td>
+<td>UI Framework</td>
+<td>User interface rendering</td>
+<td>No backend access</td>
+</tr>
+<tr>
+<td>react-dom</td>
+<td>^18.2.0</td>
+<td>UI Framework</td>
+<td>DOM rendering</td>
+<td>No backend access</td>
+</tr>
+<tr>
+<td>react-router-dom</td>
+<td>^6.15.0</td>
+<td>Routing</td>
+<td>Client-side routing</td>
+<td>No backend access</td>
+</tr>
+<tr>
+<td>axios</td>
+<td>^1.5.0</td>
+<td>HTTP Client</td>
+<td>API communication</td>
+<td>API calls only</td>
+</tr>
+<tr>
+<td>react-hook-form</td>
+<td>^7.45.4</td>
+<td>Form Management</td>
+<td>Form state management</td>
+<td>Client-side only</td>
+</tr>
+<tr>
+<td>react-hot-toast</td>
+<td>^2.4.1</td>
+<td>UI Component</td>
+<td>Toast notifications</td>
+<td>Client-side only</td>
+</tr>
+<tr>
+<td>@headlessui/react</td>
+<td>^1.7.17</td>
+<td>UI Components</td>
+<td>Accessible UI components</td>
+<td>Client-side only</td>
+</tr>
+<tr>
+<td>@heroicons/react</td>
+<td>^2.0.18</td>
+<td>UI Assets</td>
+<td>Icon library</td>
+<td>Static assets only</td>
+</tr>
+<tr>
+<td>date-fns</td>
+<td>^2.30.0</td>
+<td>Utility</td>
+<td>Date formatting and manipulation</td>
+<td>Client-side only</td>
+</tr>
+<tr>
+<td>clsx</td>
+<td>^2.0.0</td>
+<td>Utility</td>
+<td>CSS class utilities</td>
+<td>Client-side only</td>
+</tr>
+<tr>
+<td>tailwind-merge</td>
+<td>^1.14.0</td>
+<td>Utility</td>
+<td>Tailwind class merging</td>
+<td>Client-side only</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-development-dependencies">1.3 Development Dependencies </h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Category</th>
+<th>Purpose</th>
+<th>Production Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tailwindcss</td>
+<td>CSS Framework</td>
+<td>Build-time CSS generation</td>
+<td><strong>No runtime execution</strong></td>
+</tr>
+<tr>
+<td>vite</td>
+<td>Build Tool</td>
+<td>Frontend bundling and dev server</td>
+<td><strong>Not deployed to production</strong></td>
+</tr>
+<tr>
+<td>nodemon</td>
+<td>Development</td>
+<td>Auto-restart server on changes</td>
+<td><strong>Not deployed to production</strong></td>
+</tr>
+<tr>
+<td>eslint</td>
+<td>Code Quality</td>
+<td>Static code analysis</td>
+<td><strong>Not deployed to production</strong></td>
+</tr>
+<tr>
+<td>concurrently</td>
+<td>Development</td>
+<td>Run multiple dev commands</td>
+<td><strong>Not deployed to production</strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2-data-integrity-risk-analysis">2. Data Integrity Risk Analysis </h2>
+<h3 id="21-critical-analysis-mongoose-direct-database-access">2.1 Critical Analysis: Mongoose (Direct Database Access) </h3>
+<p><strong>Risk Level:</strong> LOW with proper implementation</p>
+<h4 id="why-mongoose-is-safe-for-production">Why Mongoose is Safe for Production: </h4>
+<p><strong>1. Schema Validation and Type Safety</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Mongoose enforces strict schema validation at the application level</span>
+<span class="token keyword keyword-const">const</span> productTicketSchema <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">mongoose<span class="token punctuation">.</span>Schema</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">ticketNumber</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token known-class-name class-name">String</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">unique</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">required</span><span class="token operator">:</span> <span class="token boolean">false</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">chemicalProperties</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">casNumber</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token known-class-name class-name">String</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">required</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">match</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">^\d{1,7}-\d{2}-\d$</span><span class="token regex-delimiter">/</span></span>  <span class="token comment">// CAS number format validation</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Protection Mechanisms:</strong></p>
+<ul>
+<li><strong>Type Coercion Prevention:</strong> Mongoose validates data types before writing to database</li>
+<li><strong>Schema Enforcement:</strong> Only fields defined in schema can be written</li>
+<li><strong>Validation Rules:</strong> Custom validators prevent invalid data entry</li>
+<li><strong>Middleware Hooks:</strong> Pre-save hooks ensure data consistency</li>
+</ul>
+<p><strong>2. Query Builder Pattern (SQL Injection Prevention)</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Mongoose uses parameterized queries, not string concatenation</span>
+<span class="token keyword control-flow keyword-await">await</span> <span class="token maybe-class-name">ProductTicket</span><span class="token punctuation">.</span><span class="token method function property-access">findOne</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">ticketNumber</span><span class="token operator">:</span> userInput <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// NOT vulnerable to injection: userInput is treated as data, not code</span>
+</code></pre><p><strong>3. Automatic Data Sanitization</strong></p>
+<ul>
+<li>MongoDB driver escapes special characters</li>
+<li>BSON encoding prevents command injection</li>
+<li>No raw query string concatenation</li>
+</ul>
+<p><strong>4. Transaction Support (ACID Compliance)</strong></p>
+<ul>
+<li>Supports MongoDB transactions for multi-document operations</li>
+<li>Ensures atomic operations for data consistency</li>
+<li>Rollback capability on errors</li>
+</ul>
+<h4 id="current-implementation-safeguards">Current Implementation Safeguards: </h4>
+<p><strong>In ProductTicket Model (<code>server/models/ProductTicket.js</code>):</strong></p>
+<ul>
+<li>✅ Strict schema definitions with required fields</li>
+<li>✅ Enum validation for status, priority, SBU fields</li>
+<li>✅ RegEx pattern matching for CAS numbers</li>
+<li>✅ Pre-save middleware for data consistency</li>
+<li>✅ Automatic timestamp management</li>
+<li>✅ Unique constraints on critical fields</li>
+</ul>
+<p><strong>In Controllers (<code>server/controllers/*.js</code>):</strong></p>
+<ul>
+<li>✅ Input validation using express-validator</li>
+<li>✅ Parameterized queries (no string concatenation)</li>
+<li>✅ Error handling with try-catch blocks</li>
+<li>✅ Sanitization of user inputs</li>
+</ul>
+<h3 id="22-axios-external-api-communication">2.2 Axios (External API Communication) </h3>
+<p><strong>Risk Level:</strong> VERY LOW (no database access)</p>
+<h4 id="why-axios-is-safe">Why Axios is Safe: </h4>
+<p><strong>1. HTTP Client Only</strong></p>
+<ul>
+<li>Makes outbound HTTP requests only</li>
+<li>No direct database access</li>
+<li>Cannot modify application data without explicit code</li>
+</ul>
+<p><strong>2. PubChem Integration Security</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/services/pubchemService.js</span>
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">enrichTicketData</span> <span class="token operator">=</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token parameter">casNumber</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Axios fetches external data but doesn't write to DB directly</span>
+  <span class="token keyword keyword-const">const</span> response <span class="token operator">=</span> <span class="token keyword control-flow keyword-await">await</span> axios<span class="token punctuation">.</span><span class="token method function property-access">get</span><span class="token punctuation">(</span>pubchemUrl<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Application code controls what gets saved</span>
+  <span class="token keyword control-flow keyword-return">return</span> processedData<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p><strong>3. Security Features:</strong></p>
+<ul>
+<li>Request/response interceptors for logging</li>
+<li>Timeout configuration prevents hanging requests</li>
+<li>SSL/TLS support for encrypted communication</li>
+<li>No automatic code execution from responses</li>
+</ul>
+<h3 id="23-express-and-security-middleware">2.3 Express and Security Middleware </h3>
+<p><strong>Risk Level:</strong> VERY LOW (security enhancing)</p>
+<h4 id="why-express-ecosystem-is-safe">Why Express Ecosystem is Safe: </h4>
+<p><strong>1. Express Framework</strong></p>
+<ul>
+<li>Industry-standard web framework (50M+ weekly downloads)</li>
+<li>Extensive security auditing by community</li>
+<li>No direct data manipulation capabilities</li>
+<li>Routing and middleware only</li>
+</ul>
+<p><strong>2. Helmet (Security Headers)</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/index.js</span>
+app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token function">helmet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Protection Provided:</strong></p>
+<ul>
+<li>Content Security Policy (XSS prevention)</li>
+<li>X-Frame-Options (Clickjacking prevention)</li>
+<li>X-Content-Type-Options (MIME sniffing prevention)</li>
+<li>Strict-Transport-Security (HTTPS enforcement)</li>
+</ul>
+<p><strong>3. CORS (Cross-Origin Resource Sharing)</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token function">cors</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">origin</span><span class="token operator">:</span> process<span class="token punctuation">.</span><span class="token property-access">env</span><span class="token punctuation">.</span><span class="token constant">CLIENT_URL</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">credentials</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Protection Provided:</strong></p>
+<ul>
+<li>Restricts API access to authorized origins</li>
+<li>Prevents unauthorized cross-origin requests</li>
+<li>Protects against CSRF attacks</li>
+</ul>
+<p><strong>4. Express-Validator (Input Sanitization)</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword keyword-const">const</span> <span class="token punctuation">{</span> validationResult <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'express-validator'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">createTicket</span> <span class="token operator">=</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> errors <span class="token operator">=</span> <span class="token function">validationResult</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>errors<span class="token punctuation">.</span><span class="token method function property-access">isEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword control-flow keyword-return">return</span> res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">400</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">errors</span><span class="token operator">:</span> errors<span class="token punctuation">.</span><span class="token method function property-access">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token comment">// Only validated data proceeds</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Protection Provided:</strong></p>
+<ul>
+<li>Input sanitization before database operations</li>
+<li>Type validation</li>
+<li>XSS prevention through HTML escaping</li>
+<li>SQL/NoSQL injection prevention</li>
+</ul>
+<p><strong>5. Express-Rate-Limit</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword keyword-const">const</span> rateLimit <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'express-rate-limit'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token keyword keyword-const">const</span> limiter <span class="token operator">=</span> <span class="token function">rateLimit</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">windowMs</span><span class="token operator">:</span> <span class="token number">15</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">,</span> <span class="token comment">// 15 minutes</span>
+  <span class="token literal-property property">max</span><span class="token operator">:</span> <span class="token number">100</span> <span class="token comment">// limit each IP to 100 requests per windowMs</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Protection Provided:</strong></p>
+<ul>
+<li>Prevents brute force attacks</li>
+<li>Rate limits API abuse</li>
+<li>Protects against DoS attempts</li>
+<li>No data access or modification</li>
+</ul>
+<h3 id="24-frontend-dependencies-react-ecosystem">2.4 Frontend Dependencies (React Ecosystem) </h3>
+<p><strong>Risk Level:</strong> NEGLIGIBLE (client-side only)</p>
+<h4 id="why-frontend-dependencies-are-safe">Why Frontend Dependencies are Safe: </h4>
+<p><strong>1. No Backend Access</strong></p>
+<ul>
+<li>All frontend libraries run in browser sandbox</li>
+<li>No direct database connectivity</li>
+<li>No server-side code execution</li>
+<li>API access only through controlled endpoints</li>
+</ul>
+<p><strong>2. React (UI Framework)</strong></p>
+<ul>
+<li>Automatic XSS protection through JSX escaping</li>
+<li>Virtual DOM prevents direct DOM manipulation attacks</li>
+<li>Component isolation</li>
+<li>No data persistence capabilities</li>
+</ul>
+<p><strong>3. Tailwind CSS (Development Dependency)</strong></p>
+<ul>
+<li><strong>Build-time only:</strong> Tailwind processes CSS during build</li>
+<li><strong>No runtime execution:</strong> Generated CSS is static</li>
+<li><strong>No data access:</strong> Styling only</li>
+<li><strong>Production bundle:</strong> Only used CSS classes included</li>
+</ul>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// vite.config.js - Tailwind runs at build time</span>
+<span class="token keyword module keyword-import">import</span> <span class="token imports">tailwindcss</span> <span class="token keyword module keyword-from">from</span> <span class="token string">'tailwindcss'</span>
+
+<span class="token keyword module keyword-export">export</span> <span class="token keyword module keyword-default">default</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">css</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">postcss</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">[</span>tailwindcss<span class="token punctuation">]</span>  <span class="token comment">// Runs during npm run build</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>4. Form Libraries (react-hook-form)</strong></p>
+<ul>
+<li>Client-side state management only</li>
+<li>No automatic data submission</li>
+<li>Validation happens client-side (not security boundary)</li>
+<li>Server-side validation still required (and implemented)</li>
+</ul>
+<p><strong>5. UI Component Libraries (@headlessui/react, @heroicons/react)</strong></p>
+<ul>
+<li>Presentation components only</li>
+<li>No data processing</li>
+<li>No network access</li>
+<li>Static assets (icons) or UI behavior (modals, dropdowns)</li>
+</ul>
+<p><strong>6. Utility Libraries (date-fns, clsx, tailwind-merge)</strong></p>
+<ul>
+<li>Pure functions with no side effects</li>
+<li>No network access</li>
+<li>No data persistence</li>
+<li>Client-side computations only</li>
+</ul>
+<hr>
+<h2 id="3-security-measures-in-place">3. Security Measures in Place </h2>
+<h3 id="31-application-level-security">3.1 Application-Level Security </h3>
+<p><strong>1. Input Validation and Sanitization</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/controllers/productController.js</span>
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">createTicket</span> <span class="token operator">=</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> errors <span class="token operator">=</span> <span class="token function">validationResult</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// Express-validator</span>
+  <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>errors<span class="token punctuation">.</span><span class="token method function property-access">isEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword control-flow keyword-return">return</span> res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">400</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">errors</span><span class="token operator">:</span> errors<span class="token punctuation">.</span><span class="token method function property-access">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// Additional sanitization</span>
+  ticketData <span class="token operator">=</span> <span class="token function">cleanTicketData</span><span class="token punctuation">(</span>ticketData<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// Custom enum cleaner</span>
+  <span class="token comment">// ...</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p><strong>2. Data Sanitization Utility</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/utils/enumCleaner.js</span>
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">cleanTicketData</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">data</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Removes invalid enum values</span>
+  <span class="token comment">// Validates data structure</span>
+  <span class="token comment">// Prevents schema violations</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p><strong>3. Error Handling</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword control-flow keyword-try">try</span> <span class="token punctuation">{</span>
+  <span class="token keyword control-flow keyword-await">await</span> ticket<span class="token punctuation">.</span><span class="token method function property-access">save</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword control-flow keyword-catch">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">error</span><span class="token punctuation">(</span><span class="token string">'Create ticket error:'</span><span class="token punctuation">,</span> error<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">500</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'Server error'</span><span class="token punctuation">,</span>
+    <span class="token comment">// Never exposes sensitive error details to client</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>4. Environment Variable Protection</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// .env (not committed to repository)</span>
+<span class="token constant">MONGODB_URI</span><span class="token operator">=</span>mongodb<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>localhost<span class="token operator">:</span><span class="token number">27017</span><span class="token operator">/</span>npdi
+<span class="token constant">PORT</span><span class="token operator">=</span><span class="token number">3000</span>
+<span class="token constant">PUBCHEM_API_BASE</span><span class="token operator">=</span>https<span class="token operator">:</span><span class="token operator">/</span><span class="token operator">/</span>pubchem<span class="token punctuation">.</span><span class="token property-access">ncbi</span><span class="token punctuation">.</span><span class="token property-access">nlm</span><span class="token punctuation">.</span><span class="token property-access">nih</span><span class="token punctuation">.</span><span class="token property-access">gov</span>
+
+<span class="token comment">// .gitignore includes .env</span>
+</code></pre><h3 id="32-database-security">3.2 Database Security </h3>
+<p><strong>1. MongoDB Connection Security</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>mongoose<span class="token punctuation">.</span><span class="token method function property-access">connect</span><span class="token punctuation">(</span>process<span class="token punctuation">.</span><span class="token property-access">env</span><span class="token punctuation">.</span><span class="token constant">MONGODB_URI</span><span class="token punctuation">,</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">useNewUrlParser</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">useUnifiedTopology</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Recommended Production Configuration:</strong></p>
+<ul>
+<li>MongoDB authentication enabled</li>
+<li>TLS/SSL encryption for connections</li>
+<li>Network isolation (VPN/private network)</li>
+<li>IP whitelisting</li>
+<li>Role-based access control (RBAC)</li>
+</ul>
+<p><strong>2. Schema-Level Protection</strong></p>
+<ul>
+<li>Unique indexes on critical fields (ticketNumber)</li>
+<li>Required field validation</li>
+<li>Type enforcement</li>
+<li>Default values for critical fields</li>
+</ul>
+<h3 id="33-api-security">3.3 API Security </h3>
+<p><strong>1. Rate Limiting</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token string">'/api/'</span><span class="token punctuation">,</span> <span class="token function">rateLimit</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">windowMs</span><span class="token operator">:</span> <span class="token number">15</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">max</span><span class="token operator">:</span> <span class="token number">100</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>2. API Key Authentication</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/middleware/apiAuth.js</span>
+<span class="token keyword keyword-async">async</span> <span class="token keyword keyword-function">function</span> <span class="token function">authenticateApiKey</span><span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res<span class="token punctuation">,</span> next</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> apiKey <span class="token operator">=</span> req<span class="token punctuation">.</span><span class="token property-access">headers</span><span class="token punctuation">[</span><span class="token string">'x-api-key'</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+  <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>apiKey<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword control-flow keyword-return">return</span> res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">401</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'API key is required'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// Hash the provided key and validate against database</span>
+  <span class="token keyword keyword-const">const</span> keyHash <span class="token operator">=</span> crypto<span class="token punctuation">.</span><span class="token method function property-access">createHash</span><span class="token punctuation">(</span><span class="token string">'sha256'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">update</span><span class="token punctuation">(</span>apiKey<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">digest</span><span class="token punctuation">(</span><span class="token string">'hex'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-const">const</span> apiKeyRecord <span class="token operator">=</span> <span class="token keyword control-flow keyword-await">await</span> <span class="token maybe-class-name">ApiKey</span><span class="token punctuation">.</span><span class="token method function property-access">findOne</span><span class="token punctuation">(</span><span class="token punctuation">{</span> keyHash <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>apiKeyRecord <span class="token operator">||</span> <span class="token operator">!</span>apiKeyRecord<span class="token punctuation">.</span><span class="token method function property-access">isValid</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword control-flow keyword-return">return</span> res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">403</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'Invalid API key'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment">// Record usage and attach key info to request</span>
+  req<span class="token punctuation">.</span><span class="token property-access">apiKey</span> <span class="token operator">=</span> apiKeyRecord<span class="token punctuation">;</span>
+  <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>3. CORS Configuration</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token function">cors</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">origin</span><span class="token operator">:</span> process<span class="token punctuation">.</span><span class="token property-access">env</span><span class="token punctuation">.</span><span class="token constant">CLIENT_URL</span><span class="token punctuation">,</span>  <span class="token comment">// Only authorized origin</span>
+  <span class="token literal-property property">credentials</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><hr>
+<h2 id="4-dependency-supply-chain-security">4. Dependency Supply Chain Security </h2>
+<h3 id="41-industry-standard-packages">4.1 Industry-Standard Packages </h3>
+<p>All dependencies are industry-standard packages with:</p>
+<p><strong>1. High Usage and Scrutiny</strong></p>
+<ul>
+<li>Express: 50M+ weekly downloads</li>
+<li>React: 20M+ weekly downloads</li>
+<li>Mongoose: 3M+ weekly downloads</li>
+<li>Axios: 45M+ weekly downloads</li>
+</ul>
+<p><strong>2. Active Maintenance</strong></p>
+<ul>
+<li>Regular security patches</li>
+<li>Active CVE monitoring</li>
+<li>Community security reviews</li>
+<li>Professional security audits</li>
+</ul>
+<p><strong>3. Reputable Publishers</strong></p>
+<ul>
+<li>Express: OpenJS Foundation</li>
+<li>React: Meta (Facebook)</li>
+<li>Mongoose: Automattic</li>
+<li>Axios: Independent (widely trusted)</li>
+</ul>
+<h3 id="42-dependency-version-management">4.2 Dependency Version Management </h3>
+<p><strong>Current Strategy:</strong></p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"dependencies"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"express"</span><span class="token operator">:</span> <span class="token string">"^4.18.2"</span><span class="token punctuation">,</span>  <span class="token comment">// Caret (^) allows patch updates</span>
+    <span class="token property">"mongoose"</span><span class="token operator">:</span> <span class="token string">"^7.5.0"</span><span class="token punctuation">,</span>
+    <span class="token property">"helmet"</span><span class="token operator">:</span> <span class="token string">"^7.0.0"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Security Benefits:</strong></p>
+<ul>
+<li>Automatic patch version updates</li>
+<li>Security fixes applied on <code>npm install</code></li>
+<li>Breaking changes avoided (minor version locked)</li>
+</ul>
+<p><strong>Recommended Enhancements:</strong></p>
+<ol>
+<li>Use <code>npm audit</code> regularly</li>
+<li>Implement Dependabot for automated updates</li>
+<li>Review security advisories weekly</li>
+<li>Pin major versions in production</li>
+</ol>
+<h3 id="43-development-vs-production-dependencies">4.3 Development vs. Production Dependencies </h3>
+<p><strong>Critical Separation:</strong></p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"dependencies"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token comment">// These run in production</span>
+    <span class="token property">"express"</span><span class="token operator">:</span> <span class="token string">"^4.18.2"</span><span class="token punctuation">,</span>
+    <span class="token property">"mongoose"</span><span class="token operator">:</span> <span class="token string">"^7.5.0"</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"devDependencies"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token comment">// These NEVER run in production</span>
+    <span class="token property">"tailwindcss"</span><span class="token operator">:</span> <span class="token string">"^3.3.3"</span><span class="token punctuation">,</span>
+    <span class="token property">"vite"</span><span class="token operator">:</span> <span class="token string">"^4.4.5"</span><span class="token punctuation">,</span>
+    <span class="token property">"nodemon"</span><span class="token operator">:</span> <span class="token string">"^3.0.1"</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Production Deployment:</strong></p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># Only installs production dependencies</span>
+<span class="token function">npm</span> <span class="token function">install</span> <span class="token parameter variable">--production</span>
+
+<span class="token comment"># Development tools never deployed</span>
+</code></pre><hr>
+<h2 id="5-data-flow-and-integrity-analysis">5. Data Flow and Integrity Analysis </h2>
+<h3 id="51-data-write-path">5.1 Data Write Path </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>User Input (Browser)
+    ↓
+React Form (Client-side validation - UI only)
+    ↓
+HTTP POST via Axios (API call)
+    ↓
+Express Route Handler
+    ↓
+Express-Validator Middleware ✅ SECURITY CHECKPOINT
+    ↓
+Controller Logic (cleanTicketData utility) ✅ SECURITY CHECKPOINT
+    ↓
+Mongoose Schema Validation ✅ SECURITY CHECKPOINT
+    ↓
+Mongoose Pre-save Middleware ✅ SECURITY CHECKPOINT
+    ↓
+MongoDB Write (BSON encoded, parameterized)
+    ↓
+Database (Persisted)
+</code></pre><p><strong>Security Checkpoints:</strong></p>
+<ol>
+<li><strong>Express-Validator:</strong> Rejects invalid input before processing</li>
+<li><strong>Custom Sanitization:</strong> Cleans enum values and data structure</li>
+<li><strong>Mongoose Validation:</strong> Enforces schema rules and types</li>
+<li><strong>Pre-save Hooks:</strong> Ensures data consistency (status history, timestamps)</li>
+</ol>
+<p><strong>Dependency Risk at Each Layer:</strong></p>
+<ul>
+<li><strong>Axios (client):</strong> No risk - HTTP transport only</li>
+<li><strong>Express:</strong> No risk - routing only</li>
+<li><strong>Express-Validator:</strong> Security enhancing - validates inputs</li>
+<li><strong>Mongoose:</strong> Controlled risk - schema validation prevents invalid data</li>
+</ul>
+<h3 id="52-data-read-path">5.2 Data Read Path </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>User Request (Browser)
+    ↓
+React Component
+    ↓
+HTTP GET via Axios
+    ↓
+Express Route Handler
+    ↓
+Auth Middleware (API key validation) ✅ SECURITY CHECKPOINT
+    ↓
+Controller Logic (query parameters)
+    ↓
+Mongoose Query Builder (parameterized query) ✅ INJECTION PROTECTION
+    ↓
+MongoDB Read
+    ↓
+JSON Response (no sensitive data exposure) ✅ SECURITY CHECKPOINT
+    ↓
+React Component Rendering
+</code></pre><p><strong>Dependency Risk at Each Layer:</strong></p>
+<ul>
+<li><strong>Axios (client):</strong> No risk - receives data only</li>
+<li><strong>Express:</strong> No risk - routing and response handling</li>
+<li><strong>Mongoose:</strong> No risk - query builder prevents injection</li>
+<li><strong>React:</strong> No risk - renders data in sandboxed browser</li>
+</ul>
+<hr>
+<h2 id="6-mitigation-strategies-and-best-practices">6. Mitigation Strategies and Best Practices </h2>
+<h3 id="61-current-best-practices-implemented">6.1 Current Best Practices Implemented </h3>
+<p>✅ <strong>Input Validation</strong></p>
+<ul>
+<li>Express-validator on all API endpoints</li>
+<li>Custom sanitization utilities</li>
+<li>Mongoose schema validation</li>
+</ul>
+<p>✅ <strong>Security Middleware</strong></p>
+<ul>
+<li>Helmet for HTTP security headers</li>
+<li>CORS for origin control</li>
+<li>Rate limiting for DoS prevention</li>
+</ul>
+<p>✅ <strong>Error Handling</strong></p>
+<ul>
+<li>Try-catch blocks in all controllers</li>
+<li>No sensitive information in error responses</li>
+<li>Structured error logging</li>
+</ul>
+<p>✅ <strong>Environment Configuration</strong></p>
+<ul>
+<li>.env files for sensitive data</li>
+<li>.gitignore excludes credentials</li>
+<li>Environment-specific configurations</li>
+</ul>
+<p>✅ <strong>Dependency Separation</strong></p>
+<ul>
+<li>Production vs. development dependencies clearly separated</li>
+<li>Build tools not deployed to production</li>
+</ul>
+<hr>
+<h2 id="7-specific-dependency-risk-assessment">7. Specific Dependency Risk Assessment </h2>
+<h3 id="71-tailwind-css---detailed-analysis">7.1 Tailwind CSS - Detailed Analysis </h3>
+<p><strong>Common Misconception:</strong> "Tailwind CSS could inject malicious styles"</p>
+<p><strong>Reality:</strong> Tailwind is a BUILD-TIME dependency only</p>
+<p><strong>How Tailwind Works:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// client/postcss.config.js - Build-time CSS processing</span>
+<span class="token keyword module keyword-export">export</span> <span class="token keyword module keyword-default">default</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">plugins</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">tailwindcss</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>  <span class="token comment">// Processes CSS during build</span>
+    <span class="token literal-property property">autoprefixer</span><span class="token operator">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Build Process:</strong></p>
+<ol>
+<li>Developer writes HTML with Tailwind classes</li>
+<li>Build tool (Vite) processes CSS at build time</li>
+<li>PostCSS + Tailwind generate static CSS file</li>
+<li>Generated CSS is bundled into production assets</li>
+<li><strong>No Tailwind code runs in production</strong></li>
+</ol>
+<p><strong>Production Output:</strong></p>
+<pre data-role="codeBlock" data-info="html" class="language-html html"><code><span class="token comment">&lt;!-- Input during development --&gt;</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>bg-blue-500 text-white p-4<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Hello<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token comment">&lt;!-- Production output --&gt;</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>link</span> <span class="token attr-name">rel</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>stylesheet<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>/assets/index-abc123.css<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>bg-blue-500 text-white p-4<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Hello<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token comment">&lt;!-- Static CSS in index-abc123.css --&gt;</span>
+.bg-blue-500 { background-color: rgb(59, 130, 246); }
+.text-white { color: rgb(255, 255, 255); }
+.p-4 { padding: 1rem; }
+</code></pre><p><strong>Data Integrity Risk:</strong> ZERO</p>
+<ul>
+<li>No runtime JavaScript</li>
+<li>No database access</li>
+<li>No network requests</li>
+<li>No code execution</li>
+<li>Pure CSS (declarative, not executable)</li>
+</ul>
+<p><strong>Security Risk:</strong> ZERO</p>
+<ul>
+<li>Cannot access DOM programmatically</li>
+<li>Cannot make network requests</li>
+<li>Cannot read or write data</li>
+<li>Cannot execute code</li>
+<li>Cannot access cookies or localStorage</li>
+</ul>
+<h3 id="72-react---detailed-analysis">7.2 React - Detailed Analysis </h3>
+<p><strong>Built-in XSS Protection:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// React automatically escapes values</span>
+<span class="token keyword keyword-const">const</span> userInput <span class="token operator">=</span> <span class="token string">'&lt;script&gt;alert("XSS")&lt;/script&gt;'</span><span class="token punctuation">;</span>
+<span class="token operator">&lt;</span>div<span class="token operator">&gt;</span><span class="token punctuation">{</span>userInput<span class="token punctuation">}</span><span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">&gt;</span>
+
+<span class="token comment">// Renders as text, not HTML:</span>
+<span class="token comment">// &amp;lt;script&amp;gt;alert("XSS")&amp;lt;/script&amp;gt;</span>
+</code></pre><p><strong>dangerouslySetInnerHTML (NOT used in this application):</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// UNSAFE - not used in NPDI app</span>
+<span class="token operator">&lt;</span>div dangerouslySetInnerHTML<span class="token operator">=</span><span class="token punctuation">{</span><span class="token punctuation">{</span><span class="token literal-property property">__html</span><span class="token operator">:</span> userInput<span class="token punctuation">}</span><span class="token punctuation">}</span> <span class="token operator">/</span><span class="token operator">&gt;</span>
+
+<span class="token comment">// Safe approach used in NPDI app</span>
+<span class="token operator">&lt;</span>div<span class="token operator">&gt;</span><span class="token punctuation">{</span>sanitizedText<span class="token punctuation">}</span><span class="token operator">&lt;</span><span class="token operator">/</span>div<span class="token operator">&gt;</span>
+</code></pre><p><strong>Data Integrity:</strong> No backend access, API calls only through controlled endpoints</p>
+<h3 id="73-mongoose---advanced-security-features">7.3 Mongoose - Advanced Security Features </h3>
+<p><strong>1. Strict Mode (Enabled by Default)</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Prevents saving fields not defined in schema</span>
+<span class="token keyword keyword-const">const</span> schema <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Schema</span><span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token spread operator">...</span><span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token literal-property property">strict</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Attempted save of extra field</span>
+ticket<span class="token punctuation">.</span><span class="token property-access">undefinedField</span> <span class="token operator">=</span> <span class="token string">'malicious'</span><span class="token punctuation">;</span>
+<span class="token keyword control-flow keyword-await">await</span> ticket<span class="token punctuation">.</span><span class="token method function property-access">save</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// undefinedField is ignored</span>
+</code></pre><p><strong>2. Sanitization Helpers</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Built-in escaping for RegEx queries</span>
+<span class="token keyword keyword-const">const</span> search <span class="token operator">=</span> <span class="token string">'user.input.with$pecial'</span><span class="token punctuation">;</span>
+<span class="token keyword control-flow keyword-await">await</span> <span class="token maybe-class-name">ProductTicket</span><span class="token punctuation">.</span><span class="token method function property-access">find</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">productName</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token literal-property property">$regex</span><span class="token operator">:</span> search <span class="token punctuation">}</span>  <span class="token comment">// Automatically escaped</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>3. Query Middleware</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Can add security checks before any query</span>
+productTicketSchema<span class="token punctuation">.</span><span class="token method function property-access">pre</span><span class="token punctuation">(</span><span class="token string">'find'</span><span class="token punctuation">,</span> <span class="token keyword keyword-function">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">log</span><span class="token punctuation">(</span><span class="token string">'Query security audit:'</span><span class="token punctuation">,</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token method function property-access">getQuery</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><hr>
+<h2 id="8-conclusion">8. Conclusion </h2>
+<h3 id="81-overall-risk-assessment">8.1 Overall Risk Assessment </h3>
+<p><strong>Data Integrity Risk Level:</strong> <strong>LOW</strong></p>
+<p>The external dependencies used in the NPDI Application do not pose significant risks to data integrity in production environments due to:</p>
+<ol>
+<li>
+<p><strong>Proper Separation of Concerns</strong></p>
+<ul>
+<li>Build tools (Tailwind, Vite) never run in production</li>
+<li>Frontend libraries operate in browser sandbox</li>
+<li>Backend libraries have specific, limited responsibilities</li>
+</ul>
+</li>
+<li>
+<p><strong>Security-First Dependency Selection</strong></p>
+<ul>
+<li>Industry-standard, well-audited packages</li>
+<li>Active maintenance and security patching</li>
+<li>High community scrutiny</li>
+</ul>
+</li>
+<li>
+<p><strong>Defense in Depth</strong></p>
+<ul>
+<li>Multiple validation layers (client, middleware, schema)</li>
+<li>Input sanitization at every entry point</li>
+<li>Parameterized queries prevent injection</li>
+<li>Error handling prevents information disclosure</li>
+</ul>
+</li>
+<li>
+<p><strong>Mongoose as Primary Data Access Layer</strong></p>
+<ul>
+<li>Schema validation enforces data structure</li>
+<li>Type safety prevents corruption</li>
+<li>Query builder prevents injection attacks</li>
+<li>Middleware hooks ensure consistency</li>
+</ul>
+</li>
+<li>
+<p><strong>Security-Enhancing Dependencies</strong></p>
+<ul>
+<li>Helmet, CORS, rate-limit INCREASE security</li>
+<li>Express-validator PREVENTS invalid data entry</li>
+<li>These dependencies actively protect data integrity</li>
+</ul>
+</li>
+</ol>
+<h3 id="82-key-findings">8.2 Key Findings </h3>
+<p>✅ <strong>No Direct Data Access by UI Dependencies</strong></p>
+<ul>
+<li>React, Tailwind, UI libraries have zero backend access</li>
+<li>All data operations go through controlled API endpoints</li>
+</ul>
+<p>✅ <strong>Build-Time Dependencies Never Execute in Production</strong></p>
+<ul>
+<li>Tailwind, Vite, PostCSS only run during <code>npm run build</code></li>
+<li>Production serves static compiled assets</li>
+</ul>
+<p>✅ <strong>Single Controlled Data Access Point</strong></p>
+<ul>
+<li>Only Mongoose accesses database</li>
+<li>Schema validation enforces integrity</li>
+<li>Parameterized queries prevent injection</li>
+</ul>
+<p>✅ <strong>Security Middleware Enhances Protection</strong></p>
+<ul>
+<li>Helmet, CORS, rate-limit actively protect application</li>
+<li>Express-validator prevents malicious input</li>
+</ul>
+<p>✅ <strong>Industry-Standard, Well-Audited Packages</strong></p>
+<ul>
+<li>All dependencies have millions of downloads</li>
+<li>Active security monitoring and patching</li>
+<li>Community and professional security audits</li>
+</ul>
+<h3 id="83-risk-summary-table">8.3 Risk Summary Table </h3>
+<table>
+<thead>
+<tr>
+<th>Dependency Category</th>
+<th>Data Access</th>
+<th>Runtime Execution</th>
+<th>Data Integrity Risk</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mongoose</td>
+<td>Direct (controlled)</td>
+<td>Backend only</td>
+<td>LOW (with validation)</td>
+<td>✅ Safe - Continue use with regular updates</td>
+</tr>
+<tr>
+<td>Express + Security Middleware</td>
+<td>None (security enhancing)</td>
+<td>Backend only</td>
+<td>NONE (protective)</td>
+<td>✅ Safe - Essential for security</td>
+</tr>
+<tr>
+<td>React Ecosystem</td>
+<td>None (client-side)</td>
+<td>Browser sandbox</td>
+<td>NONE</td>
+<td>✅ Safe - No backend access</td>
+</tr>
+<tr>
+<td>Axios</td>
+<td>None (HTTP transport)</td>
+<td>Both</td>
+<td>NONE</td>
+<td>✅ Safe - Transport layer only</td>
+</tr>
+<tr>
+<td>Tailwind CSS</td>
+<td>None</td>
+<td>Build-time only</td>
+<td>NONE</td>
+<td>✅ Safe - No production runtime</td>
+</tr>
+<tr>
+<td>Build Tools (Vite, PostCSS)</td>
+<td>None</td>
+<td>Build-time only</td>
+<td>NONE</td>
+<td>✅ Safe - Not deployed</td>
+</tr>
+<tr>
+<td>Dev Tools (nodemon, eslint)</td>
+<td>None</td>
+<td>Development only</td>
+<td>NONE</td>
+<td>✅ Safe - Not deployed</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="9-references-and-resources">9. References and Resources </h2>
+<h3 id="91-security-best-practices">9.1 Security Best Practices </h3>
+<ul>
+<li><strong>OWASP Top 10:</strong> <a href="https://owasp.org/www-project-top-ten/">https://owasp.org/www-project-top-ten/</a></li>
+<li><strong>Node.js Security Best Practices:</strong> <a href="https://nodejs.org/en/docs/guides/security/">https://nodejs.org/en/docs/guides/security/</a></li>
+<li><strong>Express Security Best Practices:</strong> <a href="https://expressjs.com/en/advanced/best-practice-security.html">https://expressjs.com/en/advanced/best-practice-security.html</a></li>
+<li><strong>MongoDB Security Checklist:</strong> <a href="https://docs.mongodb.com/manual/administration/security-checklist/">https://docs.mongodb.com/manual/administration/security-checklist/</a></li>
+</ul>
+<h3 id="92-dependency-security-tools">9.2 Dependency Security Tools </h3>
+<ul>
+<li><strong>npm audit:</strong> Built-in security auditing</li>
+<li><strong>Snyk:</strong> <a href="https://snyk.io">https://snyk.io</a></li>
+<li><strong>Dependabot:</strong> <a href="https://github.com/dependabot">https://github.com/dependabot</a></li>
+<li><strong>npm advisory database:</strong> <a href="https://www.npmjs.com/advisories">https://www.npmjs.com/advisories</a></li>
+</ul>
+<h3 id="93-package-documentation">9.3 Package Documentation </h3>
+<ul>
+<li><strong>Mongoose:</strong> <a href="https://mongoosejs.com/docs/validation.html">https://mongoosejs.com/docs/validation.html</a></li>
+<li><strong>Helmet:</strong> <a href="https://helmetjs.github.io/">https://helmetjs.github.io/</a></li>
+<li><strong>Express-Validator:</strong> <a href="https://express-validator.github.io/docs/">https://express-validator.github.io/docs/</a></li>
+<li><strong>React Security:</strong> <a href="https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml">https://reactjs.org/docs/dom-elements.html#dangerouslysetinnerhtml</a></li>
+</ul>
+<hr>
+<p><strong>Document Version:</strong> 1.0<br>
+<strong>Last Updated:</strong> 2025-10-21<br>
+<strong>Next Review:</strong> 2025-11-21 (monthly review recommended)<br>
+<strong>Prepared By:</strong> Claude Code Security Assessment<br>
+<strong>Status:</strong> Under Review</p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

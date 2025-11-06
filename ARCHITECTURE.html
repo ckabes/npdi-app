@@ -1,0 +1,1798 @@
+<!DOCTYPE html><html><head>
+      <title>ARCHITECTURE</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:////home/ckabes/.vscode-server/extensions/shd101wyy.markdown-preview-enhanced-0.8.19/crossnote/dependencies/katex/katex.min.css">
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:rgba(150,150,150,.66);border:4px solid rgba(150,150,150,.66);background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. --><script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script></head><body for="html-export">
+    
+    
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="npdi-application-architecture-documentation">NPDI Application Architecture Documentation </h1>
+<h2 id="document-information">Document Information </h2>
+<p><strong>Application:</strong> MilliporeSigma NPDI Application<br>
+<strong>Version:</strong> 1.0.0<br>
+<strong>Last Updated:</strong> 2025-10-21<br>
+<strong>Purpose:</strong> Comprehensive architectural overview for stakeholders and technical teams</p>
+<hr>
+<h2 id="table-of-contents">Table of Contents </h2>
+<ol>
+<li><a href="#1-executive-summary">Executive Summary</a></li>
+<li><a href="#2-system-overview">System Overview</a></li>
+<li><a href="#3-architectural-patterns">Architectural Patterns</a></li>
+<li><a href="#4-component-architecture">Component Architecture</a></li>
+<li><a href="#5-data-architecture">Data Architecture</a></li>
+<li><a href="#6-security-architecture">Security Architecture</a></li>
+<li><a href="#7-integration-architecture">Integration Architecture</a></li>
+<li><a href="#8-deployment-architecture">Deployment Architecture</a></li>
+<li><a href="#9-maintainability--scalability">Maintainability &amp; Scalability</a></li>
+</ol>
+<hr>
+<h2 id="1-executive-summary">1. Executive Summary </h2>
+<p>The NPDI (New Product Data Introduction) Application is a full-stack web application designed to streamline the chemical product introduction workflow at MilliporeSigma. The system facilitates collaboration between Product Managers, Product Management Operations (PMOps) teams, and administrators through a secure, role-based interface.</p>
+<h3 id="key-architectural-characteristics">Key Architectural Characteristics </h3>
+<ul>
+<li><strong>Architecture Pattern:</strong> Model-View-Controller (MVC) with clear separation of concerns</li>
+<li><strong>Technology Stack:</strong> MERN Stack (MongoDB, Express.js, React, Node.js)</li>
+<li><strong>Deployment Model:</strong> Client-Server with REST API</li>
+<li><strong>Database:</strong> MongoDB with Mongoose ODM</li>
+<li><strong>External Integrations:</strong> PubChem API for chemical data enrichment</li>
+<li><strong>Security Model:</strong> Multi-layered with API key authentication and role-based access control</li>
+</ul>
+<hr>
+<h2 id="2-system-overview">2. System Overview </h2>
+<h3 id="21-business-context">2.1 Business Context </h3>
+<p>The NPDI application manages the complete lifecycle of new chemical product introductions, from initial ticket creation through SKU assignment, pricing calculations, and final NPDI initiation. The system serves three primary user roles:</p>
+<ul>
+<li><strong>Product Managers:</strong> Create and submit product tickets</li>
+<li><strong>PMOps Team:</strong> Review, process, and assign SKUs to submitted tickets</li>
+<li><strong>Administrators:</strong> Manage system configuration, users, and permissions</li>
+</ul>
+<h3 id="22-high-level-architecture">2.2 High-Level Architecture </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>┌─────────────────────────────────────────────────────────────────┐
+│                         Client Layer                            │
+│                    (React SPA - Port 5173)                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │   Pages      │  │  Components  │  │  Services/Utils      │   │
+│  │  - Dashboard │  │  - Forms     │  │  - API Client        │   │
+│  │  - Tickets   │  │  - Admin     │  │  - Auth Context      │   │
+│  │  - Admin     │  │  - Badges    │  │  - Calculations      │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↕ HTTP/REST
+┌─────────────────────────────────────────────────────────────────┐
+│                         Server Layer                            │
+│                  (Express.js API - Port 5000)                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │   Routes     │  │ Controllers  │  │     Services         │   │ 
+│  │  (Endpoints) │ →│  (Business   │ →│  - PubChem           │   │
+│  │              │  │   Logic)     │  │  - Data Processing   │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+│         ↕                 ↕                      ↕              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐   │
+│  │  Middleware  │  │    Models    │  │      Utilities       │   │
+│  │  - Auth      │  │  (Mongoose   │  │  - Enum Cleaner      │   │
+│  │  - Security  │  │   Schemas)   │  │  - Validation        │   │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              ↕
+┌─────────────────────────────────────────────────────────────────┐
+│                      Data Layer                                 │
+│                   MongoDB Database                              │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │  Collections:                                              │ │
+│  │  - producttickets  - users         - permissions           │ │
+│  │  - apikeys         - formconfigs   - systemsettings        │ │
+│  │  - userpreferences - templates                             │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                              ↕
+┌─────────────────────────────────────────────────────────────────┐
+│                   External Integrations                         │
+│              PubChem API (Chemical Data Enrichment)             │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre><h3 id="23-technology-stack">2.3 Technology Stack </h3>
+<h4 id="backend">Backend </h4>
+<ul>
+<li><strong>Runtime:</strong> Node.js v16+</li>
+<li><strong>Framework:</strong> Express.js 4.18.2</li>
+<li><strong>Database:</strong> MongoDB with Mongoose ODM 7.5.0</li>
+<li><strong>Security:</strong> Helmet, CORS, express-rate-limit</li>
+<li><strong>Validation:</strong> express-validator 7.0.1</li>
+<li><strong>HTTP Client:</strong> Axios 1.11.0 (for PubChem integration)</li>
+</ul>
+<h4 id="frontend">Frontend </h4>
+<ul>
+<li><strong>Framework:</strong> React 18.2.0</li>
+<li><strong>Router:</strong> React Router DOM 6.15.0</li>
+<li><strong>Build Tool:</strong> Vite 4.4.5</li>
+<li><strong>HTTP Client:</strong> Axios 1.5.0</li>
+<li><strong>Form Management:</strong> React Hook Form 7.45.4</li>
+<li><strong>UI Components:</strong> Headless UI, Heroicons</li>
+<li><strong>Styling:</strong> Tailwind CSS 3.3.3</li>
+<li><strong>Notifications:</strong> React Hot Toast 2.4.1</li>
+</ul>
+<h4 id="development-tools">Development Tools </h4>
+<ul>
+<li><strong>Process Manager:</strong> Nodemon (server), Concurrently (parallel dev)</li>
+<li><strong>Linting:</strong> ESLint 8.47.0</li>
+<li><strong>Configuration:</strong> dotenv 16.3.1</li>
+</ul>
+<hr>
+<h2 id="3-architectural-patterns">3. Architectural Patterns </h2>
+<h3 id="31-model-view-controller-mvc-pattern">3.1 Model-View-Controller (MVC) Pattern </h3>
+<p>The NPDI application implements a strict MVC architecture, providing clear separation between data management, business logic, and presentation.</p>
+<h4 id="311-model-layer">3.1.1 Model Layer </h4>
+<p><strong>Location:</strong> <code>server/models/</code></p>
+<p>The Model layer defines the data structure and business rules using Mongoose schemas.</p>
+<p><strong>Key Models:</strong></p>
+<ul>
+<li><strong>ProductTicket</strong> - Core entity representing a product introduction request</li>
+<li><strong>User</strong> - User account information (currently profile-based)</li>
+<li><strong>Permission</strong> - Role-based access control definitions</li>
+<li><strong>ApiKey</strong> - External API authentication credentials</li>
+<li><strong>FormConfiguration</strong> - Dynamic form field configurations</li>
+<li><strong>SystemSettings</strong> - Application-wide configuration</li>
+<li><strong>UserPreferences</strong> - User-specific settings</li>
+<li><strong>TicketTemplate</strong> - Reusable ticket templates</li>
+</ul>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Define data schemas with strict type validation</li>
+<li>Implement business rules via Mongoose validators</li>
+<li>Manage data relationships and references</li>
+<li>Provide pre-save and post-save middleware hooks</li>
+<li>Enforce data integrity constraints</li>
+</ul>
+<p><strong>Example: ProductTicket Schema</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/models/ProductTicket.js</span>
+<span class="token keyword keyword-const">const</span> productTicketSchema <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">mongoose<span class="token punctuation">.</span>Schema</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">ticketNumber</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token known-class-name class-name">String</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">unique</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">required</span><span class="token operator">:</span> <span class="token boolean">false</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">chemicalProperties</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">casNumber</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token known-class-name class-name">String</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">required</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">match</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">^\d{1,7}-\d{2}-\d$</span><span class="token regex-delimiter">/</span></span>  <span class="token comment">// CAS format validation</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token comment">// ... additional properties</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">status</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token known-class-name class-name">String</span><span class="token punctuation">,</span>
+    <span class="token keyword keyword-enum">enum</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">'DRAFT'</span><span class="token punctuation">,</span> <span class="token string">'SUBMITTED'</span><span class="token punctuation">,</span> <span class="token string">'IN_PROCESS'</span><span class="token punctuation">,</span> <span class="token string">'NPDI_INITIATED'</span><span class="token punctuation">,</span> <span class="token string">'COMPLETED'</span><span class="token punctuation">,</span> <span class="token string">'CANCELED'</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token keyword module keyword-default">default</span><span class="token operator">:</span> <span class="token string">'DRAFT'</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token comment">// ... additional fields</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Pre-save middleware for automatic ticket number generation</span>
+productTicketSchema<span class="token punctuation">.</span><span class="token method function property-access">pre</span><span class="token punctuation">(</span><span class="token string">'save'</span><span class="token punctuation">,</span> <span class="token keyword keyword-async">async</span> <span class="token keyword keyword-function">function</span><span class="token punctuation">(</span><span class="token parameter">next</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span><span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token property-access">isNew</span> <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span><span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token property-access">ticketNumber</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-const">const</span> count <span class="token operator">=</span> <span class="token keyword control-flow keyword-await">await</span> mongoose<span class="token punctuation">.</span><span class="token method function property-access">model</span><span class="token punctuation">(</span><span class="token string">'ProductTicket'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">countDocuments</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-const">const</span> year <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">getFullYear</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token property-access">ticketNumber</span> <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">NPDI-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>year<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token known-class-name class-name">String</span><span class="token punctuation">(</span>count <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">padStart</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">,</span> <span class="token string">'0'</span><span class="token punctuation">)</span><span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+  <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="312-controller-layer">3.1.2 Controller Layer </h4>
+<p><strong>Location:</strong> <code>server/controllers/</code></p>
+<p>Controllers contain business logic and orchestrate operations between routes, models, and services.</p>
+<p><strong>Key Controllers:</strong></p>
+<ul>
+<li><strong>productController</strong> - Ticket CRUD operations and workflow</li>
+<li><strong>userPreferencesController</strong> - User settings management</li>
+<li><strong>systemSettingsController</strong> - System configuration</li>
+<li><strong>permissionController</strong> - Access control management</li>
+<li><strong>adminController</strong> - Administrative functions</li>
+<li><strong>apiKeyController</strong> - API key lifecycle management</li>
+<li><strong>ticketApiController</strong> - External API endpoints</li>
+</ul>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Receive requests from routes</li>
+<li>Validate and sanitize input data</li>
+<li>Execute business logic</li>
+<li>Interact with models and services</li>
+<li>Format responses</li>
+<li>Handle errors gracefully</li>
+</ul>
+<p><strong>Example: Create Ticket Flow</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/controllers/productController.js</span>
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">createTicket</span> <span class="token operator">=</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword control-flow keyword-try">try</span> <span class="token punctuation">{</span>
+    <span class="token comment">// 1. Validate input</span>
+    <span class="token keyword keyword-const">const</span> errors <span class="token operator">=</span> <span class="token function">validationResult</span><span class="token punctuation">(</span>req<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span><span class="token operator">!</span>errors<span class="token punctuation">.</span><span class="token method function property-access">isEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword control-flow keyword-return">return</span> res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">400</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">errors</span><span class="token operator">:</span> errors<span class="token punctuation">.</span><span class="token method function property-access">array</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment">// 2. Sanitize and prepare data</span>
+    <span class="token keyword keyword-let">let</span> ticketData <span class="token operator">=</span> <span class="token function">cleanTicketData</span><span class="token punctuation">(</span>req<span class="token punctuation">.</span><span class="token property-access">body</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    ticketData <span class="token operator">=</span> <span class="token function">ensureDefaultSBU</span><span class="token punctuation">(</span>ticketData<span class="token punctuation">,</span> <span class="token string">'P90'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 3. Auto-populate from PubChem if CAS provided</span>
+    <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span>ticketData<span class="token punctuation">.</span><span class="token property-access">chemicalProperties</span><span class="token operator">?.</span>casNumber<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword keyword-const">const</span> enrichedData <span class="token operator">=</span> <span class="token keyword control-flow keyword-await">await</span> pubchemService<span class="token punctuation">.</span><span class="token method function property-access">enrichTicketData</span><span class="token punctuation">(</span>
+        ticketData<span class="token punctuation">.</span><span class="token property-access">chemicalProperties</span><span class="token punctuation">.</span><span class="token property-access">casNumber</span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+      ticketData <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token spread operator">...</span>ticketData<span class="token punctuation">,</span> <span class="token spread operator">...</span>enrichedData <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token comment">// 4. Create model instance</span>
+    <span class="token keyword keyword-const">const</span> ticket <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">ProductTicket</span><span class="token punctuation">(</span>ticketData<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 5. Save to database</span>
+    <span class="token keyword control-flow keyword-await">await</span> ticket<span class="token punctuation">.</span><span class="token method function property-access">save</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 6. Return response</span>
+    res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">201</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'Product ticket created successfully'</span><span class="token punctuation">,</span>
+      ticket
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span> <span class="token keyword control-flow keyword-catch">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">error</span><span class="token punctuation">(</span><span class="token string">'Create ticket error:'</span><span class="token punctuation">,</span> error<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">500</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+      <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'Server error during ticket creation'</span><span class="token punctuation">,</span>
+      <span class="token literal-property property">error</span><span class="token operator">:</span> error<span class="token punctuation">.</span><span class="token property-access">message</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h4 id="313-view-layer">3.1.3 View Layer </h4>
+<p><strong>Location:</strong> <code>client/src/</code></p>
+<p>The View layer is implemented as a React Single Page Application (SPA) with component-based architecture.</p>
+<p><strong>Structure:</strong></p>
+<ul>
+<li><strong>Pages</strong> (<code>client/src/pages/</code>) - Top-level route components</li>
+<li><strong>Components</strong> (<code>client/src/components/</code>) - Reusable UI components</li>
+<li><strong>Forms</strong> (<code>client/src/components/forms/</code>) - Form components</li>
+<li><strong>Admin</strong> (<code>client/src/components/admin/</code>) - Administrative interfaces</li>
+</ul>
+<p><strong>Responsibilities:</strong></p>
+<ul>
+<li>Render user interfaces</li>
+<li>Handle user interactions</li>
+<li>Manage local component state</li>
+<li>Make API calls to backend</li>
+<li>Display data and feedback to users</li>
+</ul>
+<p><strong>Example: Component Hierarchy</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>App.jsx
+├── Layout.jsx
+│   └── Navigation
+├── Dashboard.jsx
+│   ├── StatusBadge
+│   ├── PriorityBadge
+│   └── Activity Feed
+├── CreateTicket.jsx
+│   ├── DynamicFormRenderer
+│   │   ├── DynamicBasicInfo
+│   │   ├── ChemicalPropertiesForm
+│   │   ├── SKUVariantsForm
+│   │   └── CorpBaseDataForm
+│   └── PricingCalculationForm
+└── AdminDashboard.jsx
+    ├── UserManagement
+    ├── PermissionsManagement
+    ├── FormConfigurationEditor
+    └── ApiKeyManagement
+</code></pre><h3 id="32-benefits-of-mvc-architecture">3.2 Benefits of MVC Architecture </h3>
+<h4 id="321-separation-of-concerns">3.2.1 Separation of Concerns </h4>
+<p>Each layer has distinct responsibilities, making the codebase easier to understand and maintain:</p>
+<ul>
+<li><strong>Models</strong> handle data structure and integrity</li>
+<li><strong>Controllers</strong> implement business logic</li>
+<li><strong>Views</strong> manage user interaction and presentation</li>
+</ul>
+<p>This separation allows developers to work on different layers independently without causing conflicts.</p>
+<h4 id="322-maintainability">3.2.2 Maintainability </h4>
+<p><strong>Code Organization:</strong></p>
+<ul>
+<li>Related functionality is grouped logically</li>
+<li>Easy to locate specific features (e.g., all ticket operations in <code>productController.js</code>)</li>
+<li>Consistent file structure across the application</li>
+</ul>
+<p><strong>Example: Adding a New Feature</strong></p>
+<p>To add a "ticket approval workflow":</p>
+<ol>
+<li><strong>Model:</strong> Add approval fields to <code>ProductTicket.js</code> schema</li>
+<li><strong>Controller:</strong> Add <code>approveTicket()</code> function to <code>productController.js</code></li>
+<li><strong>Route:</strong> Add endpoint in <code>routes/products.js</code></li>
+<li><strong>View:</strong> Create <code>ApprovalButton.jsx</code> component</li>
+</ol>
+<p>Each change is isolated to its respective layer, minimizing code coupling.</p>
+<h4 id="323-testability">3.2.3 Testability </h4>
+<p>MVC enables comprehensive testing at each layer:</p>
+<ul>
+<li><strong>Model Tests:</strong> Validate schema rules, defaults, and middleware</li>
+<li><strong>Controller Tests:</strong> Mock models to test business logic</li>
+<li><strong>Integration Tests:</strong> Test full request/response cycles</li>
+<li><strong>Component Tests:</strong> Test UI rendering and user interactions</li>
+</ul>
+<p><strong>Example Test Isolation:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Testing controller logic without database</span>
+jest<span class="token punctuation">.</span><span class="token method function property-access">mock</span><span class="token punctuation">(</span><span class="token string">'../models/ProductTicket'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> productController <span class="token operator">=</span> <span class="token function">require</span><span class="token punctuation">(</span><span class="token string">'../controllers/productController'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token function">test</span><span class="token punctuation">(</span><span class="token string">'createTicket validates CAS number format'</span><span class="token punctuation">,</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> req <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token literal-property property">body</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token literal-property property">chemicalProperties</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token literal-property property">casNumber</span><span class="token operator">:</span> <span class="token string">'invalid'</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+  <span class="token keyword keyword-const">const</span> res <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token literal-property property">status</span><span class="token operator">:</span> jest<span class="token punctuation">.</span><span class="token method function property-access">fn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">mockReturnThis</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token literal-property property">json</span><span class="token operator">:</span> jest<span class="token punctuation">.</span><span class="token method function property-access">fn</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+
+  <span class="token keyword control-flow keyword-await">await</span> productController<span class="token punctuation">.</span><span class="token method function property-access">createTicket</span><span class="token punctuation">(</span>req<span class="token punctuation">,</span> res<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token function">expect</span><span class="token punctuation">(</span>res<span class="token punctuation">.</span><span class="token property-access">status</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">toHaveBeenCalledWith</span><span class="token punctuation">(</span><span class="token number">400</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="324-scalability">3.2.4 Scalability </h4>
+<p>MVC supports growth in multiple dimensions:</p>
+<p><strong>Horizontal Scaling:</strong></p>
+<ul>
+<li>Stateless controllers enable multiple server instances</li>
+<li>Database operations through Mongoose are connection-pooled</li>
+<li>Frontend can be served from CDN</li>
+</ul>
+<p><strong>Feature Scaling:</strong></p>
+<ul>
+<li>New models can be added without affecting existing ones</li>
+<li>Controllers can be split as they grow (e.g., separate <code>ticketWorkflowController</code> from <code>productController</code>)</li>
+<li>Components are reusable across different pages</li>
+</ul>
+<p><strong>Team Scaling:</strong></p>
+<ul>
+<li>Frontend and backend teams can work in parallel</li>
+<li>Clear interfaces (API contracts) between layers</li>
+<li>Reduced merge conflicts due to organized file structure</li>
+</ul>
+<h4 id="325-flexibility">3.2.5 Flexibility </h4>
+<p><strong>Technology Independence:</strong></p>
+<ul>
+<li>Frontend can be replaced (React → Vue/Angular) without changing backend</li>
+<li>Database can be swapped (MongoDB → PostgreSQL) by updating models only</li>
+<li>Controllers remain stable across view/data changes</li>
+</ul>
+<p><strong>Business Logic Centralization:</strong></p>
+<ul>
+<li>All ticket creation logic is in <code>createTicket()</code> controller</li>
+<li>Used by both web UI and external API endpoints</li>
+<li>Single source of truth for business rules</li>
+</ul>
+<h4 id="326-code-reusability">3.2.6 Code Reusability </h4>
+<p><strong>Shared Components:</strong></p>
+<ul>
+<li><code>DynamicFormSection</code> renders any configurable form</li>
+<li><code>StatusBadge</code> used across Dashboard, TicketList, and TicketDetails</li>
+<li><code>cleanTicketData()</code> utility used in create, update, and draft operations</li>
+</ul>
+<p><strong>Shared Services:</strong></p>
+<ul>
+<li><code>pubchemService</code> used by ticket creation and CAS lookup endpoints</li>
+<li><code>apiAuth</code> middleware protects multiple routes</li>
+<li><code>enumCleaner</code> utility standardizes data across operations</li>
+</ul>
+<hr>
+<h2 id="4-component-architecture">4. Component Architecture </h2>
+<h3 id="41-backend-components">4.1 Backend Components </h3>
+<h4 id="411-server-entry-point">4.1.1 Server Entry Point </h4>
+<p><strong>File:</strong> <code>server/index.js</code></p>
+<p>The main application entry point that:</p>
+<ul>
+<li>Initializes Express application</li>
+<li>Configures security middleware (Helmet, CORS, rate limiting)</li>
+<li>Sets up request parsing and compression</li>
+<li>Registers API routes</li>
+<li>Establishes MongoDB connection</li>
+<li>Implements error handling</li>
+</ul>
+<p><strong>Middleware Stack Order:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token number">1.</span> <span class="token method function property-access">helmet</span><span class="token punctuation">(</span><span class="token punctuation">)</span>                 <span class="token comment">// Security headers</span>
+<span class="token number">2.</span> <span class="token method function property-access">compression</span><span class="token punctuation">(</span><span class="token punctuation">)</span>            <span class="token comment">// Response compression</span>
+<span class="token number">3.</span> <span class="token method function property-access">cors</span><span class="token punctuation">(</span><span class="token punctuation">)</span>                   <span class="token comment">// Cross-origin resource sharing</span>
+<span class="token number">4.</span> <span class="token method function property-access">rateLimit</span><span class="token punctuation">(</span><span class="token punctuation">)</span>              <span class="token comment">// API rate limiting</span>
+<span class="token number">5.</span> express<span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">)</span>           <span class="token comment">// JSON body parsing</span>
+<span class="token number">6.</span> express<span class="token punctuation">.</span><span class="token method function property-access">urlencoded</span><span class="token punctuation">(</span><span class="token punctuation">)</span>     <span class="token comment">// URL-encoded body parsing</span>
+<span class="token number">7.</span> <span class="token maybe-class-name">Application</span> routes       <span class="token comment">// API endpoints</span>
+<span class="token number">8.</span> <span class="token number">404</span> handler              <span class="token comment">// Not found responses</span>
+<span class="token number">9.</span> <span class="token known-class-name class-name">Error</span> handler            <span class="token comment">// Global error handling</span>
+</code></pre><h4 id="412-routes">4.1.2 Routes </h4>
+<p><strong>Location:</strong> <code>server/routes/</code></p>
+<p>Routes define API endpoints and attach middleware/validation:</p>
+<ul>
+<li><strong>products.js</strong> - Product ticket endpoints</li>
+<li><strong>formConfig.js</strong> - Dynamic form configuration</li>
+<li><strong>users.js</strong> - User management</li>
+<li><strong>permissions.js</strong> - Permission management</li>
+<li><strong>systemSettings.js</strong> - System configuration</li>
+<li><strong>userPreferences.js</strong> - User preferences</li>
+<li><strong>templates.js</strong> - Ticket templates</li>
+<li><strong>admin.js</strong> - Administrative functions</li>
+<li><strong>ticketApi.js</strong> - External API (v1)</li>
+</ul>
+<p><strong>Example Route Definition:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/routes/products.js</span>
+router<span class="token punctuation">.</span><span class="token method function property-access">post</span><span class="token punctuation">(</span><span class="token string">'/'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>
+  <span class="token function">body</span><span class="token punctuation">(</span><span class="token string">'chemicalProperties.casNumber'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">matches</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">^\d{1,7}-\d{2}-\d$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token function">body</span><span class="token punctuation">(</span><span class="token string">'productLine'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">notEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token comment">// ... additional validation</span>
+<span class="token punctuation">]</span><span class="token punctuation">,</span> productController<span class="token punctuation">.</span><span class="token property-access">createTicket</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="413-middleware">4.1.3 Middleware </h4>
+<p><strong>Location:</strong> <code>server/middleware/</code></p>
+<p><strong>Authentication Middleware:</strong></p>
+<ul>
+<li><code>auth.js</code> - Profile-based authentication for web UI</li>
+<li><code>apiAuth.js</code> - API key authentication for external integrations</li>
+</ul>
+<p><strong>Features:</strong></p>
+<ul>
+<li>Role extraction from request headers</li>
+<li>Permission validation</li>
+<li>SBU (Strategic Business Unit) access filtering</li>
+<li>API key validation with database lookup</li>
+<li>IP whitelist enforcement</li>
+<li>Usage tracking</li>
+</ul>
+<h4 id="414-services">4.1.4 Services </h4>
+<p><strong>Location:</strong> <code>server/services/</code></p>
+<p>Services encapsulate complex operations and external integrations:</p>
+<p><strong>PubChem Service</strong> (<code>pubchemService.js</code>):</p>
+<ul>
+<li>Fetches chemical compound data by CAS number</li>
+<li>Retrieves molecular properties, synonyms, and hazard information</li>
+<li>Parses physical properties (melting point, boiling point, etc.)</li>
+<li>Generates AI-based product descriptions</li>
+<li>Implements rate limiting (200ms delay between requests)</li>
+<li>Handles errors gracefully with fallback data</li>
+</ul>
+<p><strong>Key Methods:</strong></p>
+<ul>
+<li><code>getCompoundByCAS(casNumber)</code> - Primary lookup function</li>
+<li><code>enrichTicketData(casNumber)</code> - Returns complete enriched data for tickets</li>
+<li><code>parseGHSData(ghsData)</code> - Extracts GHS classification information</li>
+<li><code>parsePhysicalProperties(data)</code> - Extracts experimental properties</li>
+</ul>
+<h4 id="415-utilities">4.1.5 Utilities </h4>
+<p><strong>Location:</strong> <code>server/utils/</code></p>
+<p><strong>Enum Cleaner</strong> (<code>enumCleaner.js</code>):</p>
+<ul>
+<li>Sanitizes empty string values from enum fields</li>
+<li>Ensures required fields have valid defaults</li>
+<li>Converts textarea strings to arrays</li>
+<li>Prevents Mongoose validation errors</li>
+</ul>
+<p><strong>Functions:</strong></p>
+<ul>
+<li><code>cleanTicketData(ticketData)</code> - Main cleaning function</li>
+<li><code>cleanChemicalPropertiesEnums()</code> - Cleans chemical property fields</li>
+<li><code>cleanSKUVariantsEnums()</code> - Ensures valid SKU variant data</li>
+<li><code>ensureDefaultSBU()</code> - Sets default SBU if missing</li>
+<li><code>ensureDefaultSKU()</code> - Creates default SKU variant</li>
+</ul>
+<h3 id="42-frontend-components">4.2 Frontend Components </h3>
+<h4 id="421-application-structure">4.2.1 Application Structure </h4>
+<p><strong>Entry Point:</strong> <code>client/src/main.jsx</code></p>
+<ul>
+<li>Mounts React application</li>
+<li>Wraps app in Router and AuthContext providers</li>
+</ul>
+<p><strong>Root Component:</strong> <code>client/src/App.jsx</code></p>
+<ul>
+<li>Defines application routes</li>
+<li>Manages authentication state</li>
+<li>Implements protected routes</li>
+</ul>
+<h4 id="422-pages">4.2.2 Pages </h4>
+<p>Top-level route components representing application views:</p>
+<p><strong>Dashboard Pages:</strong></p>
+<ul>
+<li><code>Dashboard.jsx</code> - Product Manager dashboard with tickets and activity</li>
+<li><code>PMOPSDashboard.jsx</code> - PMOps team dashboard with queues and analytics</li>
+<li><code>AdminDashboard.jsx</code> - Administrator control panel</li>
+</ul>
+<p><strong>Ticket Pages:</strong></p>
+<ul>
+<li><code>CreateTicket.jsx</code> - New ticket creation form</li>
+<li><code>TicketDetails.jsx</code> - Individual ticket view/edit</li>
+<li><code>TicketList.jsx</code> - Searchable ticket listing</li>
+</ul>
+<p><strong>Administrative Pages:</strong></p>
+<ul>
+<li><code>ProfileSelection.jsx</code> - User role selection (development mode)</li>
+<li><code>UserPreferences.jsx</code> - User settings and preferences</li>
+</ul>
+<h4 id="423-reusable-components">4.2.3 Reusable Components </h4>
+<p><strong>Forms</strong> (<code>client/src/components/forms/</code>):</p>
+<ul>
+<li><code>DynamicFormRenderer.jsx</code> - Renders forms based on configuration</li>
+<li><code>DynamicFormSection.jsx</code> - Generic section renderer</li>
+<li><code>ChemicalPropertiesForm.jsx</code> - Chemical data input</li>
+<li><code>SKUVariantsForm.jsx</code> - SKU management interface</li>
+<li><code>CorpBaseDataForm.jsx</code> - Marketing/website content</li>
+<li><code>PricingCalculationForm.jsx</code> - Automated pricing calculator</li>
+<li><code>QualitySpecificationsForm.jsx</code> - Quality attributes</li>
+</ul>
+<p><strong>Admin Components</strong> (<code>client/src/components/admin/</code>):</p>
+<ul>
+<li><code>UserManagement.jsx</code> - User CRUD operations</li>
+<li><code>PermissionsManagement.jsx</code> - Role-based access control</li>
+<li><code>FormConfigurationEditor.jsx</code> - Dynamic form builder</li>
+<li><code>ApiKeyManagement.jsx</code> - API key lifecycle</li>
+<li><code>SystemSettings.jsx</code> - Global configuration</li>
+<li><code>TemplateManagement.jsx</code> - Ticket template editor</li>
+</ul>
+<p><strong>UI Components:</strong></p>
+<ul>
+<li><code>StatusBadge.jsx</code> - Colored status indicators</li>
+<li><code>PriorityBadge.jsx</code> - Priority level badges</li>
+<li><code>Layout.jsx</code> - Application frame with navigation</li>
+<li><code>Loading.jsx</code> - Loading state indicator</li>
+<li><code>SKUAssignment.jsx</code> - SKU base number assignment widget</li>
+</ul>
+<h4 id="424-hooks-and-context">4.2.4 Hooks and Context </h4>
+<p><strong>Custom Hooks:</strong></p>
+<ul>
+<li><code>useFormConfig.js</code> - Fetches and caches form configuration</li>
+</ul>
+<p><strong>Context Providers:</strong></p>
+<ul>
+<li><code>AuthContext.jsx</code> - Global authentication state management
+<ul>
+<li>Stores current profile (role, name, email, SBU)</li>
+<li>Provides login/logout functions</li>
+<li>Injects authentication headers into API requests</li>
+</ul>
+</li>
+</ul>
+<h4 id="425-services-and-utilities">4.2.5 Services and Utilities </h4>
+<p><strong>API Client</strong> (<code>client/src/services/api.js</code>):</p>
+<ul>
+<li>Axios instance with base URL configuration</li>
+<li>Request interceptor for authentication headers</li>
+<li>Response interceptor for error handling</li>
+<li>Centralized API endpoint definitions</li>
+</ul>
+<p><strong>Utilities:</strong></p>
+<ul>
+<li><code>pricingCalculations.js</code> - Pricing formulas and calculations</li>
+</ul>
+<hr>
+<h2 id="5-data-architecture">5. Data Architecture </h2>
+<h3 id="51-database-design">5.1 Database Design </h3>
+<p>The application uses MongoDB, a document-oriented NoSQL database, chosen for:</p>
+<ul>
+<li>Flexible schema supporting evolving product requirements</li>
+<li>Native JSON storage matching JavaScript objects</li>
+<li>Excellent performance for read-heavy dashboards</li>
+<li>Horizontal scalability for future growth</li>
+</ul>
+<h3 id="52-core-collections">5.2 Core Collections </h3>
+<h4 id="521-producttickets-collection">5.2.1 ProductTickets Collection </h4>
+<p><strong>Purpose:</strong> Stores all product introduction tickets</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>ticketNumber</code> - Auto-generated unique identifier (NPDI-YYYY-####)</li>
+<li><code>productName</code> - Chemical/product name</li>
+<li><code>productLine</code> - Product category/line</li>
+<li><code>sbu</code> - Strategic Business Unit (775, P90, 440, P87, P89, P85)</li>
+<li><code>status</code> - Workflow state (DRAFT, SUBMITTED, IN_PROCESS, NPDI_INITIATED, COMPLETED, CANCELED)</li>
+<li><code>priority</code> - Urgency level (LOW, MEDIUM, HIGH, URGENT)</li>
+<li><code>chemicalProperties</code> - Embedded chemical data (CAS, formula, molecular weight, etc.)</li>
+<li><code>hazardClassification</code> - GHS classification and safety data</li>
+<li><code>skuVariants[]</code> - Array of SKU configurations with pricing</li>
+<li><code>quality</code> - Quality attributes and MQ levels</li>
+<li><code>composition</code> - Product composition breakdown</li>
+<li><code>regulatoryInfo</code> - Regulatory compliance data</li>
+<li><code>corpbaseData</code> - Marketing and web content</li>
+<li><code>statusHistory[]</code> - Audit trail of all changes</li>
+<li><code>comments[]</code> - User comments and notes</li>
+<li><code>createdBy</code>, <code>assignedTo</code> - User references</li>
+<li><code>createdAt</code>, <code>updatedAt</code> - Timestamps</li>
+</ul>
+<p><strong>Indexes:</strong></p>
+<ul>
+<li>Unique index on <code>ticketNumber</code></li>
+<li>Compound index on <code>status</code>, <code>sbu</code>, <code>priority</code> for dashboard queries</li>
+<li>Text index on <code>productName</code>, <code>ticketNumber</code> for search</li>
+</ul>
+<h4 id="522-users-collection">5.2.2 Users Collection </h4>
+<p><strong>Purpose:</strong> User account data (currently minimal, using profile-based auth)</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>firstName</code>, <code>lastName</code>, <code>email</code></li>
+<li><code>role</code> - User role (PRODUCT_MANAGER, PM_OPS, ADMIN)</li>
+<li><code>sbu</code> - Business unit assignment</li>
+<li><code>isActive</code> - Account status</li>
+</ul>
+<h4 id="523-permissions-collection">5.2.3 Permissions Collection </h4>
+<p><strong>Purpose:</strong> Role-based access control definitions</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>role</code> - Role identifier</li>
+<li><code>privileges</code> - Object mapping sections to permissions (view/edit)</li>
+<li><code>description</code> - Role description</li>
+</ul>
+<p><strong>Example Document:</strong></p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"role"</span><span class="token operator">:</span> <span class="token string">"PM_OPS"</span><span class="token punctuation">,</span>
+  <span class="token property">"privileges"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"basicInfo"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"view"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"edit"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"chemicalProperties"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"view"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"edit"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"skuVariants"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"view"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"edit"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token property">"pricing"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"view"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"edit"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="524-apikeys-collection">5.2.4 ApiKeys Collection </h4>
+<p><strong>Purpose:</strong> External API authentication and access control</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>name</code> - Descriptive name for the key</li>
+<li><code>keyHash</code> - SHA-256 hash of the API key</li>
+<li><code>keyPrefix</code> - First 8 characters for identification</li>
+<li><code>permissions[]</code> - Array of granted permissions (read, write, admin)</li>
+<li><code>application</code> - Application/system using this key</li>
+<li><code>ipWhitelist[]</code> - Allowed IP addresses</li>
+<li><code>expiresAt</code> - Expiration timestamp</li>
+<li><code>isActive</code> - Enable/disable flag</li>
+<li><code>lastUsedAt</code> - Last usage timestamp</li>
+<li><code>usageCount</code> - Total number of API calls</li>
+</ul>
+<p><strong>Security Features:</strong></p>
+<ul>
+<li>Keys are hashed (SHA-256) before storage</li>
+<li>Only prefix shown in admin interface</li>
+<li>Automatic expiration checking</li>
+<li>IP-based access control</li>
+<li>Usage tracking and monitoring</li>
+</ul>
+<h4 id="525-formconfiguration-collection">5.2.5 FormConfiguration Collection </h4>
+<p><strong>Purpose:</strong> Dynamic form field configurations</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>sections[]</code> - Array of form sections
+<ul>
+<li><code>sectionId</code> - Unique section identifier</li>
+<li><code>title</code> - Display title</li>
+<li><code>order</code> - Display sequence</li>
+<li><code>fields[]</code> - Array of field definitions
+<ul>
+<li><code>fieldId</code>, <code>label</code>, <code>type</code>, <code>required</code>, <code>visible</code>, <code>editable</code></li>
+<li><code>options[]</code> - For dropdown/radio fields</li>
+<li><code>defaultValue</code> - Initial value</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Forms can be customized without code changes</li>
+<li>Field visibility controlled dynamically</li>
+<li>Supports rapid business process changes</li>
+</ul>
+<h4 id="526-systemsettings-collection">5.2.6 SystemSettings Collection </h4>
+<p><strong>Purpose:</strong> Application-wide configuration</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>smtpConfig</code> - Email server settings (future use)</li>
+<li><code>pubchemApiConfig</code> - PubChem API configuration
+<ul>
+<li><code>baseUrl</code> - API endpoint</li>
+<li><code>timeout</code> - Request timeout</li>
+<li><code>rateLimit</code> - Delay between requests</li>
+<li><code>enabled</code> - Feature toggle</li>
+</ul>
+</li>
+<li><code>applicationSettings</code> - General settings
+<ul>
+<li><code>defaultSBU</code>, <code>defaultPriority</code></li>
+<li><code>enableAutoNumbering</code></li>
+<li><code>requireApproval</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="527-userpreferences-collection">5.2.7 UserPreferences Collection </h4>
+<p><strong>Purpose:</strong> User-specific settings and preferences</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>userId</code> - User reference</li>
+<li><code>theme</code> - UI theme preference</li>
+<li><code>notifications</code> - Notification settings</li>
+<li><code>dashboardLayout</code> - Dashboard customization</li>
+<li><code>defaultFilters</code> - Saved filter preferences</li>
+</ul>
+<h4 id="528-templates-collection">5.2.8 Templates Collection </h4>
+<p><strong>Purpose:</strong> Reusable ticket templates</p>
+<p><strong>Key Fields:</strong></p>
+<ul>
+<li><code>name</code> - Template name</li>
+<li><code>description</code> - Template description</li>
+<li><code>category</code> - Template category</li>
+<li><code>templateData</code> - Pre-filled ticket data</li>
+<li><code>createdBy</code>, <code>isActive</code></li>
+</ul>
+<h3 id="53-data-relationships">5.3 Data Relationships </h3>
+<p><strong>Referencing Strategy:</strong></p>
+<ul>
+<li>User references stored as ObjectIds (when using database auth)</li>
+<li>Currently using header-based profile authentication (development)</li>
+<li>Future migration to full user authentication planned</li>
+</ul>
+<p><strong>Embedded Documents:</strong></p>
+<ul>
+<li>Chemical properties embedded in tickets (1-to-1 relationship)</li>
+<li>SKU variants array embedded in tickets (1-to-many, always accessed together)</li>
+<li>Status history embedded for audit trail (never queried independently)</li>
+<li>Comments embedded for performance (displayed with ticket)</li>
+</ul>
+<p><strong>Design Rationale:</strong></p>
+<ul>
+<li>Embedding for data always accessed together (reduces joins)</li>
+<li>Referencing for data shared across documents (users, templates)</li>
+<li>Denormalization acceptable for read-optimized dashboards</li>
+</ul>
+<h3 id="54-data-flow">5.4 Data Flow </h3>
+<h4 id="541-ticket-creation-flow">5.4.1 Ticket Creation Flow </h4>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>1. User submits form data (React)
+   ↓
+2. API client sends POST /api/products with auth headers
+   ↓
+3. Express route validates input (express-validator)
+   ↓
+4. Controller sanitizes data (cleanTicketData utility)
+   ↓
+5. Controller calls PubChem service if CAS number provided
+   ↓
+6. PubChem service fetches external data
+   ↓
+7. Controller merges user input with PubChem data
+   ↓
+8. Controller creates ProductTicket model instance
+   ↓
+9. Mongoose pre-save middleware generates ticket number
+   ↓
+10. Mongoose validates schema and saves to MongoDB
+   ↓
+11. Controller returns response to client
+   ↓
+12. React updates UI and redirects to ticket details
+</code></pre><h4 id="542-dashboard-statistics-flow">5.4.2 Dashboard Statistics Flow </h4>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>1. Dashboard component mounts
+   ↓
+2. API call to GET /api/products/dashboard/stats
+   ↓
+3. Controller queries ProductTicket collection
+   ↓
+4. Aggregates tickets by status, priority, SBU
+   ↓
+5. Calculates average processing times from statusHistory
+   ↓
+6. Identifies aging tickets and urgent items
+   ↓
+7. Returns aggregated statistics
+   ↓
+8. Dashboard renders charts and metrics
+</code></pre><h4 id="543-form-configuration-flow">5.4.3 Form Configuration Flow </h4>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>1. CreateTicket page loads
+   ↓
+2. useFormConfig hook checks localStorage cache
+   ↓
+3. If not cached, calls GET /api/form-config
+   ↓
+4. Controller retrieves FormConfiguration from database
+   ↓
+5. Returns configuration with sections and fields
+   ↓
+6. Hook caches config and returns to component
+   ↓
+7. DynamicFormRenderer builds form from config
+   ↓
+8. User interacts with dynamically generated form
+</code></pre><hr>
+<h2 id="6-security-architecture">6. Security Architecture </h2>
+<h3 id="61-multi-layered-security-model">6.1 Multi-Layered Security Model </h3>
+<p>The NPDI application implements defense-in-depth security across multiple layers:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>┌─────────────────────────────────────────────────────────────┐
+│ Layer 1: HTTP Security Headers (Helmet)                     │
+│ - Content Security Policy, X-Frame-Options, etc.            │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 2: CORS &amp; Rate Limiting                               │
+│ - Origin validation, Request throttling                     │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 3: Authentication                                      │
+│ - Profile-based (UI) or API Key (external)                  │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 4: Authorization &amp; Role-Based Access Control          │
+│ - Permission checking, SBU filtering                        │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 5: Input Validation &amp; Sanitization                    │
+│ - express-validator, custom sanitization utilities          │
+└─────────────────────────────────────────────────────────────┘
+                           ↓
+┌─────────────────────────────────────────────────────────────┐
+│ Layer 6: Schema Validation (Mongoose)                       │
+│ - Type checking, enum validation, regex patterns            │
+└─────────────────────────────────────────────────────────────┘
+</code></pre><h3 id="62-authentication-mechanisms">6.2 Authentication Mechanisms </h3>
+<h4 id="621-profile-based-authentication-web-ui">6.2.1 Profile-Based Authentication (Web UI) </h4>
+<p><strong>Mechanism:</strong> Header-based profile selection for development/demo<br>
+<strong>Implementation:</strong> <code>server/middleware/auth.js</code></p>
+<p><strong>Process:</strong></p>
+<ol>
+<li>User selects profile at login (stored in AuthContext)</li>
+<li>React AuthContext injects headers into all requests:
+<ul>
+<li><code>x-user-role</code> - User role</li>
+<li><code>x-user-firstname</code>, <code>x-user-lastname</code> - User name</li>
+<li><code>x-user-email</code> - User email</li>
+<li><code>x-user-sbu</code> - Business unit</li>
+</ul>
+</li>
+<li>Server middleware validates headers and creates <code>req.user</code> object</li>
+<li>Downstream controllers use <code>req.user</code> for authorization</li>
+</ol>
+<p><strong>Security Considerations:</strong></p>
+<ul>
+<li>Development mode only - not suitable for production</li>
+<li>Headers are not cryptographically signed</li>
+<li>Migration to JWT or session-based auth recommended</li>
+</ul>
+<h4 id="622-api-key-authentication-external-access">6.2.2 API Key Authentication (External Access) </h4>
+<p><strong>Mechanism:</strong> Database-backed API key validation<br>
+<strong>Implementation:</strong> <code>server/middleware/apiAuth.js</code></p>
+<p><strong>Process:</strong></p>
+<ol>
+<li>External system includes API key in <code>X-API-Key</code> header</li>
+<li>Middleware hashes the provided key (SHA-256)</li>
+<li>Database lookup for matching <code>keyHash</code></li>
+<li>Validation checks:
+<ul>
+<li>Key exists in database</li>
+<li>Key is active (<code>isActive: true</code>)</li>
+<li>Key has not expired (<code>expiresAt &gt; now</code>)</li>
+<li>Client IP is whitelisted (if configured)</li>
+</ul>
+</li>
+<li>Record usage statistics (async, non-blocking)</li>
+<li>Attach key metadata to <code>req.apiKey</code> for downstream use</li>
+</ol>
+<p><strong>Security Features:</strong></p>
+<ul>
+<li>Keys are hashed before storage (original never stored)</li>
+<li>Automatic expiration enforcement</li>
+<li>IP whitelist support</li>
+<li>Usage tracking and auditing</li>
+<li>Granular permissions per key</li>
+</ul>
+<h3 id="63-authorization--access-control">6.3 Authorization &amp; Access Control </h3>
+<h4 id="631-role-based-access-control-rbac">6.3.1 Role-Based Access Control (RBAC) </h4>
+<p><strong>Roles:</strong></p>
+<ul>
+<li><strong>PRODUCT_MANAGER</strong> - Create and submit tickets for their SBU</li>
+<li><strong>PM_OPS</strong> - View/edit all tickets, assign SKUs, manage workflow</li>
+<li><strong>ADMIN</strong> - Full system access, manage users and configuration</li>
+</ul>
+<p><strong>Permission Model:</strong><br>
+Each role has defined privileges for form sections:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token punctuation">{</span>
+  <span class="token string-property property">"role"</span><span class="token operator">:</span> <span class="token string">"PRODUCT_MANAGER"</span><span class="token punctuation">,</span>
+  <span class="token string-property property">"privileges"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token string-property property">"basicInfo"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">"view"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token string-property property">"edit"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string-property property">"chemicalProperties"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">"view"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token string-property property">"edit"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token string-property property">"skuVariants"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">"view"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token string-property property">"edit"</span><span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>  <span class="token comment">// Read-only</span>
+    <span class="token string-property property">"pricing"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">"view"</span><span class="token operator">:</span> <span class="token boolean">false</span><span class="token punctuation">,</span> <span class="token string-property property">"edit"</span><span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span>      <span class="token comment">// Hidden</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Enforcement Points:</strong></p>
+<ul>
+<li><strong>Backend:</strong> Middleware checks permissions before controller execution</li>
+<li><strong>Frontend:</strong> UI elements hidden/disabled based on role</li>
+<li><strong>Database:</strong> SBU filtering applied to queries for Product Managers</li>
+</ul>
+<h4 id="632-sbu-based-data-isolation">6.3.2 SBU-Based Data Isolation </h4>
+<p>Product Managers can only access tickets from their assigned SBU:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/middleware/auth.js</span>
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">checkSBUAccess</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">req<span class="token punctuation">,</span> res<span class="token punctuation">,</span> next</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token keyword control-flow keyword-if">if</span> <span class="token punctuation">(</span>req<span class="token punctuation">.</span><span class="token property-access">user</span><span class="token punctuation">.</span><span class="token property-access">role</span> <span class="token operator">===</span> <span class="token string">'PRODUCT_MANAGER'</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    req<span class="token punctuation">.</span><span class="token property-access">sbuFilter</span> <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token literal-property property">sbu</span><span class="token operator">:</span> req<span class="token punctuation">.</span><span class="token property-access">user</span><span class="token punctuation">.</span><span class="token property-access">sbu</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>  <span class="token comment">// Restricts queries</span>
+  <span class="token punctuation">}</span> <span class="token keyword control-flow keyword-else">else</span> <span class="token punctuation">{</span>
+    req<span class="token punctuation">.</span><span class="token property-access">sbuFilter</span> <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">;</span>  <span class="token comment">// PMOps and Admin see all</span>
+  <span class="token punctuation">}</span>
+  <span class="token function">next</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p>Applied in controllers:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword keyword-const">const</span> tickets <span class="token operator">=</span> <span class="token keyword control-flow keyword-await">await</span> <span class="token maybe-class-name">ProductTicket</span><span class="token punctuation">.</span><span class="token method function property-access">find</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token spread operator">...</span>req<span class="token punctuation">.</span><span class="token property-access">sbuFilter</span><span class="token punctuation">,</span>  <span class="token comment">// Automatically filters by SBU</span>
+  <span class="token literal-property property">status</span><span class="token operator">:</span> <span class="token string">'SUBMITTED'</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h3 id="64-input-validation--sanitization">6.4 Input Validation &amp; Sanitization </h3>
+<h4 id="641-multi-layer-validation">6.4.1 Multi-Layer Validation </h4>
+<p><strong>Layer 1: Client-Side (React Hook Form)</strong></p>
+<ul>
+<li>Immediate user feedback</li>
+<li>Reduces unnecessary server requests</li>
+<li>Not trusted for security (can be bypassed)</li>
+</ul>
+<p><strong>Layer 2: Route-Level (express-validator)</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>router<span class="token punctuation">.</span><span class="token method function property-access">post</span><span class="token punctuation">(</span><span class="token string">'/'</span><span class="token punctuation">,</span> <span class="token punctuation">[</span>
+  <span class="token function">body</span><span class="token punctuation">(</span><span class="token string">'chemicalProperties.casNumber'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">matches</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">^\d{1,7}-\d{2}-\d$</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token function">body</span><span class="token punctuation">(</span><span class="token string">'productLine'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">notEmpty</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">trim</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+  <span class="token function">body</span><span class="token punctuation">(</span><span class="token string">'sbu'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">isIn</span><span class="token punctuation">(</span><span class="token punctuation">[</span><span class="token string">'775'</span><span class="token punctuation">,</span> <span class="token string">'P90'</span><span class="token punctuation">,</span> <span class="token string">'440'</span><span class="token punctuation">,</span> <span class="token string">'P87'</span><span class="token punctuation">,</span> <span class="token string">'P89'</span><span class="token punctuation">,</span> <span class="token string">'P85'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+<span class="token punctuation">]</span><span class="token punctuation">,</span> productController<span class="token punctuation">.</span><span class="token property-access">createTicket</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Layer 3: Controller Sanitization</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/utils/enumCleaner.js</span>
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">cleanTicketData</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">ticketData</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Remove empty strings from enum fields</span>
+  <span class="token comment">// Convert textarea strings to arrays</span>
+  <span class="token comment">// Ensure required defaults exist</span>
+  <span class="token keyword control-flow keyword-return">return</span> sanitizedData<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Layer 4: Schema Validation (Mongoose)</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token literal-property property">casNumber</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token known-class-name class-name">String</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">required</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">match</span><span class="token operator">:</span> <span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">^\d{1,7}-\d{2}-\d$</span><span class="token regex-delimiter">/</span></span>  <span class="token comment">// Final validation before save</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="642-xss-prevention">6.4.2 XSS Prevention </h4>
+<p><strong>Automatic Escaping:</strong></p>
+<ul>
+<li>React automatically escapes all JSX content</li>
+<li>User input rendered as text, not HTML</li>
+</ul>
+<p><strong>No Use of <code>dangerouslySetInnerHTML</code>:</strong></p>
+<ul>
+<li>Application never renders raw HTML from user input</li>
+<li>Markdown or rich text not supported (intentional security decision)</li>
+</ul>
+<h4 id="643-nosql-injection-prevention">6.4.3 NoSQL Injection Prevention </h4>
+<p><strong>Mongoose Query Builder:</strong></p>
+<ul>
+<li>All queries use parameterized format</li>
+<li>No string concatenation or eval</li>
+<li>User input treated as data, not code</li>
+</ul>
+<p><strong>Example Safe Query:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Safe - user input is parameter, not part of query structure</span>
+<span class="token keyword control-flow keyword-await">await</span> <span class="token maybe-class-name">ProductTicket</span><span class="token punctuation">.</span><span class="token method function property-access">findOne</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">ticketNumber</span><span class="token operator">:</span> userInput <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Unsafe (NOT used in application)</span>
+<span class="token comment">// await ProductTicket.find({ $where: `this.ticketNumber == '${userInput}'` });</span>
+</code></pre><h3 id="65-http-security-headers-helmet">6.5 HTTP Security Headers (Helmet) </h3>
+<p>Helmet middleware applies security headers to all responses:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token function">helmet</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Headers Applied:</strong></p>
+<ul>
+<li><code>X-DNS-Prefetch-Control: off</code> - Disable DNS prefetching</li>
+<li><code>X-Frame-Options: SAMEORIGIN</code> - Prevent clickjacking</li>
+<li><code>X-Content-Type-Options: nosniff</code> - Prevent MIME sniffing</li>
+<li><code>X-XSS-Protection: 0</code> - Disable legacy XSS filter</li>
+<li><code>Strict-Transport-Security</code> - Enforce HTTPS (production)</li>
+<li><code>Content-Security-Policy</code> - Control resource loading</li>
+</ul>
+<h3 id="66-cors-configuration">6.6 CORS Configuration </h3>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token function">cors</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">origin</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    process<span class="token punctuation">.</span><span class="token property-access">env</span><span class="token punctuation">.</span><span class="token constant">CLIENT_URL</span> <span class="token operator">||</span> <span class="token string">'http://localhost:5173'</span><span class="token punctuation">,</span>
+    <span class="token string">'http://localhost:5173'</span><span class="token punctuation">,</span>
+    <span class="token string">'http://127.0.0.1:5173'</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">credentials</span><span class="token operator">:</span> <span class="token boolean">true</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Purpose:</strong></p>
+<ul>
+<li>Restrict API access to authorized origins</li>
+<li>Prevent cross-site request forgery (CSRF)</li>
+<li>Allow cookies/credentials for same-origin requests</li>
+</ul>
+<h3 id="67-rate-limiting">6.7 Rate Limiting </h3>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword keyword-const">const</span> limiter <span class="token operator">=</span> <span class="token function">rateLimit</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">windowMs</span><span class="token operator">:</span> <span class="token number">15</span> <span class="token operator">*</span> <span class="token number">60</span> <span class="token operator">*</span> <span class="token number">1000</span><span class="token punctuation">,</span>     <span class="token comment">// 15 minutes</span>
+  <span class="token literal-property property">max</span><span class="token operator">:</span> <span class="token number">100</span><span class="token punctuation">,</span>                      <span class="token comment">// 100 requests per window</span>
+  <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'Too many requests from this IP'</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token string">'/api'</span><span class="token punctuation">,</span> limiter<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Protection Against:</strong></p>
+<ul>
+<li>Brute force attacks</li>
+<li>API abuse</li>
+<li>Denial of Service (DoS)</li>
+<li>Automated scraping</li>
+</ul>
+<h3 id="68-error-handling-security">6.8 Error Handling Security </h3>
+<p><strong>Production Error Responses:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>app<span class="token punctuation">.</span><span class="token method function property-access">use</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error<span class="token punctuation">,</span> req<span class="token punctuation">,</span> res<span class="token punctuation">,</span> next</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">error</span><span class="token punctuation">(</span><span class="token string">'Server error:'</span><span class="token punctuation">,</span> error<span class="token punctuation">)</span><span class="token punctuation">;</span>  <span class="token comment">// Log for debugging</span>
+  res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">500</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'Internal server error'</span><span class="token punctuation">,</span>
+    <span class="token comment">// error details only in development</span>
+    <span class="token spread operator">...</span><span class="token punctuation">(</span>process<span class="token punctuation">.</span><span class="token property-access">env</span><span class="token punctuation">.</span><span class="token constant">NODE_ENV</span> <span class="token operator">===</span> <span class="token string">'development'</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">{</span> <span class="token literal-property property">error</span><span class="token operator">:</span> error<span class="token punctuation">.</span><span class="token property-access">message</span> <span class="token punctuation">}</span><span class="token punctuation">)</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Security Benefits:</strong></p>
+<ul>
+<li>No stack traces leaked to clients in production</li>
+<li>No database error details exposed</li>
+<li>Consistent error format prevents information disclosure</li>
+</ul>
+<h3 id="69-environment-variable-protection">6.9 Environment Variable Protection </h3>
+<p><strong>Configuration:</strong> <code>.env</code> file (not committed to repository)</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>MONGODB_URI=mongodb://localhost:27017/npdi
+PORT=5000
+CLIENT_URL=http://localhost:5173
+NODE_ENV=development
+</code></pre><p><strong>Protection Mechanisms:</strong></p>
+<ul>
+<li><code>.gitignore</code> excludes <code>.env</code> from version control</li>
+<li><code>.env.example</code> provides template without secrets</li>
+<li>Environment variables never logged or exposed in responses</li>
+</ul>
+<hr>
+<h2 id="7-integration-architecture">7. Integration Architecture </h2>
+<h3 id="71-pubchem-api-integration">7.1 PubChem API Integration </h3>
+<h4 id="711-purpose">7.1.1 Purpose </h4>
+<p>The PubChem integration automatically enriches chemical product tickets with authoritative scientific data from the National Institutes of Health (NIH) PubChem database.</p>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Reduces manual data entry</li>
+<li>Ensures data accuracy and consistency</li>
+<li>Provides comprehensive chemical properties</li>
+<li>Accelerates ticket creation process</li>
+</ul>
+<h4 id="712-integration-architecture">7.1.2 Integration Architecture </h4>
+<p><strong>Service Layer:</strong> <code>server/services/pubchemService.js</code></p>
+<p><strong>API Endpoints Used:</strong></p>
+<ol>
+<li>
+<p><strong>CID Lookup:</strong> <code>/rest/pug/compound/name/{CAS}/cids/JSON</code></p>
+<ul>
+<li>Converts CAS number to PubChem Compound ID (CID)</li>
+</ul>
+</li>
+<li>
+<p><strong>Properties Retrieval:</strong> <code>/rest/pug/compound/cid/{CID}/property/.../JSON</code></p>
+<ul>
+<li>Fetches molecular formula, weight, SMILES, InChI, etc.</li>
+</ul>
+</li>
+<li>
+<p><strong>Synonyms:</strong> <code>/rest/pug/compound/cid/{CID}/synonyms/JSON</code></p>
+<ul>
+<li>Retrieves alternative chemical names</li>
+</ul>
+</li>
+<li>
+<p><strong>GHS Classification:</strong> <code>/rest/pug_view/data/compound/{CID}/JSON?heading=GHS+Classification</code></p>
+<ul>
+<li>Extracts hazard statements, signal words, precautionary statements</li>
+</ul>
+</li>
+<li>
+<p><strong>Physical Properties:</strong> <code>/rest/pug_view/data/compound/{CID}/JSON</code></p>
+<ul>
+<li>Parses melting point, boiling point, flash point, density, etc.</li>
+</ul>
+</li>
+</ol>
+<h4 id="713-data-enrichment-flow">7.1.3 Data Enrichment Flow </h4>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>1. User enters CAS number in CreateTicket form
+   ↓
+2. Frontend makes POST /api/products with skipAutopopulate: false
+   ↓
+3. productController detects CAS number
+   ↓
+4. Calls pubchemService.enrichTicketData(casNumber)
+   ↓
+5. Service Flow:
+   a) Lookup CID by CAS number
+   b) Fetch compound properties (parallel)
+   c) Fetch synonyms (parallel)
+   d) Fetch GHS data (parallel)
+   e) Fetch physical properties (parallel)
+   f) Parse and structure data
+   g) Generate AI product description
+   ↓
+6. Controller merges PubChem data with user input
+   ↓
+7. User input takes priority over PubChem data
+   ↓
+8. Ticket saved with enriched data
+   ↓
+9. Frontend displays auto-populated fields
+</code></pre><h4 id="714-rate-limiting--error-handling">7.1.4 Rate Limiting &amp; Error Handling </h4>
+<p><strong>Rate Limiting:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token property-access">requestDelay</span> <span class="token operator">=</span> <span class="token number">200</span><span class="token punctuation">;</span> <span class="token comment">// 200ms between requests = 5 req/sec</span>
+<span class="token keyword control-flow keyword-await">await</span> <span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token method function property-access">delay</span><span class="token punctuation">(</span><span class="token keyword keyword-this">this</span><span class="token punctuation">.</span><span class="token property-access">requestDelay</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Compliance:</strong> PubChem allows 5 requests per second without registration</p>
+<p><strong>Error Handling Strategy:</strong></p>
+<ul>
+<li>Non-blocking: PubChem failure doesn't prevent ticket creation</li>
+<li>Graceful degradation: Returns minimal data structure on error</li>
+<li>User notification: Frontend displays which fields were auto-populated</li>
+<li>Logging: All PubChem errors logged for monitoring</li>
+</ul>
+<p><strong>Example Error Handling:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword control-flow keyword-try">try</span> <span class="token punctuation">{</span>
+  <span class="token keyword keyword-const">const</span> enrichedData <span class="token operator">=</span> <span class="token keyword control-flow keyword-await">await</span> pubchemService<span class="token punctuation">.</span><span class="token method function property-access">enrichTicketData</span><span class="token punctuation">(</span>casNumber<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  ticketData <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token spread operator">...</span>ticketData<span class="token punctuation">,</span> <span class="token spread operator">...</span>enrichedData <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span> <span class="token keyword control-flow keyword-catch">catch</span> <span class="token punctuation">(</span>pubchemError<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">warn</span><span class="token punctuation">(</span><span class="token string">'PubChem enrichment failed:'</span><span class="token punctuation">,</span> pubchemError<span class="token punctuation">.</span><span class="token property-access">message</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token comment">// Continue with user-provided data only</span>
+<span class="token punctuation">}</span>
+</code></pre><h4 id="715-data-parsing--transformation">7.1.5 Data Parsing &amp; Transformation </h4>
+<p><strong>Physical Properties Parsing:</strong></p>
+<ul>
+<li>Prioritizes Celsius values for temperature properties</li>
+<li>Handles multiple data formats (StringWithMarkup, Number+Unit)</li>
+<li>Extracts UN numbers for hazardous materials</li>
+<li>Determines physical state (Solid, Liquid, Gas, Powder, Crystal)</li>
+</ul>
+<p><strong>GHS Data Parsing:</strong></p>
+<ul>
+<li>Recursively searches nested JSON sections</li>
+<li>Extracts hazard statements, precautionary statements, signal words</li>
+<li>Handles varying data structures across different compounds</li>
+</ul>
+<p><strong>Synonym Handling:</strong></p>
+<ul>
+<li>Limits to first 10 synonyms (prevents data bloat)</li>
+<li>Used for product naming suggestions</li>
+<li>Stored as array for search functionality</li>
+</ul>
+<h4 id="716-product-description-generation">7.1.6 Product Description Generation </h4>
+<p>The service generates marketing-friendly descriptions based on chemical properties:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token keyword keyword-const">const</span> <span class="token function-variable function">generateAIProductDescription</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">pubchemData<span class="token punctuation">,</span> casNumber</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Analyzes LogP for solubility characteristics</span>
+  <span class="token comment">// Identifies hydrogen bonding capability</span>
+  <span class="token comment">// Suggests application areas</span>
+  <span class="token comment">// Generates feature lists and competitive advantages</span>
+  <span class="token keyword control-flow keyword-return">return</span> <span class="token punctuation">{</span>
+    <span class="token literal-property property">productDescription</span><span class="token operator">:</span> <span class="token string">"..."</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">keyFeatures</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token spread operator">...</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">applications</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token spread operator">...</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">targetMarkets</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token spread operator">...</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">competitiveAdvantages</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token spread operator">...</span><span class="token punctuation">]</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Usage:</strong> Pre-populates CorpBase marketing content fields</p>
+<h3 id="72-future-integration-points">7.2 Future Integration Points </h3>
+<p><strong>Planned Integrations:</strong></p>
+<ul>
+<li><strong>SAP ERP</strong> - SKU creation and part number assignment</li>
+<li><strong>Email Service (SMTP)</strong> - Ticket notifications and workflow alerts</li>
+<li><strong>Document Management System</strong> - Attach certificates of analysis, SDSs</li>
+<li><strong>Chemical Inventory System</strong> - Stock level checking</li>
+<li><strong>Regulatory Databases</strong> - REACH, TSCA compliance validation</li>
+</ul>
+<hr>
+<h2 id="8-deployment-architecture">8. Deployment Architecture </h2>
+<h3 id="81-development-environment">8.1 Development Environment </h3>
+<p><strong>Architecture:</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>┌────────────────────┐         ┌────────────────────┐
+│   Vite Dev Server  │         │  Nodemon Server    │
+│   Port 5173        │ ──API─→ │  Port 5000         │
+│   - Hot reload     │ ←──────│  - Auto-restart    │
+│   - API proxy      │         │  - Watch mode      │
+└────────────────────┘         └────────────────────┘
+                                        ↓
+                               ┌────────────────────┐
+                               │  MongoDB Local     │
+                               │  Port 27017        │
+                               └────────────────────┘
+</code></pre><p><strong>Startup:</strong></p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">npm</span> run dev  <span class="token comment"># Concurrently starts both client and server</span>
+</code></pre><p><strong>Features:</strong></p>
+<ul>
+<li>Frontend hot module replacement (HMR)</li>
+<li>Backend auto-restart on file changes</li>
+<li>API proxy in Vite for CORS-free development</li>
+<li>Shared development profiles (no authentication overhead)</li>
+</ul>
+<h3 id="82-production-deployment-model">8.2 Production Deployment Model </h3>
+<p><strong>Recommended Architecture:</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>                        Internet
+                           ↓
+                    ┌─────────────┐
+                    │   Firewall  │
+                    │  / Reverse  │
+                    │    Proxy    │
+                    │   (Nginx)   │
+                    └─────────────┘
+                     ↓           ↓
+          ┌──────────────┐  ┌──────────────┐
+          │  Static CDN  │  │ Load Balancer│
+          │  (Frontend)  │  │   (API)      │
+          └──────────────┘  └──────────────┘
+                                    ↓
+                     ┌──────────────────────────┐
+                     │  API Server Instances    │
+                     │  (PM2 Cluster Mode)      │
+                     │  ┌────┐ ┌────┐ ┌────┐   │
+                     │  │App1│ │App2│ │App3│   │
+                     │  └────┘ └────┘ └────┘   │
+                     └──────────────────────────┘
+                                    ↓
+                     ┌──────────────────────────┐
+                     │  MongoDB Replica Set     │
+                     │  ┌─────┐ ┌─────┐ ┌─────┐│
+                     │  │Prim.│ │Sec. │ │Sec. ││
+                     │  └─────┘ └─────┘ └─────┘│
+                     └──────────────────────────┘
+</code></pre><h3 id="83-build-process">8.3 Build Process </h3>
+<p><strong>Frontend Build:</strong></p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token builtin class-name">cd</span> client <span class="token operator">&amp;&amp;</span> <span class="token function">npm</span> run build
+</code></pre><p><strong>Output:</strong></p>
+<ul>
+<li>Static files in <code>client/dist/</code></li>
+<li>Minified JavaScript bundles</li>
+<li>Optimized CSS (Tailwind purged of unused classes)</li>
+<li>Hashed filenames for cache busting</li>
+</ul>
+<p><strong>Backend Preparation:</strong></p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">npm</span> <span class="token function">install</span> <span class="token parameter variable">--production</span>  <span class="token comment"># Installs only production dependencies</span>
+</code></pre><p><strong>Deployment Package:</strong></p>
+<ul>
+<li><code>server/</code> directory</li>
+<li><code>package.json</code> and <code>package-lock.json</code></li>
+<li><code>.env</code> file (created on server, not deployed)</li>
+<li><code>client/dist/</code> static files (served by Nginx or CDN)</li>
+</ul>
+<h3 id="84-environment-configuration">8.4 Environment Configuration </h3>
+<p><strong>Development:</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/npdi
+PORT=5000
+CLIENT_URL=http://localhost:5173
+</code></pre><p><strong>Production:</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>NODE_ENV=production
+MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/npdi?retryWrites=true
+PORT=5000
+CLIENT_URL=https://npdi.milliporesigma.com
+</code></pre><p><strong>Critical Production Settings:</strong></p>
+<ul>
+<li><code>NODE_ENV=production</code> - Disables verbose error messages, enables optimizations</li>
+<li>TLS-enabled MongoDB connection string</li>
+<li>HTTPS-only CLIENT_URL for CORS</li>
+<li>Strong API keys with expiration</li>
+</ul>
+<h3 id="85-process-management">8.5 Process Management </h3>
+<p><strong>Recommended: PM2</strong></p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>pm2 start server/index.js <span class="token parameter variable">--name</span> npdi-api <span class="token parameter variable">-i</span> max
+</code></pre><p><strong>Features:</strong></p>
+<ul>
+<li>Cluster mode (multi-core utilization)</li>
+<li>Automatic restart on crashes</li>
+<li>Log management</li>
+<li>Zero-downtime reloads</li>
+<li>Performance monitoring</li>
+</ul>
+<p><strong>PM2 Ecosystem File:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>module<span class="token punctuation">.</span><span class="token property-access">exports</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+  <span class="token literal-property property">apps</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">{</span>
+    <span class="token literal-property property">name</span><span class="token operator">:</span> <span class="token string">'npdi-api'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">script</span><span class="token operator">:</span> <span class="token string">'server/index.js'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">instances</span><span class="token operator">:</span> <span class="token string">'max'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">exec_mode</span><span class="token operator">:</span> <span class="token string">'cluster'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">env_production</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+      <span class="token constant">NODE_ENV</span><span class="token operator">:</span> <span class="token string">'production'</span><span class="token punctuation">,</span>
+      <span class="token constant">PORT</span><span class="token operator">:</span> <span class="token number">5000</span>
+    <span class="token punctuation">}</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">error_file</span><span class="token operator">:</span> <span class="token string">'logs/error.log'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">out_file</span><span class="token operator">:</span> <span class="token string">'logs/out.log'</span><span class="token punctuation">,</span>
+    <span class="token literal-property property">log_date_format</span><span class="token operator">:</span> <span class="token string">'YYYY-MM-DD HH:mm:ss'</span>
+  <span class="token punctuation">}</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><h3 id="86-reverse-proxy-configuration">8.6 Reverse Proxy Configuration </h3>
+<p><strong>Nginx Configuration Example:</strong></p>
+<pre data-role="codeBlock" data-info="nginx" class="language-nginx nginx"><code><span class="token comment"># Frontend (static files)</span>
+<span class="token directive"><span class="token keyword keyword-server">server</span></span> <span class="token punctuation">{</span>
+  <span class="token directive"><span class="token keyword keyword-listen">listen</span> <span class="token number">80</span></span><span class="token punctuation">;</span>
+  <span class="token directive"><span class="token keyword keyword-server_name">server_name</span> npdi.milliporesigma.com</span><span class="token punctuation">;</span>
+  <span class="token directive"><span class="token keyword keyword-root">root</span> /var/www/npdi/client/dist</span><span class="token punctuation">;</span>
+  <span class="token directive"><span class="token keyword keyword-index">index</span> index.html</span><span class="token punctuation">;</span>
+
+  <span class="token comment"># SPA routing</span>
+  <span class="token directive"><span class="token keyword keyword-location">location</span> /</span> <span class="token punctuation">{</span>
+    <span class="token directive"><span class="token keyword keyword-try_files">try_files</span> <span class="token variable">$uri</span> <span class="token variable">$uri</span>/ /index.html</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token comment"># API proxy</span>
+  <span class="token directive"><span class="token keyword keyword-location">location</span> /api</span> <span class="token punctuation">{</span>
+    <span class="token directive"><span class="token keyword keyword-proxy_pass">proxy_pass</span> http://localhost:5000</span><span class="token punctuation">;</span>
+    <span class="token directive"><span class="token keyword keyword-proxy_http_version">proxy_http_version</span> 1.1</span><span class="token punctuation">;</span>
+    <span class="token directive"><span class="token keyword keyword-proxy_set_header">proxy_set_header</span> Upgrade <span class="token variable">$http_upgrade</span></span><span class="token punctuation">;</span>
+    <span class="token directive"><span class="token keyword keyword-proxy_set_header">proxy_set_header</span> Connection <span class="token string">'upgrade'</span></span><span class="token punctuation">;</span>
+    <span class="token directive"><span class="token keyword keyword-proxy_set_header">proxy_set_header</span> Host <span class="token variable">$host</span></span><span class="token punctuation">;</span>
+    <span class="token directive"><span class="token keyword keyword-proxy_cache_bypass">proxy_cache_bypass</span> <span class="token variable">$http_upgrade</span></span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="87-database-deployment">8.7 Database Deployment </h3>
+<p><strong>Development:</strong> Single MongoDB instance on localhost</p>
+<p><strong>Production Recommendations:</strong></p>
+<ul>
+<li><strong>MongoDB Atlas</strong> (managed cloud service) OR</li>
+<li><strong>Self-hosted Replica Set</strong> (3+ nodes for high availability)</li>
+</ul>
+<p><strong>Replica Set Benefits:</strong></p>
+<ul>
+<li>Automatic failover</li>
+<li>Data redundancy</li>
+<li>Read scaling with secondary nodes</li>
+<li>Zero-downtime maintenance</li>
+</ul>
+<p><strong>Connection String:</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>mongodb+srv://username:password@cluster.mongodb.net/npdi?retryWrites=true&amp;w=majority
+</code></pre><p><strong>Backup Strategy:</strong></p>
+<ul>
+<li>Automated daily backups (Atlas built-in or mongodump cron)</li>
+<li>Point-in-time recovery capability</li>
+<li>Backup retention: 30 days minimum</li>
+<li>Test restoration quarterly</li>
+</ul>
+<h3 id="88-monitoring--logging">8.8 Monitoring &amp; Logging </h3>
+<p><strong>Application Logs:</strong></p>
+<ul>
+<li>Console output captured by PM2</li>
+<li>Structured logging with timestamps</li>
+<li>Error logs separated from info logs</li>
+</ul>
+<p><strong>Monitoring Metrics:</strong></p>
+<ul>
+<li>API response times</li>
+<li>Error rates (5xx responses)</li>
+<li>MongoDB connection pool status</li>
+<li>Memory usage and CPU utilization</li>
+<li>PubChem integration success rate</li>
+<li>API key usage statistics</li>
+</ul>
+<p><strong>Recommended Tools:</strong></p>
+<ul>
+<li><strong>Application Performance:</strong> New Relic, Datadog</li>
+<li><strong>Log Aggregation:</strong> ELK Stack (Elasticsearch, Logstash, Kibana)</li>
+<li><strong>Uptime Monitoring:</strong> Pingdom, UptimeRobot</li>
+<li><strong>Database Monitoring:</strong> MongoDB Atlas monitoring or PMM</li>
+</ul>
+<hr>
+<h2 id="9-maintainability--scalability">9. Maintainability &amp; Scalability </h2>
+<h3 id="91-code-organization-best-practices">9.1 Code Organization Best Practices </h3>
+<h4 id="911-directory-structure">9.1.1 Directory Structure </h4>
+<p>The application follows a clear, consistent directory structure:</p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>npdi-app/
+├── server/                    # Backend application
+│   ├── config/               # Database and configuration
+│   ├── controllers/          # Business logic
+│   ├── middleware/           # Request processing
+│   ├── models/               # Data schemas
+│   ├── routes/               # API endpoints
+│   ├── services/             # External integrations
+│   ├── utils/                # Helper functions
+│   ├── scripts/              # Maintenance scripts
+│   └── index.js              # Application entry point
+│
+├── client/                   # Frontend application
+│   ├── src/
+│   │   ├── components/      # Reusable UI components
+│   │   │   ├── admin/       # Admin-specific components
+│   │   │   ├── forms/       # Form components
+│   │   │   └── badges/      # Status/priority badges
+│   │   ├── pages/           # Route components
+│   │   ├── services/        # API client
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── utils/           # Helper functions
+│   │   └── App.jsx          # Root component
+│   ├── public/              # Static assets
+│   └── dist/                # Build output
+│
+├── .env.example             # Environment template
+├── package.json             # Dependencies
+└── README.md                # Documentation
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>New developers can locate files intuitively</li>
+<li>Related code grouped together</li>
+<li>Clear separation between client and server</li>
+<li>Easy to navigate with IDE folder trees</li>
+</ul>
+<h4 id="912-naming-conventions">9.1.2 Naming Conventions </h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li><code>PascalCase</code> for React components (<code>CreateTicket.jsx</code>)</li>
+<li><code>camelCase</code> for utilities and services (<code>pubchemService.js</code>)</li>
+<li><code>kebab-case</code> for configuration (<code>postcss.config.js</code>)</li>
+</ul>
+<p><strong>Code:</strong></p>
+<ul>
+<li><code>camelCase</code> for variables and functions (<code>createTicket</code>, <code>ticketData</code>)</li>
+<li><code>PascalCase</code> for classes and React components (<code>ProductTicket</code>, <code>Dashboard</code>)</li>
+<li><code>UPPER_SNAKE_CASE</code> for constants (<code>MAX_FILE_SIZE</code>, <code>DEFAULT_SBU</code>)</li>
+</ul>
+<p><strong>Database:</strong></p>
+<ul>
+<li><code>camelCase</code> for field names (<code>ticketNumber</code>, <code>chemicalProperties</code>)</li>
+<li>Lowercase for collection names (<code>producttickets</code>, <code>users</code>)</li>
+</ul>
+<h3 id="92-modularity--reusability">9.2 Modularity &amp; Reusability </h3>
+<h4 id="921-component-composition">9.2.1 Component Composition </h4>
+<p>React components follow single-responsibility principle:</p>
+<p><strong>Bad - Monolithic Component:</strong></p>
+<pre data-role="codeBlock" data-info="jsx" class="language-jsx jsx"><code><span class="token keyword keyword-function">function</span> <span class="token function"><span class="token maybe-class-name">CreateTicketPage</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// 500+ lines of form fields, validation, submission logic, PubChem integration</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Good - Composed Components:</strong></p>
+<pre data-role="codeBlock" data-info="jsx" class="language-jsx jsx"><code><span class="token keyword keyword-function">function</span> <span class="token function"><span class="token maybe-class-name">CreateTicket</span></span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword control-flow keyword-return">return</span> <span class="token punctuation">(</span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">DynamicFormRenderer</span></span> <span class="token attr-name">config</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>formConfig<span class="token punctuation">}</span></span><span class="token punctuation">&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">DynamicBasicInfo</span></span> <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">ChemicalPropertiesForm</span></span> <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">SKUVariantsForm</span></span> <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+      </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">CorpBaseDataForm</span></span> <span class="token punctuation">/&gt;</span></span><span class="token plain-text">
+    </span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span><span class="token class-name">DynamicFormRenderer</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Each component has one responsibility</li>
+<li>Components can be tested independently</li>
+<li>Easy to add/remove sections</li>
+<li>Forms reusable in edit mode and templates</li>
+</ul>
+<h4 id="922-service-layer-pattern">9.2.2 Service Layer Pattern </h4>
+<p>Complex operations encapsulated in service modules:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Instead of duplicating PubChem logic across controllers</span>
+pubchemService<span class="token punctuation">.</span><span class="token method function property-access">enrichTicketData</span><span class="token punctuation">(</span>casNumber<span class="token punctuation">)</span>  <span class="token comment">// Used in multiple places</span>
+</code></pre><p><strong>Service Responsibilities:</strong></p>
+<ul>
+<li>External API communication</li>
+<li>Data transformation</li>
+<li>Complex calculations</li>
+<li>Caching strategies</li>
+</ul>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Business logic centralized</li>
+<li>Easy to mock in tests</li>
+<li>Can be updated without changing controllers</li>
+<li>Promotes code reuse</li>
+</ul>
+<h4 id="923-utility-functions">9.2.3 Utility Functions </h4>
+<p>Common operations extracted to utilities:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// server/utils/enumCleaner.js</span>
+<span class="token function">cleanTicketData</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span>        <span class="token comment">// Used in create, update, saveDraft</span>
+<span class="token function">ensureDefaultSBU</span><span class="token punctuation">(</span>data<span class="token punctuation">,</span> sbu<span class="token punctuation">)</span>  <span class="token comment">// Used across controllers</span>
+<span class="token function">ensureDefaultSKU</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span>       <span class="token comment">// Used in ticket creation</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>DRY (Don't Repeat Yourself) principle</li>
+<li>Consistent behavior across application</li>
+<li>Single location for bug fixes</li>
+<li>Easy to add unit tests</li>
+</ul>
+<h3 id="93-configuration-management">9.3 Configuration Management </h3>
+<h4 id="931-environment-variables">9.3.1 Environment Variables </h4>
+<p>All environment-specific values externalized:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Instead of hardcoding</span>
+<span class="token keyword keyword-const">const</span> <span class="token constant">PORT</span> <span class="token operator">=</span> <span class="token number">5000</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> <span class="token constant">MONGODB_URI</span> <span class="token operator">=</span> <span class="token string">'mongodb://localhost:27017/npdi'</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Use environment variables</span>
+<span class="token keyword keyword-const">const</span> <span class="token constant">PORT</span> <span class="token operator">=</span> process<span class="token punctuation">.</span><span class="token property-access">env</span><span class="token punctuation">.</span><span class="token constant">PORT</span> <span class="token operator">||</span> <span class="token number">5000</span><span class="token punctuation">;</span>
+<span class="token keyword keyword-const">const</span> <span class="token constant">MONGODB_URI</span> <span class="token operator">=</span> process<span class="token punctuation">.</span><span class="token property-access">env</span><span class="token punctuation">.</span><span class="token constant">MONGODB_URI</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Different settings per environment (dev, staging, prod)</li>
+<li>Secrets not committed to version control</li>
+<li>Easy to change without code modifications</li>
+</ul>
+<h4 id="932-database-driven-configuration">9.3.2 Database-Driven Configuration </h4>
+<p>FormConfiguration collection enables runtime changes:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// No code changes needed to:</span>
+<span class="token comment">// - Add new form fields</span>
+<span class="token comment">// - Reorder sections</span>
+<span class="token comment">// - Change field visibility</span>
+<span class="token comment">// - Update validation rules</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Business users can modify forms</li>
+<li>No deployment required for configuration changes</li>
+<li>A/B testing different form layouts</li>
+<li>Rapid iteration on business processes</li>
+</ul>
+<h3 id="94-error-handling--debugging">9.4 Error Handling &amp; Debugging </h3>
+<h4 id="941-consistent-error-responses">9.4.1 Consistent Error Responses </h4>
+<p>All API endpoints return consistent error format:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>res<span class="token punctuation">.</span><span class="token method function property-access">status</span><span class="token punctuation">(</span><span class="token number">400</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">json</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
+  <span class="token literal-property property">message</span><span class="token operator">:</span> <span class="token string">'User-friendly error message'</span><span class="token punctuation">,</span>
+  <span class="token literal-property property">errors</span><span class="token operator">:</span> validationErrors<span class="token punctuation">,</span>  <span class="token comment">// Detailed errors for debugging</span>
+  <span class="token literal-property property">code</span><span class="token operator">:</span> <span class="token string">'VALIDATION_ERROR'</span>   <span class="token comment">// Error type for programmatic handling</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Frontend can handle errors uniformly</li>
+<li>Easy to display user-friendly messages</li>
+<li>Debugging information available in development</li>
+</ul>
+<h4 id="942-logging-strategy">9.4.2 Logging Strategy </h4>
+<p>Comprehensive logging throughout application:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Context-rich logging</span>
+<span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">CAS lookup request for: </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>casNumber<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">error</span><span class="token punctuation">(</span><span class="token string">'Create ticket error:'</span><span class="token punctuation">,</span> error<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">warn</span><span class="token punctuation">(</span><span class="token string">'PubChem enrichment failed, proceeding with user data'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Trace request flow through application</li>
+<li>Identify performance bottlenecks</li>
+<li>Debug production issues</li>
+<li>Security audit trail</li>
+</ul>
+<h3 id="95-testing-strategy">9.5 Testing Strategy </h3>
+<h4 id="951-testable-architecture">9.5.1 Testable Architecture </h4>
+<p>MVC pattern enables testing at multiple levels:</p>
+<p><strong>Unit Tests (Models):</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token function">describe</span><span class="token punctuation">(</span><span class="token string">'ProductTicket Model'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'generates ticket number on save'</span><span class="token punctuation">,</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token keyword keyword-const">const</span> ticket <span class="token operator">=</span> <span class="token keyword keyword-new">new</span> <span class="token class-name">ProductTicket</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">productLine</span><span class="token operator">:</span> <span class="token string">'Test'</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword control-flow keyword-await">await</span> ticket<span class="token punctuation">.</span><span class="token method function property-access">save</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">expect</span><span class="token punctuation">(</span>ticket<span class="token punctuation">.</span><span class="token property-access">ticketNumber</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token method function property-access">toMatch</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">NPDI-\d{4}-\d{4}</span><span class="token regex-delimiter">/</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Unit Tests (Controllers):</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code>jest<span class="token punctuation">.</span><span class="token method function property-access">mock</span><span class="token punctuation">(</span><span class="token string">'../models/ProductTicket'</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token function">describe</span><span class="token punctuation">(</span><span class="token string">'createTicket'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'returns 400 for invalid CAS number'</span><span class="token punctuation">,</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Test business logic without database</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Integration Tests (API):</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token function">describe</span><span class="token punctuation">(</span><span class="token string">'POST /api/products'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'creates ticket with PubChem enrichment'</span><span class="token punctuation">,</span> <span class="token keyword keyword-async">async</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Test full request/response cycle</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Component Tests (React):</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token function">describe</span><span class="token punctuation">(</span><span class="token string">'StatusBadge'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token function">it</span><span class="token punctuation">(</span><span class="token string">'renders correct color for SUBMITTED status'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Test UI rendering</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><h4 id="952-test-data-management">9.5.2 Test Data Management </h4>
+<p>Utilities for consistent test data:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// scripts/seedApiKey.js - Seeds development API keys</span>
+<span class="token comment">// data/devProfiles.json - Standard development profiles</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Reproducible test environments</li>
+<li>Quick setup for new developers</li>
+<li>Consistent demo data</li>
+</ul>
+<h3 id="96-documentation">9.6 Documentation </h3>
+<h4 id="961-inline-documentation">9.6.1 Inline Documentation </h4>
+<p>Code includes explanatory comments:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Pre-save middleware for automatic ticket number generation</span>
+productTicketSchema<span class="token punctuation">.</span><span class="token method function property-access">pre</span><span class="token punctuation">(</span><span class="token string">'save'</span><span class="token punctuation">,</span> <span class="token keyword keyword-async">async</span> <span class="token keyword keyword-function">function</span><span class="token punctuation">(</span><span class="token parameter">next</span><span class="token punctuation">)</span> <span class="token punctuation">{</span> <span class="token spread operator">...</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// Prioritizes Celsius values for temperature properties</span>
+<span class="token keyword keyword-const">const</span> <span class="token function-variable function">getCelsiusPreferredValue</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">valuesList</span><span class="token punctuation">)</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span> <span class="token spread operator">...</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Self-documenting code</li>
+<li>Faster onboarding for new developers</li>
+<li>Reduces knowledge silos</li>
+</ul>
+<h4 id="962-api-documentation">9.6.2 API Documentation </h4>
+<p>Comprehensive API documentation in <code>API_DOCUMENTATION.md</code>:</p>
+<ul>
+<li>All endpoints with request/response examples</li>
+<li>Authentication requirements</li>
+<li>Error codes and messages</li>
+<li>Rate limits and quotas</li>
+</ul>
+<h4 id="963-architectural-documentation">9.6.3 Architectural Documentation </h4>
+<p>This document provides:</p>
+<ul>
+<li>System overview for stakeholders</li>
+<li>Component descriptions for developers</li>
+<li>Deployment guide for DevOps</li>
+<li>Security model for auditors</li>
+</ul>
+<h3 id="97-scalability-considerations">9.7 Scalability Considerations </h3>
+<h4 id="971-stateless-application-design">9.7.1 Stateless Application Design </h4>
+<p>Backend is completely stateless:</p>
+<ul>
+<li>No session storage in memory</li>
+<li>All state in database or client</li>
+<li>Enables horizontal scaling</li>
+</ul>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Multiple server instances behind load balancer</li>
+<li>Zero-downtime deployments</li>
+<li>Auto-scaling based on traffic</li>
+</ul>
+<h4 id="972-database-indexing">9.7.2 Database Indexing </h4>
+<p>Strategic indexes for performance:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Unique index for fast ticket lookups</span>
+<span class="token literal-property property">ticketNumber</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token literal-property property">type</span><span class="token operator">:</span> <span class="token known-class-name class-name">String</span><span class="token punctuation">,</span> <span class="token literal-property property">unique</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>
+
+<span class="token comment">// Compound index for dashboard queries</span>
+<span class="token punctuation">{</span> <span class="token literal-property property">status</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token literal-property property">sbu</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span> <span class="token literal-property property">priority</span><span class="token operator">:</span> <span class="token number">1</span> <span class="token punctuation">}</span>
+
+<span class="token comment">// Text index for search</span>
+<span class="token punctuation">{</span> <span class="token literal-property property">productName</span><span class="token operator">:</span> <span class="token string">'text'</span><span class="token punctuation">,</span> <span class="token literal-property property">ticketNumber</span><span class="token operator">:</span> <span class="token string">'text'</span> <span class="token punctuation">}</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Fast query performance even with millions of tickets</li>
+<li>Efficient dashboard rendering</li>
+<li>Quick search results</li>
+</ul>
+<h4 id="973-caching-strategies">9.7.3 Caching Strategies </h4>
+<p><strong>Frontend Caching:</strong></p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// Form configuration cached in localStorage</span>
+<span class="token function">useFormConfig</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token comment">// Reduces API calls</span>
+</code></pre><p><strong>Future Enhancements:</strong></p>
+<ul>
+<li>Redis for session storage (when migrating from profile-based auth)</li>
+<li>CDN for static assets</li>
+<li>API response caching (GET endpoints)</li>
+</ul>
+<h4 id="974-pagination">9.7.4 Pagination </h4>
+<p>All list endpoints support pagination:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token constant">GET</span> <span class="token operator">/</span>api<span class="token operator">/</span>products<span class="token operator">?</span>page<span class="token operator">=</span><span class="token number">1</span><span class="token operator">&amp;</span>limit<span class="token operator">=</span><span class="token number">20</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Reduces payload size</li>
+<li>Faster initial page load</li>
+<li>Supports infinite scroll or traditional pagination</li>
+</ul>
+<h4 id="975-asynchronous-processing">9.7.5 Asynchronous Processing </h4>
+<p>Non-critical operations run asynchronously:</p>
+<pre data-role="codeBlock" data-info="javascript" class="language-javascript javascript"><code><span class="token comment">// API key usage tracking doesn't block response</span>
+apiKeyRecord<span class="token punctuation">.</span><span class="token method function property-access">recordUsage</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token keyword control-flow keyword-catch">catch</span><span class="token punctuation">(</span><span class="token parameter">err</span> <span class="token arrow operator">=&gt;</span> <span class="token punctuation">{</span>
+  <span class="token console class-name">console</span><span class="token punctuation">.</span><span class="token method function property-access">error</span><span class="token punctuation">(</span><span class="token string">'Error recording usage:'</span><span class="token punctuation">,</span> err<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre><p><strong>Future Enhancements:</strong></p>
+<ul>
+<li>Background job queue (Bull, BullMQ)</li>
+<li>Email notifications (async)</li>
+<li>Report generation (async)</li>
+<li>Batch PubChem enrichment</li>
+</ul>
+<h3 id="98-version-control--collaboration">9.8 Version Control &amp; Collaboration </h3>
+<h4 id="981-git-workflow">9.8.1 Git Workflow </h4>
+<p>Recommended branching strategy:</p>
+<ul>
+<li><code>main</code> - Production-ready code</li>
+<li><code>dev</code> - Integration branch for features</li>
+<li><code>feature/*</code> - Feature development branches</li>
+<li><code>hotfix/*</code> - Emergency fixes</li>
+</ul>
+<h4 id="982-code-review-process">9.8.2 Code Review Process </h4>
+<p>All changes reviewed before merging:</p>
+<ul>
+<li>Ensures code quality</li>
+<li>Shares knowledge across team</li>
+<li>Catches bugs early</li>
+<li>Maintains architectural consistency</li>
+</ul>
+<h3 id="99-dependency-management">9.9 Dependency Management </h3>
+<h4 id="991-semantic-versioning">9.9.1 Semantic Versioning </h4>
+<p>Dependencies use semver ranges:</p>
+<pre data-role="codeBlock" data-info="json" class="language-json json"><code><span class="token punctuation">{</span>
+  <span class="token property">"express"</span><span class="token operator">:</span> <span class="token string">"^4.18.2"</span><span class="token punctuation">,</span>  <span class="token comment">// Allows 4.x updates, not 5.x</span>
+  <span class="token property">"mongoose"</span><span class="token operator">:</span> <span class="token string">"^7.5.0"</span>   <span class="token comment">// Allows 7.x updates, not 8.x</span>
+<span class="token punctuation">}</span>
+</code></pre><p><strong>Benefits:</strong></p>
+<ul>
+<li>Automatic security patches</li>
+<li>Controlled major version upgrades</li>
+<li>Reproducible builds with package-lock.json</li>
+</ul>
+<h4 id="992-dependency-auditing">9.9.2 Dependency Auditing </h4>
+<p>Regular security checks:</p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token function">npm</span> audit              <span class="token comment"># Check for vulnerabilities</span>
+<span class="token function">npm</span> audit fix          <span class="token comment"># Apply automated fixes</span>
+<span class="token function">npm</span> outdated           <span class="token comment"># Check for updates</span>
+</code></pre><p><strong>Process:</strong></p>
+<ul>
+<li>Weekly automated scans</li>
+<li>Monthly dependency updates</li>
+<li>Immediate action on critical vulnerabilities</li>
+</ul>
+<hr>
+<h2 id="10-future-architectural-considerations">10. Future Architectural Considerations </h2>
+<h3 id="101-planned-enhancements">10.1 Planned Enhancements </h3>
+<p><strong>Authentication Migration:</strong></p>
+<ul>
+<li>Migrate from profile-based to JWT or OAuth2</li>
+<li>Implement session management</li>
+<li>Add password reset workflow</li>
+</ul>
+<p><strong>Microservices Potential:</strong></p>
+<ul>
+<li>Extract PubChem service to separate microservice</li>
+<li>Dedicated notification service</li>
+<li>Reporting service for analytics</li>
+</ul>
+<p><strong>Real-Time Features:</strong></p>
+<ul>
+<li>WebSocket integration for live ticket updates</li>
+<li>Real-time collaboration on ticket editing</li>
+<li>Push notifications for status changes</li>
+</ul>
+<p><strong>Advanced Search:</strong></p>
+<ul>
+<li>Elasticsearch integration for full-text search</li>
+<li>Faceted search with filters</li>
+<li>Synonym and fuzzy matching</li>
+</ul>
+<p><strong>Analytics &amp; Reporting:</strong></p>
+<ul>
+<li>Business intelligence dashboards</li>
+<li>Ticket processing metrics</li>
+<li>SBU performance comparisons</li>
+<li>Forecasting and trend analysis</li>
+</ul>
+<h3 id="102-technical-debt-management">10.2 Technical Debt Management </h3>
+<p><strong>Current Known Items:</strong></p>
+<ul>
+<li>Profile-based authentication (temporary solution)</li>
+<li>Populate calls with null createdBy (needs migration)</li>
+<li>Manual SKU assignment (SAP integration planned)</li>
+</ul>
+<p><strong>Mitigation Strategy:</strong></p>
+<ul>
+<li>Document all technical debt</li>
+<li>Prioritize based on impact and effort</li>
+<li>Allocate time in each sprint for debt reduction</li>
+<li>Track in backlog with "tech-debt" label</li>
+</ul>
+<hr>
+<h2 id="11-conclusion">11. Conclusion </h2>
+<p>The NPDI Application implements a robust, maintainable MVC architecture that supports the complex workflows of chemical product introduction at MilliporeSigma. The clear separation of concerns, comprehensive security model, and thoughtful integration architecture provide a solid foundation for current operations and future growth.</p>
+<p><strong>Key Architectural Strengths:</strong></p>
+<ul>
+<li><strong>Maintainability:</strong> MVC pattern enables isolated changes and testing</li>
+<li><strong>Security:</strong> Multi-layered defense-in-depth approach</li>
+<li><strong>Scalability:</strong> Stateless design supports horizontal scaling</li>
+<li><strong>Flexibility:</strong> Database-driven configuration enables rapid business changes</li>
+<li><strong>Reliability:</strong> Comprehensive error handling and validation</li>
+<li><strong>Performance:</strong> Strategic indexing and caching</li>
+</ul>
+<p>The architecture balances immediate business needs with long-term technical sustainability, positioning the application for continued evolution as MilliporeSigma's product management processes mature.</p>
+<hr>
+<p><strong>Document Version:</strong> 1.0<br>
+<strong>Last Updated:</strong> 2025-10-21<br>
+<strong>Next Review:</strong> Quarterly or after major architectural changes<br>
+<strong>Maintainer:</strong> Development Team</p>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>
