@@ -78,4 +78,10 @@ router.post('/:id/comments', [
   body('content').notEmpty().trim()
 ], productController.addComment);
 
+// Export ticket as PDP Checklist
+router.get('/:id/export-pdp', productController.exportPDPChecklist);
+
+// Export ticket as PIF
+router.get('/:id/export-pif', productController.exportPIF);
+
 module.exports = router;

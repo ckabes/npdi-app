@@ -66,6 +66,14 @@ const SystemSettings = () => {
             cacheTime: 24,
             autoPopulation: true
           },
+          teams: {
+            enabled: false,
+            webhookUrl: '',
+            notifyOnStatusChange: true,
+            notifyOnTicketCreated: false,
+            notifyOnCommentAdded: false,
+            notifyOnAssignment: false
+          },
           webhook: {
             enabled: false,
             url: '',
@@ -479,6 +487,97 @@ const SystemSettings = () => {
           >
             Test PubChem Connection
           </button>
+        </div>
+      </div>
+
+      {/* Microsoft Teams Integration */}
+      <div className="border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-blue-50">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Microsoft Teams Integration</h4>
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="teamsEnabled"
+              type="checkbox"
+              checked={settings.integrations?.teams?.enabled || false}
+              onChange={(e) => {
+                const newIntegrations = { ...settings.integrations };
+                if (!newIntegrations.teams) newIntegrations.teams = {};
+                newIntegrations.teams = { ...newIntegrations.teams, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="teamsEnabled" className="ml-3 text-sm font-semibold text-gray-700">
+              Enable Teams notifications
+            </label>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Teams Webhook URL
+            </label>
+            <input
+              type="url"
+              value={settings.integrations?.teams?.webhookUrl || ''}
+              onChange={(e) => {
+                const newIntegrations = { ...settings.integrations };
+                if (!newIntegrations.teams) newIntegrations.teams = {};
+                newIntegrations.teams = { ...newIntegrations.teams, webhookUrl: e.target.value };
+                setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+              }}
+              className="form-input"
+              placeholder="https://your-org.webhook.office.com/webhookb2/..."
+              disabled={!settings.integrations?.teams?.enabled}
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Get this URL from Teams: Channel → ⋯ → Connectors → Incoming Webhook
+            </p>
+          </div>
+
+          <div className="border-t pt-4 mt-4">
+            <p className="text-sm font-medium text-gray-700 mb-3">Notification Events</p>
+            <div className="space-y-2">
+              {[
+                { key: 'notifyOnStatusChange', label: 'Notify on status changes', description: 'Send notification when ticket status changes' },
+                { key: 'notifyOnTicketCreated', label: 'Notify on ticket creation', description: 'Send notification when new tickets are created' },
+                { key: 'notifyOnCommentAdded', label: 'Notify on comments', description: 'Send notification when comments are added' },
+                { key: 'notifyOnAssignment', label: 'Notify on assignment', description: 'Send notification when tickets are assigned' }
+              ].map(event => (
+                <div key={event.key} className="flex items-start">
+                  <input
+                    id={event.key}
+                    type="checkbox"
+                    checked={settings.integrations?.teams?.[event.key] || false}
+                    onChange={(e) => {
+                      const newIntegrations = { ...settings.integrations };
+                      if (!newIntegrations.teams) newIntegrations.teams = {};
+                      newIntegrations.teams = { ...newIntegrations.teams, [event.key]: e.target.checked };
+                      setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                    }}
+                    className="mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    disabled={!settings.integrations?.teams?.enabled}
+                  />
+                  <div className="ml-3">
+                    <label htmlFor={event.key} className="text-sm text-gray-700">
+                      {event.label}
+                    </label>
+                    <p className="text-xs text-gray-500">{event.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-xs text-blue-800">
+              <strong>Setup Instructions:</strong><br />
+              1. In Teams, go to your channel → ⋯ menu → Connectors<br />
+              2. Search for "Incoming Webhook" and click Configure<br />
+              3. Give it a name (e.g., "NPDI Notifications") and upload an icon if desired<br />
+              4. Copy the webhook URL and paste it above<br />
+              5. Enable the notification events you want to receive
+            </p>
+          </div>
         </div>
       </div>
 

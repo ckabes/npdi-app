@@ -49,7 +49,10 @@
       "Bash(for controller in productController userPreferencesController systemSettingsController permissionController adminController apiKeyController ticketApiController)",
       "Bash(do echo -n \"$controller: \")",
       "Bash(for route in products.js formConfig.js users.js permissions.js systemSettings.js userPreferences.js templates.js admin.js ticketApi.js)",
-      "Bash(do echo -n \"$route: \")"
+      "Bash(do echo -n \"$route: \")",
+      "Bash(tree:*)",
+      "Bash(lsof:*)",
+      "Bash(git log:*)"
     ],
     "deny": []
   }
