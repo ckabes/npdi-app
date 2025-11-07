@@ -15,7 +15,8 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardDocumentIcon,
-  CurrencyDollarIcon
+  CurrencyDollarIcon,
+  ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { StatusBadge, PriorityBadge } from '../components/badges';
@@ -156,6 +157,68 @@ const TicketDetails = () => {
     }
   };
 
+  const handleExportPDPChecklist = async () => {
+    try {
+      toast.loading('Generating PDP Checklist...');
+      const response = await productAPI.exportPDPChecklist(id);
+
+      // Create a blob from the response
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      // Create a download link and trigger it
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `PDP_Checklist_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.dismiss();
+      toast.success('PDP Checklist downloaded successfully');
+    } catch (error) {
+      console.error('Failed to export PDP Checklist:', error);
+      toast.dismiss();
+      toast.error('Failed to export PDP Checklist');
+    }
+  };
+
+  const handleExportPIF = async () => {
+    try {
+      toast.loading('Generating PIF...');
+      const response = await productAPI.exportPIF(id);
+
+      // Create a blob from the response
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      // Create a download link and trigger it
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `PIF_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.dismiss();
+      toast.success('PIF downloaded successfully');
+    } catch (error) {
+      console.error('Failed to export PIF:', error);
+      toast.dismiss();
+      toast.error('Failed to export PIF');
+    }
+  };
+
   const handleUpdateTicket = async (data) => {
     setUpdateLoading(true);
     try {
@@ -274,27 +337,52 @@ const TicketDetails = () => {
               </select>
             )}
             
-            {/* Edit Controls */}
-            {canEdit() && (
-              <div className="flex items-center space-x-2">
-                {editMode ? (
-                  <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center space-x-2">
-                    <span className="text-white text-sm font-medium">Editing Mode</span>
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  </div>
-                ) : (
+            {/* Edit Controls and Export Buttons */}
+            <div className="flex items-center space-x-2">
+              {canEdit() && (
+                <>
+                  {editMode ? (
+                    <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center space-x-2">
+                      <span className="text-white text-sm font-medium">Editing Mode</span>
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={toggleEditMode}
+                      className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-white/20"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      <span>{ticket.status === 'DRAFT' ? 'Edit Draft' : 'Edit Ticket'}</span>
+                    </button>
+                  )}
+                </>
+              )}
+
+              {/* Export Buttons - PMOps Only */}
+              {isPMOPS && !editMode && (
+                <>
                   <button
-                    onClick={toggleEditMode}
-                    className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-white/20"
+                    onClick={handleExportPDPChecklist}
+                    className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-green-500/30"
+                    title="Download PDP Checklist"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    <span>{ticket.status === 'DRAFT' ? 'Edit Draft' : 'Edit Ticket'}</span>
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                    <span>Download PDP Checklist</span>
                   </button>
-                )}
-              </div>
-            )}
+
+                  <button
+                    onClick={handleExportPIF}
+                    className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-green-500/30"
+                    title="Download PIF"
+                  >
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                    <span>Download PIF</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

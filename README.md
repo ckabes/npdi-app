@@ -101,12 +101,32 @@ npdi-app/
 │       ├── utils/           # Auth context, helpers
 │       └── styles/          # CSS and styling
 ├── docs/                     # Project documentation
-│   └── archive/             # Archived documentation
-├── API_DOCUMENTATION.md      # API documentation
-├── API_KEY_SETUP.md         # API key setup guide
-├── FORM_CONFIGURATION_GUIDE.md
-└── README.md
+│   ├── api/                 # API documentation
+│   ├── architecture/        # System architecture docs
+│   ├── integrations/        # Third-party integrations (Teams, Entra ID)
+│   ├── guides/              # How-to guides
+│   ├── security/            # Security assessments
+│   ├── reports/             # Technical reports
+│   ├── archive/             # Historical documentation
+│   └── README.md            # Documentation index
+├── CLAUDE.md                # AI assistant configuration
+└── README.md                # This file
 ```
+
+## Documentation
+
+📚 **Comprehensive documentation is available in the [docs/](docs/) folder.**
+
+**Quick Links:**
+- [📖 Documentation Index](docs/README.md) - Complete documentation guide
+- [🚀 Setup Guide](docs/guides/SETUP_GUIDE.md) - Installation and configuration
+- [🔌 API Documentation](docs/api/API_DOCUMENTATION.md) - REST API reference
+- [🏗️ Architecture](docs/architecture/ARCHITECTURE.md) - System design
+- [👥 Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
+- [🔐 Microsoft Authentication](docs/README.md#microsoft-entra-id-authentication-choose-one-approach) - Two options available
+  - ⭐ [Application Proxy](docs/integrations/ENTRA_APP_PROXY_IMPLEMENTATION_PLAN.md) (1-2 weeks, simple)
+  - [MSAL/OAuth](docs/integrations/ENTRA_ID_IMPLEMENTATION_PLAN.md) (3-4 weeks, advanced)
+- [🛡️ Security Assessment](docs/security/DEPENDENCY_SECURITY_ASSESSMENT.md) - Security audit
 
 ## Getting Started
 

@@ -47,6 +47,14 @@ const systemSettingsSchema = new mongoose.Schema({
       cacheTime: { type: Number, default: 24 }, // hours
       autoPopulation: { type: Boolean, default: true }
     },
+    teams: {
+      enabled: { type: Boolean, default: false },
+      webhookUrl: { type: String, default: '' },
+      notifyOnStatusChange: { type: Boolean, default: true },
+      notifyOnTicketCreated: { type: Boolean, default: false },
+      notifyOnCommentAdded: { type: Boolean, default: false },
+      notifyOnAssignment: { type: Boolean, default: false }
+    },
     webhook: {
       enabled: { type: Boolean, default: false },
       url: { type: String, default: '' },

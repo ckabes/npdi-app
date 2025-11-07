@@ -68,7 +68,13 @@ export const productAPI = {
       console.error('API: CAS lookup failed', error);
       throw error;
     });
-  }
+  },
+  exportPDPChecklist: (id) => apiClient.get(`/products/${id}/export-pdp`, {
+    responseType: 'blob' // Important for binary data
+  }),
+  exportPIF: (id) => apiClient.get(`/products/${id}/export-pif`, {
+    responseType: 'blob' // Important for binary data
+  })
 };
 
 export const formConfigAPI = {

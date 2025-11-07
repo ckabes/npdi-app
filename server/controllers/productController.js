@@ -2,7 +2,10 @@ const { validationResult } = require('express-validator');
 const ProductTicket = require('../models/ProductTicket');
 const User = require('../models/User');
 const pubchemService = require('../services/pubchemService');
+const teamsNotificationService = require('../services/teamsNotificationService');
 const { cleanTicketData, ensureDefaultSKU, ensureDefaultSBU } = require('../utils/enumCleaner');
+const { generatePDPChecklist } = require('../services/pdpChecklistExportService');
+const { generatePIF } = require('../services/pifExportService');
 
 // Extract current user information from request headers
 const getCurrentUser = (req) => {
@@ -368,6 +371,21 @@ const updateTicket = async (req, res) => {
 
     await ticket.save();
 
+    // Send Teams notification if status changed
+    if (newStatus && newStatus !== oldStatus) {
+      try {
+        await teamsNotificationService.notifyStatusChange(
+          ticket,
+          oldStatus,
+          newStatus,
+          currentUser
+        );
+      } catch (notificationError) {
+        // Log error but don't fail the request
+        console.error('Failed to send Teams notification:', notificationError.message);
+      }
+    }
+
     await ticket.populate('createdBy', 'firstName lastName email');
     await ticket.populate('assignedTo', 'firstName lastName email');
 
@@ -419,6 +437,21 @@ const updateTicketStatus = async (req, res) => {
     });
 
     await ticket.save();
+
+    // Send Teams notification to ticket originator
+    if (oldStatus !== status) {
+      try {
+        await teamsNotificationService.notifyStatusChange(
+          ticket,
+          oldStatus,
+          status,
+          currentUser
+        );
+      } catch (notificationError) {
+        // Log error but don't fail the request
+        console.error('Failed to send Teams notification:', notificationError.message);
+      }
+    }
 
     res.json({
       message: 'Ticket status updated successfully',
@@ -786,6 +819,67 @@ const getRecentActivity = async (req, res) => {
   }
 };
 
+// Export ticket as PDP Checklist
+const exportPDPChecklist = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch the ticket with all related data
+    const ticket = await ProductTicket.findById(id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    // Generate the PDP Checklist workbook
+    const workbook = await generatePDPChecklist(ticket);
+
+    // Set response headers for file download
+    const filename = `PDP_Checklist_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export PDP Checklist error:', error);
+    res.status(500).json({ message: 'Server error while exporting PDP Checklist: ' + error.message });
+  }
+};
+
+// Export ticket as PIF
+const exportPIF = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch the ticket with all related data
+    const ticket = await ProductTicket.findById(id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    // Get current user info (PMOps person exporting)
+    const currentUser = getCurrentUser(req);
+
+    // Generate the PIF workbook
+    const workbook = await generatePIF(ticket, currentUser);
+
+    // Set response headers for file download
+    const filename = `PIF_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export PIF error:', error);
+    res.status(500).json({ message: 'Server error while exporting PIF: ' + error.message });
+  }
+};
+
 module.exports = {
   createTicket,
   saveDraft,
@@ -797,5 +891,7 @@ module.exports = {
   addComment,
   getDashboardStats,
   lookupCAS,
-  getRecentActivity
+  getRecentActivity,
+  exportPDPChecklist,
+  exportPIF
 };
