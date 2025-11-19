@@ -37,3 +37,6 @@ coverage/
 
 # Save files
 *.save
+
+# Deployment documentation (contains sensitive server information)
+DEPLOYMENT_GUIDE.md
