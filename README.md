@@ -126,16 +126,16 @@ npdi-app/
 
 ## Documentation
 
-📚 **Comprehensive documentation is available in the [docs/](docs/) folder.**
+**Comprehensive documentation is available in the [docs/](docs/) folder.**
 
 **Quick Links:**
-- [📖 Documentation Index](docs/README.md) - Complete documentation guide
-- [🚀 Setup Guide](docs/guides/SETUP_GUIDE.md) - Installation and configuration
-- [🔌 API Documentation](docs/api/API_DOCUMENTATION.md) - REST API reference
-- [🏗️ Architecture](docs/architecture/ARCHITECTURE.md) - System design
-- [👥 Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
-- [🤖 AI Content Generation](docs/features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration
-- [🛡️ Security Policy](docs/security/SECURITY.md) - Security best practices
+- [Documentation Index](docs/README.md) - Complete documentation guide
+- [Setup Guide](docs/guides/SETUP_GUIDE.md) - Installation and configuration
+- [API Documentation](docs/api/API_DOCUMENTATION.md) - REST API reference
+- [Architecture](docs/architecture/ARCHITECTURE.md) - System design
+- [Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
+- [AI Content Generation](docs/features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration
+- [Security Policy](docs/security/SECURITY.md) - Security best practices
 
 ## Getting Started
 
