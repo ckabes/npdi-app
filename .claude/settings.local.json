@@ -63,7 +63,9 @@
       "WebFetch(domain:platform.openai.com)",
       "Bash(chmod:*)",
       "WebSearch",
-      "WebFetch(domain:help.sap.com)"
+      "WebFetch(domain:help.sap.com)",
+      "Bash(git rm:*)",
+      "Bash(git filter-branch:*)"
     ],
     "deny": []
   }
