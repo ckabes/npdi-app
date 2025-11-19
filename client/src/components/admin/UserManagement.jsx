@@ -16,7 +16,6 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
-  const [selectedSBU, setSelectedSBU] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formRefreshKey, setFormRefreshKey] = useState(0); // Key to trigger template refresh
@@ -56,23 +55,15 @@ const UserManagement = () => {
     { value: 'ADMIN', label: 'Administrator' }
   ];
 
-  const sbuOptions = [
-    { value: 'Life Science', label: 'Life Science' },
-    { value: 'Process Solutions', label: 'Process Solutions' },
-    { value: 'Electronics', label: 'Electronics' },
-    { value: 'Healthcare', label: 'Healthcare' }
-  ];
-
   const filteredUsers = users.filter(user => {
-    const matchesSearch = 
+    const matchesSearch =
       user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesRole = !selectedRole || user.role === selectedRole;
-    const matchesSBU = !selectedSBU || user.sbu === selectedSBU;
-    
-    return matchesSearch && matchesRole && matchesSBU;
+
+    return matchesSearch && matchesRole;
   });
 
   const formatDate = (dateString) => {
@@ -182,7 +173,7 @@ const UserManagement = () => {
 
       {/* Filters */}
       <div className="bg-white shadow rounded-lg p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Search Users
@@ -198,7 +189,7 @@ const UserManagement = () => {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Filter by Role
@@ -216,31 +207,12 @@ const UserManagement = () => {
               ))}
             </select>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Filter by SBU
-            </label>
-            <select
-              value={selectedSBU}
-              onChange={(e) => setSelectedSBU(e.target.value)}
-              className="form-select"
-            >
-              <option value="">All SBUs</option>
-              {sbuOptions.map(sbu => (
-                <option key={sbu.value} value={sbu.value}>
-                  {sbu.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          
+
           <div className="flex items-end">
             <button
               onClick={() => {
                 setSearchTerm('');
                 setSelectedRole('');
-                setSelectedSBU('');
               }}
               className="btn btn-secondary w-full"
             >
@@ -269,9 +241,6 @@ const UserManagement = () => {
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  SBU
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Template
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -288,7 +257,7 @@ const UserManagement = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                  <td colSpan="6" className="px-6 py-8 text-center text-gray-500">
                     Loading users...
                   </td>
                 </tr>
@@ -306,9 +275,6 @@ const UserManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getRoleBadge(user.role)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.sbu || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                     {user.role === 'PRODUCT_MANAGER' ? (

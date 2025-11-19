@@ -180,7 +180,7 @@ const AdminDashboard = () => {
           <StatCard
             title="Monthly Rate"
             value={throughput.estimatedMonthlyRate}
-            subtitle={`${throughput.completedThisWeek} this week`}
+            subtitle={`${throughput.completedThisWeek} completed (last 7 days)`}
             icon={ArrowTrendingUpIcon}
             color="indigo"
           />

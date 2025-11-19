@@ -75,6 +75,10 @@ const SKUVariantsForm = ({
     } else if (newType === 'PREPACK') {
       setValue(`skuVariants.${index}.packageSize.value`, 100);
       setValue(`skuVariants.${index}.packageSize.unit`, baseUnit || 'g');
+    } else if (newType === 'BULK') {
+      // For BULK, set to base unit from pricing (uneditable)
+      setValue(`skuVariants.${index}.packageSize.value`, 1);
+      setValue(`skuVariants.${index}.packageSize.unit`, baseUnit || 'g');
     }
 
     // Call parent callback if provided
@@ -131,7 +135,7 @@ const SKUVariantsForm = ({
         )}
         {fields.map((field, index) => {
           const skuType = watch(`skuVariants.${index}.type`);
-          const showPricing = !['VAR', 'SPEC', 'CONF'].includes(skuType);
+          const showPricing = !['VAR', 'SPEC', 'CONF', 'BULK'].includes(skuType);
 
           return (
             <div key={field.id} className="border border-gray-200 rounded-lg p-4">
@@ -183,23 +187,23 @@ const SKUVariantsForm = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Package Size *
+                    Package Size * {field.type === 'BULK' && <span className="text-amber-600 font-semibold ml-1">(Base Unit)</span>}
                   </label>
                   <div className="flex">
                     <input
                       {...register(`skuVariants.${index}.packageSize.value`, { required: 'Package size is required' })}
                       type="number"
                       step="0.1"
-                      className="form-input rounded-r-none"
+                      className={`form-input rounded-r-none ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
                       placeholder="100"
                       onChange={(e) => onPackageValueChange && onPackageValueChange(index, e.target.value)}
-                      readOnly={readOnly}
+                      readOnly={readOnly || field.type === 'BULK'}
                     />
                     <select
                       {...register(`skuVariants.${index}.packageSize.unit`)}
-                      className="form-select rounded-l-none border-l-0"
+                      className={`form-select rounded-l-none border-l-0 ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
                       onChange={(e) => onPackageUnitChange && onPackageUnitChange(index, e.target.value)}
-                      disabled={readOnly}
+                      disabled={readOnly || field.type === 'BULK'}
                     >
                       <option value="mg">mg</option>
                       <option value="g">g</option>
@@ -212,6 +216,11 @@ const SKUVariantsForm = ({
                       <option value="bulk">bulk (configurable)</option>
                     </select>
                   </div>
+                  {field.type === 'BULK' && (
+                    <p className="mt-1 text-xs text-amber-700 font-medium">
+                      📦 BULK SKUs use the base unit from pricing calculations
+                    </p>
+                  )}
                 </div>
 
                 {/* Only show pricing for non-VAR/SPEC/CONF types */}

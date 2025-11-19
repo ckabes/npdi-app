@@ -61,9 +61,94 @@ const systemSettingsSchema = new mongoose.Schema({
       secret: { type: String, default: '' },
       events: [{ type: String }] // ['ticket.created', 'ticket.updated', etc.]
     },
+    langdock: {
+      enabled: { type: Boolean, default: false },
+      apiKey: { type: String, default: '' }, // Stored encrypted
+      environment: {
+        type: String,
+        enum: ['dev', 'test', 'staging', 'prod'],
+        default: 'dev'  // dev environment confirmed working via diagnostics
+      },
+      apiVersion: {
+        type: String,
+        default: '2024-10-21'
+      },
+      model: {
+        type: String,
+        default: 'gpt-4o-mini'
+      },
+      timeout: { type: Number, default: 30 }, // seconds
+      maxTokens: { type: Number, default: 2000 },
+      quota: {
+        total: { type: Number, default: 2000 },
+        used: { type: Number, default: 0 },
+        remaining: { type: Number, default: 2000 },
+        resetDate: { type: Date },
+        expiryDate: { type: Date }
+      }
+    },
     externalAPI: {
       timeout: { type: Number, default: 10 }, // seconds
       retryAttempts: { type: Number, default: 3 }
+    }
+  },
+
+  // AI Content Generation Prompts
+  aiPrompts: {
+    productDescription: {
+      enabled: { type: Boolean, default: true },
+      prompt: {
+        type: String,
+        default: 'You are a technical content writer for MilliporeSigma, a leading life science company. Generate a professional, informative product description for {productName} (CAS: {casNumber}, Formula: {molecularFormula}). Include: brief introduction of the compound, key chemical properties and characteristics, primary applications in research/industry, quality and purity highlights, and mention of available package sizes. Tone: Professional, scientific, but accessible. Target audience: Research scientists and laboratory professionals. Maximum {maxWords} words.'
+      },
+      maxWords: { type: Number, default: 200 },
+      temperature: { type: Number, default: 0.7, min: 0, max: 2 }
+    },
+    websiteTitle: {
+      enabled: { type: Boolean, default: true },
+      prompt: {
+        type: String,
+        default: 'Create an SEO-optimized webpage title for {productName}. Include the product name and "MilliporeSigma" brand. Keep it under {maxChars} characters. Make it compelling for search engines while remaining accurate.'
+      },
+      maxChars: { type: Number, default: 70 },
+      temperature: { type: Number, default: 0.5, min: 0, max: 2 }
+    },
+    metaDescription: {
+      enabled: { type: Boolean, default: true },
+      prompt: {
+        type: String,
+        default: 'Write a compelling meta description for {productName} (CAS: {casNumber}). Highlight key benefits: high purity, research quality, multiple sizes. Target researchers searching for this chemical. Maximum {maxChars} characters.'
+      },
+      maxChars: { type: Number, default: 160 },
+      temperature: { type: Number, default: 0.6, min: 0, max: 2 }
+    },
+    keyFeatures: {
+      enabled: { type: Boolean, default: true },
+      prompt: {
+        type: String,
+        default: 'Generate {bulletCount} concise bullet points highlighting key features and benefits of {productName} for MilliporeSigma\'s product page. Focus on: quality/purity specifications, packaging and availability, application suitability, reliability and support. Format as bullet points, {wordsPerBullet} words each maximum. Return as newline-separated list with bullet points (•).'
+      },
+      bulletCount: { type: Number, default: 5, min: 3, max: 10 },
+      wordsPerBullet: { type: Number, default: 10, min: 5, max: 20 },
+      temperature: { type: Number, default: 0.6, min: 0, max: 2 }
+    },
+    applications: {
+      enabled: { type: Boolean, default: true },
+      prompt: {
+        type: String,
+        default: 'List {itemCount} specific research or industrial applications for {productName} (Formula: {molecularFormula}). Be specific about the scientific fields or processes. Return as newline-separated list.'
+      },
+      itemCount: { type: Number, default: 4, min: 2, max: 8 },
+      temperature: { type: Number, default: 0.6, min: 0, max: 2 }
+    },
+    targetIndustries: {
+      enabled: { type: Boolean, default: true },
+      prompt: {
+        type: String,
+        default: 'Identify {itemCount} primary industries or research sectors that would use {productName} (CAS: {casNumber}). Examples: Pharmaceutical R&D, Biotechnology, Academic Research, Chemical Manufacturing, etc. Return as comma-separated text only, no additional explanation.'
+      },
+      itemCount: { type: Number, default: 4, min: 2, max: 8 },
+      temperature: { type: Number, default: 0.5, min: 0, max: 2 }
     }
   },
 

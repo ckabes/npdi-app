@@ -111,8 +111,7 @@ const DATA_MAPPING = {
   // Row 31: storage temp
   31: (ticket) => ticket.chemicalProperties?.storageTemperature || '',
 
-  // Row 39: product line
-  39: (ticket) => ticket.productLine || '',
+  // Row 39: (removed - product line field removed from model)
 
   // Row 41: product type
   41: (ticket) => ticket.productionType || '',

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import CreateTicket from './pages/CreateTicket';
 import TicketDetails from './pages/TicketDetails';
 import TicketList from './pages/TicketList';
+import DraftsView from './pages/DraftsView';
 import PMOPSDashboard from './pages/PMOPSDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import TestCAS from './pages/TestCAS';
@@ -47,6 +48,11 @@ function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="tickets" element={<TicketList />} />
+        <Route path="drafts" element={
+          <ProtectedRoute allowedRoles={['PM_OPS', 'ADMIN']}>
+            <DraftsView />
+          </ProtectedRoute>
+        } />
         <Route path="tickets/new" element={
           <ProtectedRoute allowedRoles={['PRODUCT_MANAGER', 'PM_OPS', 'ADMIN']}>
             <CreateTicket />

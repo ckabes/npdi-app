@@ -35,7 +35,7 @@ const TicketList = () => {
       const response = await productAPI.getTickets(filtersToUse);
       setTickets(response.data.tickets);
       setPagination(response.data.pagination);
-      setFilters(filtersToUse); // Update local filters state after successful fetch
+      // Don't update filters here - it causes input to lose focus
     } catch (error) {
       console.error('Failed to fetch tickets:', error);
       toast.error('Failed to load tickets');
@@ -225,7 +225,7 @@ const TicketList = () => {
                           {ticket.productName}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {ticket.productLine} • {ticket.sbu}
+                          SBU {ticket.sbu}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
