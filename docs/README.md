@@ -7,7 +7,6 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 ### Getting Started
 - [Main README](../README.md) - Project overview and quick start
 - [Setup Guide](guides/SETUP_GUIDE.md) - Installation and configuration
-- [Claude AI Configuration](../CLAUDE.md) - AI assistant settings
 
 ### API Documentation
 - [API Documentation](api/API_DOCUMENTATION.md) - Complete API reference
@@ -22,25 +21,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - [Architecture Verification](architecture/ARCHITECTURE_VERIFICATION_REPORT.md) - Validation report
 
 ### Integrations
-
-#### Microsoft Teams
 - [Microsoft Teams Integration](integrations/TEAMS_INTEGRATION.md) - Teams webhook notifications setup
-
-#### Microsoft Entra ID Authentication (Choose ONE approach)
-
-**Option 1: Application Proxy (Recommended - Faster & Simpler)** ⭐
-- [Application Proxy Implementation Plan](integrations/ENTRA_APP_PROXY_IMPLEMENTATION_PLAN.md) - **1-2 weeks, minimal code**
-- [Application Proxy Checklist](integrations/ENTRA_APP_PROXY_CHECKLIST.md) - Day-by-day implementation guide
-- [IT Requirements for App Proxy](integrations/IT_REQUIREMENTS_APP_PROXY.md) - **📋 Send this to your IT team**
-
-**Option 2: MSAL/OAuth Integration (Advanced - More Flexible)**
-- [MSAL Implementation Plan](integrations/ENTRA_ID_IMPLEMENTATION_PLAN.md) - 3-4 weeks, full OAuth 2.0
-- [MSAL Checklist](integrations/ENTRA_ID_CHECKLIST.md) - Implementation checklist
-- [IT Requirements for MSAL](integrations/IT_REQUIREMENTS_ENTRA_ID.md) - For MSAL approach
-
-**Decision Guide:**
-- **Use Application Proxy if:** You want fast implementation (1-2 weeks), have Entra ID Premium, internal app
-- **Use MSAL if:** Need Microsoft Graph API access, cloud-hosted app, don't have Premium licensing
 
 ### User Guides
 - [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md) - How to customize forms
@@ -64,30 +45,19 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 1. **First Time Setup**: Start with [Setup Guide](guides/SETUP_GUIDE.md)
 2. **API Integration**: Read [API Quick Start](api/API_QUICKSTART.md)
 3. **Understanding the System**: Review [Architecture Overview](architecture/ARCHITECTURE.md)
-4. **Implementing Authentication**:
-   - **Fast & Simple**: [Application Proxy Implementation](integrations/ENTRA_APP_PROXY_IMPLEMENTATION_PLAN.md) ⭐ (1-2 weeks)
-   - **Advanced**: [MSAL Implementation](integrations/ENTRA_ID_IMPLEMENTATION_PLAN.md) (3-4 weeks)
 
 ### For Administrators
-1. **Setting up Authentication**:
-   - **Recommended**: Send [Application Proxy IT Requirements](integrations/IT_REQUIREMENTS_APP_PROXY.md) to IT team
-   - **Alternative**: Send [MSAL IT Requirements](integrations/IT_REQUIREMENTS_ENTRA_ID.md) to IT team
-2. **Configuring Forms**: Use [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md)
-3. **Managing API Access**: See [API Key Setup](api/API_KEY_SETUP.md)
-4. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
+1. **Configuring Forms**: Use [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md)
+2. **Managing API Access**: See [API Key Setup](api/API_KEY_SETUP.md)
+3. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
 
 ### For IT/Infrastructure
-1. **Authentication Setup** (choose one):
-   - **Application Proxy** ⭐: [IT Requirements (1-2 hours)](integrations/IT_REQUIREMENTS_APP_PROXY.md)
-   - **MSAL/OAuth**: [IT Requirements (1.5 hours)](integrations/IT_REQUIREMENTS_ENTRA_ID.md)
-2. **Server Sizing**: [Server Sizing Report](reports/SERVER_SIZING_REPORT.md)
-3. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
+1. **Server Sizing**: [Server Sizing Report](reports/SERVER_SIZING_REPORT.md)
+2. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
 
 ---
 
-## 📋 Current Project Status
-
-### Completed Features
+## 📋 Implemented Features
 - ✅ Core ticket management system
 - ✅ REST API with authentication
 - ✅ PubChem integration for chemical data
@@ -95,16 +65,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - ✅ Profile-based access control
 - ✅ Teams webhook notifications
 - ✅ Excel export (PDP Checklist, PIF)
-
-### In Progress
-- 🔄 Microsoft Entra ID integration (Planning phase)
-- 🔄 Role-based permissions enhancement
-
-### Planned
-- 📅 Teams direct messaging (requires Entra ID + Graph API)
-- 📅 Advanced reporting and analytics
-- 📅 Document attachment system
-- 📅 Email notifications
+- ✅ AI content generation via Azure OpenAI
 
 ---
 
@@ -124,10 +85,7 @@ docs/
 │   ├── ARCHITECTURE_PATTERN_ANALYSIS.md
 │   └── ARCHITECTURE_VERIFICATION_REPORT.md
 ├── integrations/                 # Third-party integrations
-│   ├── TEAMS_INTEGRATION.md      # Microsoft Teams webhooks
-│   ├── ENTRA_ID_IMPLEMENTATION_PLAN.md  # ⭐ Main Entra ID doc
-│   ├── ENTRA_ID_CHECKLIST.md     # Implementation checklist
-│   └── IT_REQUIREMENTS_ENTRA_ID.md      # IT setup requirements
+│   └── TEAMS_INTEGRATION.md      # Microsoft Teams webhooks
 ├── guides/                       # How-to guides
 │   ├── SETUP_GUIDE.md            # Installation guide
 │   └── FORM_CONFIGURATION_GUIDE.md
