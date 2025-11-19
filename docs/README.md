@@ -20,6 +20,13 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - [Architecture Pattern Analysis](architecture/ARCHITECTURE_PATTERN_ANALYSIS.md) - Design patterns used
 - [Architecture Verification](architecture/ARCHITECTURE_VERIFICATION_REPORT.md) - Validation report
 
+### Features
+- [AI Content Generation](features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration for content generation
+- [AI Content Fields Reference](features/AI_CONTENT_FIELDS.md) - Complete field mapping and configuration
+- [AI Generation Improvements](features/AI_GENERATION_IMPROVEMENTS.md) - Recent enhancements to AI features
+- [Azure OpenAI Setup](features/AZURE_OPENAI_SETUP.md) - Configuration guide for Azure OpenAI
+- [Azure OpenAI Models](features/AZURE_OPENAI_MODELS.md) - Available models and recommendations
+
 ### Integrations
 - [Microsoft Teams Integration](integrations/TEAMS_INTEGRATION.md) - Teams webhook notifications setup
 
@@ -29,6 +36,8 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 ### Security
 - [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md) - npm package security audit
 - [Security Assessment HTML](security/DEPENDENCY_SECURITY_ASSESSMENT.html) - Interactive security report
+- [Security Policy](security/SECURITY.md) - Security best practices and policies
+- [Security Audit Report](security/SECURITY_AUDIT_REPORT.md) - January 2025 security audit findings
 
 ### Reports
 - [Server Sizing Report](reports/SERVER_SIZING_REPORT.md) - Infrastructure requirements
@@ -58,14 +67,15 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 ---
 
 ## 📋 Implemented Features
-- ✅ Core ticket management system
-- ✅ REST API with authentication
-- ✅ PubChem integration for chemical data
-- ✅ Dynamic form configuration
-- ✅ Profile-based access control
-- ✅ Teams webhook notifications
-- ✅ Excel export (PDP Checklist, PIF)
-- ✅ AI content generation via Azure OpenAI
+- ✅ Core ticket management system with status workflow
+- ✅ REST API with API key authentication for external integrations
+- ✅ PubChem integration for automatic chemical data population
+- ✅ Dynamic form configuration with live preview editor
+- ✅ Profile-based access control (Product Manager, PM-OPS, Admin)
+- ✅ Microsoft Teams webhook notifications for ticket events
+- ✅ Excel export (PDP Checklist and Product Information Forms)
+- ✅ AI content generation via Azure OpenAI (product descriptions, marketing content)
+- ✅ Data export services for reporting and analysis
 
 ---
 
@@ -84,6 +94,13 @@ docs/
 │   ├── ARCHITECTURE.html         # Visual diagrams
 │   ├── ARCHITECTURE_PATTERN_ANALYSIS.md
 │   └── ARCHITECTURE_VERIFICATION_REPORT.md
+├── features/                     # Feature documentation
+│   ├── AI_CONTENT_GENERATION.md # AI content features
+│   ├── AI_CONTENT_FIELDS.md     # Field mapping reference
+│   ├── AI_GENERATION_IMPROVEMENTS.md # Recent AI improvements
+│   ├── AZURE_OPENAI_SETUP.md    # Azure OpenAI configuration
+│   ├── AZURE_OPENAI_MODELS.md   # Available AI models
+│   └── NPDI_WORKFLOW.md         # Workflow documentation
 ├── integrations/                 # Third-party integrations
 │   └── TEAMS_INTEGRATION.md      # Microsoft Teams webhooks
 ├── guides/                       # How-to guides
@@ -91,14 +108,16 @@ docs/
 │   └── FORM_CONFIGURATION_GUIDE.md
 ├── security/                     # Security documentation
 │   ├── DEPENDENCY_SECURITY_ASSESSMENT.md
-│   └── DEPENDENCY_SECURITY_ASSESSMENT.html
+│   ├── DEPENDENCY_SECURITY_ASSESSMENT.html
+│   ├── SECURITY.md               # Security policies
+│   └── SECURITY_AUDIT_REPORT.md  # Security audit findings
 ├── reports/                      # Technical reports
 │   ├── SERVER_SIZING_REPORT.md
 │   └── TICKET_STORAGE_ANALYSIS.md
 └── archive/                      # Historical documentation
+    ├── CLAUDE.md                 # Development assistant config
+    ├── SESSION_SUMMARY_2025_11_06.md
     ├── CLEANUP_ANALYSIS.md
-    ├── NEXTJS_CLEANUP_SUMMARY.md
-    ├── PROJECT_CLEANUP_COMPLETE.md
     └── ... (old docs from previous refactoring)
 ```
 

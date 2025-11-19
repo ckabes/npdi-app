@@ -26,6 +26,9 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 - **REST API**: External application integration with API key authentication
 - **User Preferences**: Customizable dashboard layouts and notification settings
 - **System Settings**: Configurable security policies, integrations, and performance options
+- **Microsoft Teams Integration**: Webhook notifications for ticket status changes and events
+- **AI Content Generation**: Azure OpenAI integration for automated product descriptions and marketing content
+- **Data Export**: Excel export functionality for PDP Checklists and product information forms
 
 ## Tech Stack
 
@@ -85,9 +88,17 @@ npdi-app/
 │   │   └── users.js          # User/profile management routes
 │   ├── scripts/              # Utility scripts
 │   │   ├── generateApiKey.js
-│   │   └── seedApiKey.js
+│   │   ├── seedApiKey.js
+│   │   ├── seedFormConfig.js
+│   │   ├── testAzureOpenAI.js
+│   │   └── testSAPConnectivity.js
 │   ├── services/             # External service integrations
-│   │   └── pubchemService.js
+│   │   ├── pubchemService.js
+│   │   ├── aiContentService.js
+│   │   ├── langdockService.js
+│   │   ├── teamsNotificationService.js
+│   │   ├── pdpChecklistExportService.js
+│   │   └── dataExportService.js
 │   ├── utils/                # Helper utilities
 │   │   └── enumCleaner.js
 │   └── index.js              # Server entry point
@@ -123,7 +134,8 @@ npdi-app/
 - [🔌 API Documentation](docs/api/API_DOCUMENTATION.md) - REST API reference
 - [🏗️ Architecture](docs/architecture/ARCHITECTURE.md) - System design
 - [👥 Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
-- [🛡️ Security Assessment](docs/security/DEPENDENCY_SECURITY_ASSESSMENT.md) - Security audit
+- [🤖 AI Content Generation](docs/features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration
+- [🛡️ Security Policy](docs/security/SECURITY.md) - Security best practices
 
 ## Getting Started
 
@@ -265,7 +277,7 @@ The application uses a profile-based authentication system:
 - `PUT /api/system-settings` - Update system settings
 - `POST /api/system-settings/test-pubchem` - Test PubChem connection
 
-For detailed API documentation including request/response examples, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
+For detailed API documentation including request/response examples, see [docs/api/API_DOCUMENTATION.md](docs/api/API_DOCUMENTATION.md).
 
 ## External API Integration
 
@@ -289,7 +301,7 @@ The application provides a REST API for external systems to integrate with the N
 - List tickets with filtering options
 - Full CRUD operations on tickets
 
-See [API_KEY_SETUP.md](./API_KEY_SETUP.md) for detailed setup instructions.
+See [docs/api/API_KEY_SETUP.md](docs/api/API_KEY_SETUP.md) for detailed setup instructions.
 
 ## Development
 
