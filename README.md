@@ -135,7 +135,6 @@ npdi-app/
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design
 - [Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
 - [AI Content Generation](docs/features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration
-- [Security Policy](docs/security/SECURITY.md) - Security best practices
 
 ## Getting Started
 
