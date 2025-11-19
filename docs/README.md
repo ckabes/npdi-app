@@ -32,13 +32,6 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 
 ### Security
 - [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md) - npm package security audit
-- [Security Assessment HTML](security/DEPENDENCY_SECURITY_ASSESSMENT.html) - Interactive security report
-- [Security Policy](security/SECURITY.md) - Security best practices and policies
-- [Security Audit Report](security/SECURITY_AUDIT_REPORT.md) - January 2025 security audit findings
-
-### Reports
-- [Server Sizing Report](reports/SERVER_SIZING_REPORT.md) - Infrastructure requirements
-- [Ticket Storage Analysis](reports/TICKET_STORAGE_ANALYSIS.md) - Database schema analysis
 
 ### Archive
 - [Historical documentation](archive/) - Old documentation kept for reference
@@ -58,8 +51,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 3. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
 
 ### For IT/Infrastructure
-1. **Server Sizing**: [Server Sizing Report](reports/SERVER_SIZING_REPORT.md)
-2. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
+1. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
 
 ---
 
@@ -101,13 +93,7 @@ docs/
 │   ├── SETUP_GUIDE.md            # Installation guide
 │   └── FORM_CONFIGURATION_GUIDE.md
 ├── security/                     # Security documentation
-│   ├── DEPENDENCY_SECURITY_ASSESSMENT.md
-│   ├── DEPENDENCY_SECURITY_ASSESSMENT.html
-│   ├── SECURITY.md               # Security policies
-│   └── SECURITY_AUDIT_REPORT.md  # Security audit findings
-├── reports/                      # Technical reports
-│   ├── SERVER_SIZING_REPORT.md
-│   └── TICKET_STORAGE_ANALYSIS.md
+│   └── DEPENDENCY_SECURITY_ASSESSMENT.md
 └── archive/                      # Historical documentation
     ├── CLAUDE.md                 # Development assistant config
     ├── SESSION_SUMMARY_2025_11_06.md
