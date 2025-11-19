@@ -17,8 +17,6 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 ### Architecture
 - [Architecture Overview](architecture/ARCHITECTURE.md) - System design and components
 - [Architecture HTML](architecture/ARCHITECTURE.html) - Interactive architecture diagram
-- [Architecture Pattern Analysis](architecture/ARCHITECTURE_PATTERN_ANALYSIS.md) - Design patterns used
-- [Architecture Verification](architecture/ARCHITECTURE_VERIFICATION_REPORT.md) - Validation report
 
 ### Features
 - [AI Content Generation](features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration for content generation
@@ -91,9 +89,7 @@ docs/
 │   └── CHANGELOG_API_KEYS.md     # API changelog
 ├── architecture/                 # System architecture
 │   ├── ARCHITECTURE.md           # Architecture overview
-│   ├── ARCHITECTURE.html         # Visual diagrams
-│   ├── ARCHITECTURE_PATTERN_ANALYSIS.md
-│   └── ARCHITECTURE_VERIFICATION_REPORT.md
+│   └── ARCHITECTURE.html         # Visual diagrams
 ├── features/                     # Feature documentation
 │   ├── AI_CONTENT_GENERATION.md # AI content features
 │   ├── AI_CONTENT_FIELDS.md     # Field mapping reference
