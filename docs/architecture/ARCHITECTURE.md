@@ -25,7 +25,7 @@
 
 ## 1. Executive Summary
 
-The NPDI (New Product Data Introduction) Application is a full-stack web application designed to streamline the chemical product introduction workflow at MilliporeSigma. The system facilitates collaboration between Product Managers, Product Management Operations (PMOps) teams, and administrators through a secure, role-based interface.
+The NPDI (New Product Data Introduction) Application is a full-stack web application designed to initiate and capture chemical product development tickets at MilliporeSigma. The system facilitates collaboration between Product Managers, Product Management Operations (PMOps) teams, and administrators for preparing product information prior to formal NPDI system submission.
 
 ### Key Architectural Characteristics
 
@@ -42,7 +42,7 @@ The NPDI (New Product Data Introduction) Application is a full-stack web applica
 
 ### 2.1 Business Context
 
-The NPDI application manages the complete lifecycle of new chemical product introductions, from initial ticket creation through SKU assignment, pricing calculations, and final NPDI initiation. The system serves three primary user roles:
+The NPDI application facilitates the interface between Product Managers and Product Management Operations (PMOps) for initiating new chemical product development tickets. The system captures product data, manages ticket workflow, and prepares information for formal NPDI system submission. The system serves three primary user roles:
 
 - **Product Managers:** Create and submit product tickets
 - **PMOps Team:** Review, process, and assign SKUs to submitted tickets
@@ -2221,7 +2221,7 @@ npm outdated           # Check for updates
 
 ## 10. Conclusion
 
-The NPDI Application implements a robust, maintainable MVC architecture that supports the complex workflows of chemical product introduction at MilliporeSigma. The clear separation of concerns, comprehensive security model, and thoughtful integration architecture provide a solid foundation for current operations and future growth.
+The NPDI Application implements a robust, maintainable MVC architecture that supports the ticket initiation workflow for chemical product development at MilliporeSigma. The clear separation of concerns, comprehensive security model, and thoughtful integration architecture provide a solid foundation for capturing product data and facilitating collaboration between Product Managers and PMOps teams.
 
 **Key Architectural Strengths:**
 - **Maintainability:** MVC pattern enables isolated changes and testing

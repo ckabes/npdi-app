@@ -1,6 +1,6 @@
 # MilliporeSigma NPDI Portal
 
-A comprehensive New Product Development and Introduction (NPDI) application for managing chemical product development workflows at MilliporeSigma.
+A New Product Development and Introduction (NPDI) ticket initiation application for capturing product data and facilitating workflow between Product Managers and PMOps at MilliporeSigma.
 
 ## Features
 
