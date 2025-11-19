@@ -39,7 +39,6 @@ exports.getAllTickets = async (req, res) => {
       limit = 50,
       status,
       priority,
-      productLine,
       sbu,
       createdBy,
       assignedTo,
@@ -58,10 +57,6 @@ exports.getAllTickets = async (req, res) => {
 
     if (priority) {
       filter.priority = Array.isArray(priority) ? { $in: priority } : priority;
-    }
-
-    if (productLine) {
-      filter.productLine = Array.isArray(productLine) ? { $in: productLine } : productLine;
     }
 
     if (sbu) {
@@ -317,7 +312,6 @@ exports.searchTickets = async (req, res) => {
       searchFilter.$or = [
         { ticketNumber: { $regex: query, $options: 'i' } },
         { productName: { $regex: query, $options: 'i' } },
-        { productLine: { $regex: query, $options: 'i' } },
         { 'chemicalProperties.casNumber': { $regex: query, $options: 'i' } },
         { 'chemicalProperties.iupacName': { $regex: query, $options: 'i' } },
         { 'skuVariants.sku': { $regex: query, $options: 'i' } }
@@ -388,10 +382,6 @@ exports.getTicketStatistics = async (req, res) => {
           ],
           bySBU: [
             { $group: { _id: '$sbu', count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-          ],
-          byProductLine: [
-            { $group: { _id: '$productLine', count: { $sum: 1 } } },
             { $sort: { count: -1 } }
           ],
           total: [
@@ -470,8 +460,7 @@ exports.getTicketSchema = async (req, res) => {
     // Create a simplified version of the schema for API consumers
     const simplifiedSchema = {
       ticketNumber: { type: 'string', description: 'Unique ticket identifier' },
-      productName: { type: 'string', description: 'Name of the product' },
-      productLine: { type: 'string', description: 'Product line', required: true },
+      productName: { type: 'string', description: 'Name of the product', required: true },
       productionType: {
         type: 'string',
         description: 'Type of production',

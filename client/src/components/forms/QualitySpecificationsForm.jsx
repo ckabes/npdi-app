@@ -212,9 +212,30 @@ const QualitySpecificationsForm = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Value/Range *
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Value/Range *
+                  </label>
+                  <div className="flex items-center space-x-1">
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      type="button"
+                      onClick={() => setQualityFormData({...qualityFormData, valueRange: qualityFormData.valueRange + '≥'})}
+                      className="px-2 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition-colors"
+                      title="Insert greater than or equal to symbol"
+                    >
+                      ≥
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQualityFormData({...qualityFormData, valueRange: qualityFormData.valueRange + '≤'})}
+                      className="px-2 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition-colors"
+                      title="Insert less than or equal to symbol"
+                    >
+                      ≤
+                    </button>
+                  </div>
+                </div>
                 <input
                   type="text"
                   value={qualityFormData.valueRange}

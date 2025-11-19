@@ -3,6 +3,7 @@ const ProductTicket = require('../models/ProductTicket');
 const User = require('../models/User');
 const pubchemService = require('../services/pubchemService');
 const teamsNotificationService = require('../services/teamsNotificationService');
+const aiContentService = require('../services/aiContentService');
 const { cleanTicketData, ensureDefaultSKU, ensureDefaultSBU } = require('../utils/enumCleaner');
 const { generatePDPChecklist } = require('../services/pdpChecklistExportService');
 const { generatePIF } = require('../services/pifExportService');
@@ -68,8 +69,11 @@ const createTicket = async (req, res) => {
             ...ticketData.chemicalProperties // User input takes priority
           },
           // No auto-generated SKUs for product managers - PMOps will assign
-          // Add CorpBase data
-          corpbaseData: enrichedData.corpbaseData || {}
+          // Preserve user-entered CorpBase data, use enriched as fallback
+          corpbaseData: {
+            ...enrichedData.corpbaseData,
+            ...ticketData.corpbaseData // User input takes priority
+          }
         };
         
         console.log('Successfully enriched ticket with PubChem data');
@@ -169,16 +173,21 @@ const saveDraft = async (req, res) => {
 
 const getTickets = async (req, res) => {
   try {
-    const { status, sbu, priority, page = 1, limit = 10, search } = req.query;
-    
+    const { status, sbu, priority, page = 1, limit = 10, search, createdBy } = req.query;
+
     let filter = {
       // By default, exclude archived tickets (completed/canceled)
       status: { $nin: ['COMPLETED', 'CANCELED'] }
     };
 
-    if (status) filter.status = status;
+    // Handle comma-separated status values
+    if (status) {
+      const statusArray = status.split(',').map(s => s.trim());
+      filter.status = { $in: statusArray };
+    }
     if (sbu) filter.sbu = sbu;
     if (priority) filter.priority = priority;
+    if (createdBy) filter.createdBy = createdBy;
     if (search) {
       filter.$or = [
         { productName: { $regex: search, $options: 'i' } },
@@ -189,9 +198,8 @@ const getTickets = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    // Note: createdBy and assignedTo are String fields (email addresses), not ObjectId references
     const tickets = await ProductTicket.find(filter)
-      .populate('createdBy', 'firstName lastName email')
-      .populate('assignedTo', 'firstName lastName email')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -234,9 +242,8 @@ const getArchivedTickets = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    // Note: createdBy and assignedTo are String fields (email addresses), not ObjectId references
     const tickets = await ProductTicket.find(filter)
-      .populate('createdBy', 'firstName lastName email')
-      .populate('assignedTo', 'firstName lastName email')
       .sort({ updatedAt: -1 }) // Sort by last updated for archived tickets
       .skip(skip)
       .limit(parseInt(limit));
@@ -264,11 +271,8 @@ const getTicketById = async (req, res) => {
     
     let filter = { _id: id, ...req.sbuFilter };
     
-    const ticket = await ProductTicket.findOne(filter)
-      .populate('createdBy', 'firstName lastName email')
-      .populate('assignedTo', 'firstName lastName email')
-      .populate('comments.user', 'firstName lastName email')
-      .populate('statusHistory.changedBy', 'firstName lastName email');
+    // Note: createdBy, assignedTo, comments.user, and statusHistory.changedBy are String fields (email addresses), not ObjectId references
+    const ticket = await ProductTicket.findOne(filter);
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found or access denied' });
@@ -299,7 +303,31 @@ const updateTicket = async (req, res) => {
 
     let updateData = { ...req.body };
     delete updateData.createdBy;
-    delete updateData.ticketNumber;
+
+    // Allow ticketNumber update ONLY when NPDI is being initiated
+    // This changes the ticket number from the original system-generated number (e.g., NPDI-2025-0055)
+    // to the new NPDI tracking number from the external NPDI system (e.g., NPDI-2025-0054)
+    const oldTicketNumber = ticket.ticketNumber;
+    const allowTicketNumberChange = updateData.status === 'NPDI_INITIATED' && updateData.npdiTracking?.trackingNumber;
+
+    if (allowTicketNumberChange && updateData.ticketNumber) {
+      // Check if the new ticket number is already in use by another ticket
+      const newTicketNumber = updateData.ticketNumber;
+      const existingTicket = await ProductTicket.findOne({
+        ticketNumber: newTicketNumber,
+        _id: { $ne: id } // Exclude current ticket
+      });
+
+      if (existingTicket) {
+        return res.status(400).json({
+          message: `Ticket number "${newTicketNumber}" is already in use by another ticket (${existingTicket._id}). Please use a unique NPDI tracking number.`
+        });
+      }
+    }
+
+    if (!allowTicketNumberChange) {
+      delete updateData.ticketNumber; // Protect ticket number from accidental changes
+    }
 
     // Clean enum fields before applying updates
     updateData = cleanTicketData(updateData);
@@ -307,10 +335,14 @@ const updateTicket = async (req, res) => {
     // Track status changes
     const oldStatus = ticket.status;
     const newStatus = updateData.status;
-    
+
     // Track SKU base number assignment
     const oldPartNumber = ticket.partNumber?.baseNumber;
     const newPartNumber = updateData.partNumber?.baseNumber;
+
+    // Track NPDI initiation
+    const npdiTracking = updateData.npdiTracking;
+    const isNPDIInitiation = npdiTracking && !ticket.npdiTracking?.trackingNumber;
 
     // Track significant field changes for edit history
     const significantChanges = [];
@@ -369,6 +401,24 @@ const updateTicket = async (req, res) => {
       });
     }
 
+    // Track NPDI initiation
+    if (isNPDIInitiation) {
+      const newTicketNumber = updateData.ticketNumber || npdiTracking.trackingNumber;
+      ticket.statusHistory.push({
+        status: 'NPDI_INITIATED',
+        changedBy: null,
+        reason: `NPDI initiated by ${currentUser.firstName} ${currentUser.lastName}. Ticket number changed from "${oldTicketNumber}" to "${newTicketNumber}". NPDI Tracking: ${npdiTracking.trackingNumber}`,
+        action: 'NPDI_INITIATED',
+        userInfo: currentUser,
+        details: {
+          previousTicketNumber: oldTicketNumber,
+          newTicketNumber: newTicketNumber,
+          npdiTrackingNumber: npdiTracking.trackingNumber,
+          initiatedAt: npdiTracking.initiatedAt
+        }
+      });
+    }
+
     await ticket.save();
 
     // Send Teams notification if status changed
@@ -386,8 +436,8 @@ const updateTicket = async (req, res) => {
       }
     }
 
-    await ticket.populate('createdBy', 'firstName lastName email');
-    await ticket.populate('assignedTo', 'firstName lastName email');
+    // Note: createdBy and assignedTo are String fields (email addresses), not ObjectId references
+    // So we don't need to populate them
 
     res.json({
       message: 'Ticket updated successfully',
@@ -503,7 +553,7 @@ const addComment = async (req, res) => {
     });
 
     await ticket.save();
-    await ticket.populate('comments.user', 'firstName lastName email');
+    // Note: comments.user is a String field (email address), not ObjectId reference
 
     const newComment = ticket.comments[ticket.comments.length - 1];
 
@@ -646,15 +696,26 @@ const getDashboardStats = async (req, res) => {
       ? submittedToCompletedTimes.reduce((a, b) => a + b, 0) / submittedToCompletedTimes.length
       : 0;
 
-    // Count tickets completed this week and month
-    const completedThisWeek = await ProductTicket.countDocuments({
+    // Count tickets completed this week and month based on actual completion date from statusHistory
+    const completedTickets = await ProductTicket.find({
       status: 'COMPLETED',
-      updatedAt: { $gte: oneWeekAgo }
-    });
+      'statusHistory.status': 'COMPLETED'
+    }).select('statusHistory');
 
-    const completedThisMonth = await ProductTicket.countDocuments({
-      status: 'COMPLETED',
-      updatedAt: { $gte: oneMonthAgo }
+    let completedThisWeek = 0;
+    let completedThisMonth = 0;
+
+    completedTickets.forEach(ticket => {
+      const completedEntry = ticket.statusHistory.find(h => h.status === 'COMPLETED');
+      if (completedEntry && completedEntry.changedAt) {
+        const completedDate = new Date(completedEntry.changedAt);
+        if (completedDate >= oneWeekAgo && completedDate <= now) {
+          completedThisWeek++;
+        }
+        if (completedDate >= oneMonthAgo && completedDate <= now) {
+          completedThisMonth++;
+        }
+      }
     });
 
     // Get tickets needing immediate attention (URGENT priority + waiting)
@@ -742,23 +803,29 @@ const lookupCAS = async (req, res) => {
 
 const getRecentActivity = async (req, res) => {
   try {
-    const { limit = 10 } = req.query;
+    const { limit = 10, days = 7 } = req.query;
 
-    // Get all active tickets with status history and comments
+    // Calculate the cutoff date for recent activities (default: 7 days ago)
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - parseInt(days));
+
+    // Get tickets that have been updated within the timeframe
     const tickets = await ProductTicket.find({
-      status: { $nin: ['CANCELED'] }
+      status: { $nin: ['CANCELED'] },
+      updatedAt: { $gte: cutoffDate }
     }).select('ticketNumber productName status priority chemicalProperties statusHistory comments updatedAt')
       .sort({ updatedAt: -1 })
-      .limit(parseInt(limit) * 3); // Get more tickets to ensure we have enough activities
+      .limit(100); // Get up to 100 tickets to ensure we have enough activities
 
     const activities = [];
 
     // Extract activities from each ticket
     tickets.forEach(ticket => {
-      // Add status history entries
+      // Add status history entries (only recent ones)
       if (ticket.statusHistory && ticket.statusHistory.length > 0) {
         ticket.statusHistory.forEach(history => {
-          if (history.action && history.changedAt) {
+          // Only include activities that happened after the cutoff date
+          if (history.action && history.changedAt && new Date(history.changedAt) >= cutoffDate) {
             activities.push({
               type: history.action,
               ticketId: ticket._id,
@@ -780,25 +847,28 @@ const getRecentActivity = async (req, res) => {
         });
       }
 
-      // Add comment entries
+      // Add comment entries (only recent ones)
       if (ticket.comments && ticket.comments.length > 0) {
         ticket.comments.forEach(comment => {
-          activities.push({
-            type: 'COMMENT_ADDED',
-            ticketId: ticket._id,
-            ticketNumber: ticket.ticketNumber,
-            productName: ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled',
-            status: ticket.status,
-            priority: ticket.priority,
-            timestamp: comment.timestamp,
-            description: `Comment: "${comment.content.substring(0, 100)}${comment.content.length > 100 ? '...' : ''}"`,
-            user: comment.userInfo ? `${comment.userInfo.firstName} ${comment.userInfo.lastName}` : 'Unknown User',
-            userInfo: comment.userInfo,
-            details: {
-              action: 'COMMENT_ADDED',
-              commentContent: comment.content
-            }
-          });
+          // Only include comments that happened after the cutoff date
+          if (comment.timestamp && new Date(comment.timestamp) >= cutoffDate) {
+            activities.push({
+              type: 'COMMENT_ADDED',
+              ticketId: ticket._id,
+              ticketNumber: ticket.ticketNumber,
+              productName: ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled',
+              status: ticket.status,
+              priority: ticket.priority,
+              timestamp: comment.timestamp,
+              description: `Comment: "${comment.content.substring(0, 100)}${comment.content.length > 100 ? '...' : ''}"`,
+              user: comment.userInfo ? `${comment.userInfo.firstName} ${comment.userInfo.lastName}` : 'Unknown User',
+              userInfo: comment.userInfo,
+              details: {
+                action: 'COMMENT_ADDED',
+                commentContent: comment.content
+              }
+            });
+          }
         });
       }
     });
@@ -811,7 +881,8 @@ const getRecentActivity = async (req, res) => {
 
     res.json({
       activities: recentActivities,
-      total: activities.length
+      total: activities.length,
+      cutoffDate: cutoffDate
     });
   } catch (error) {
     console.error('Get recent activity error:', error);
@@ -880,6 +951,91 @@ const exportPIF = async (req, res) => {
   }
 };
 
+// Export ticket data as Excel
+const exportDataExcel = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fetch the ticket with all related data
+    const ticket = await ProductTicket.findById(id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    // Generate the data export workbook
+    const { generateDataExport } = require('../services/dataExportService');
+    const workbook = await generateDataExport(ticket);
+
+    // Set response headers for file download
+    const filename = `Data_Export_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    // Write the workbook to the response
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (error) {
+    console.error('Export Data Excel error:', error);
+    res.status(500).json({ message: 'Server error while exporting data: ' + error.message });
+  }
+};
+
+// Generate CorpBase content using AI
+const generateCorpBaseContent = async (req, res) => {
+  try {
+    const { productData, fields, forceTemplate } = req.body;
+
+    // Validate required product data
+    if (!productData || !productData.productName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Product name is required for content generation'
+      });
+    }
+
+    console.log('Generating CorpBase content for:', productData.productName);
+
+    // Prepare product data for AI service
+    const enrichedData = {
+      productName: productData.productName,
+      casNumber: productData.casNumber || '',
+      molecularFormula: productData.molecularFormula || '',
+      molecularWeight: productData.molecularWeight || '',
+      iupacName: productData.iupacName || '',
+      sbu: productData.sbu || 'Life Science'
+    };
+
+    // If forceTemplate is true, skip AI and use template-based generation
+    if (forceTemplate) {
+      console.log('Force template mode: using template-based generation');
+      const fallbackResult = await aiContentService.generateTemplateBasedContent(enrichedData);
+      return res.json(fallbackResult);
+    }
+
+    // Generate content using AI service
+    const result = await aiContentService.generateCorpBaseContent(enrichedData, fields);
+
+    if (result.success) {
+      console.log('CorpBase content generated successfully');
+      res.json(result);
+    } else {
+      console.warn('CorpBase content generation failed, trying fallback');
+      // Try fallback if primary generation failed
+      const fallbackResult = await aiContentService.generateTemplateBasedContent(enrichedData);
+      res.json(fallbackResult);
+    }
+
+  } catch (error) {
+    console.error('Generate CorpBase content error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate content: ' + error.message,
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createTicket,
   saveDraft,
@@ -893,5 +1049,7 @@ module.exports = {
   lookupCAS,
   getRecentActivity,
   exportPDPChecklist,
-  exportPIF
+  exportPIF,
+  exportDataExcel,
+  generateCorpBaseContent
 };

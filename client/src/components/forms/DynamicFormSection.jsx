@@ -5,6 +5,7 @@ const DynamicFormSection = ({
   register,
   errors,
   watch,
+  setValue,
   readOnly = false,
   data = {},
   previewMode = false  // New prop: when true, show all fields regardless of visibility conditions
@@ -86,7 +87,9 @@ const DynamicFormSection = ({
       ? field.defaultValue
       : (watch ? watch(fieldPath) : data[field.fieldKey]);
     const error = errors?.[field.fieldKey];
-    const isReadOnly = readOnly || !field.editable;
+    // When readOnly is false (create/edit mode), ignore field.editable - all fields should be editable
+    // Only apply field.editable restriction when in readOnly (view) mode
+    const isReadOnly = readOnly && !field.editable;
 
     // Grid column class mapping
     const gridClass = {
@@ -103,46 +106,78 @@ const DynamicFormSection = ({
     const renderInput = () => {
       switch (field.type) {
         case 'textarea':
+          if (isReadOnly) {
+            return (
+              <textarea
+                className={baseInputClass}
+                value={value || ''}
+                rows={4}
+                disabled={true}
+                readOnly={true}
+              />
+            );
+          }
           return (
             <textarea
-              {...(register ? register(fieldPath, {
+              {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false
-              }) : {})}
+              })}
               className={baseInputClass}
               placeholder={field.placeholder}
               rows={4}
-              disabled={isReadOnly}
-              defaultValue={isReadOnly ? value : undefined}
             />
           );
 
         case 'number':
+          if (isReadOnly) {
+            return (
+              <input
+                type="number"
+                className={baseInputClass}
+                value={value || ''}
+                disabled={true}
+                readOnly={true}
+              />
+            );
+          }
           return (
             <input
               type="number"
-              {...(register ? register(fieldPath, {
+              {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false,
                 valueAsNumber: true,
                 ...(field.validation?.min !== undefined && { min: field.validation.min }),
                 ...(field.validation?.max !== undefined && { max: field.validation.max })
-              }) : {})}
+              })}
               className={baseInputClass}
               placeholder={field.placeholder}
               step={field.validation?.step || 'any'}
-              disabled={isReadOnly}
-              defaultValue={isReadOnly ? value : field.defaultValue}
             />
           );
 
         case 'select':
+          if (isReadOnly) {
+            return (
+              <select
+                className="form-select bg-gray-50 cursor-not-allowed"
+                value={value || ''}
+                disabled={true}
+              >
+                <option value="">Select {field.label}...</option>
+                {field.options?.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            );
+          }
           return (
             <select
-              {...(register ? register(fieldPath, {
+              {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false
-              }) : {})}
-              className={isReadOnly ? 'form-select bg-gray-50 cursor-not-allowed' : 'form-select'}
-              disabled={isReadOnly}
-              defaultValue={isReadOnly ? value : field.defaultValue}
+              })}
+              className="form-select"
             >
               <option value="">Select {field.label}...</option>
               {field.options?.map(option => (
@@ -160,13 +195,12 @@ const DynamicFormSection = ({
                 <label key={option.value} className="inline-flex items-center cursor-pointer">
                   <input
                     type="radio"
-                    {...(register ? register(fieldPath, {
+                    {...register(fieldPath, {
                       required: field.required ? `${field.label} is required` : false
-                    }) : {})}
+                    })}
                     value={option.value}
                     className="form-radio h-4 w-4 text-millipore-blue"
                     disabled={isReadOnly}
-                    defaultChecked={isReadOnly ? value === option.value : field.defaultValue === option.value}
                   />
                   <span className="ml-2 text-sm font-medium text-gray-700">{option.label}</span>
                 </label>
@@ -179,66 +213,138 @@ const DynamicFormSection = ({
             <div className="flex items-center">
               <input
                 type="checkbox"
-                {...(register ? register(fieldPath) : {})}
+                {...register(fieldPath)}
                 className="form-checkbox rounded"
                 disabled={isReadOnly}
-                defaultChecked={isReadOnly ? value : field.defaultValue}
               />
               <span className="ml-2 text-sm text-gray-700">{field.label}</span>
             </div>
           );
 
         case 'date':
+          if (isReadOnly) {
+            return (
+              <input
+                type="date"
+                className={baseInputClass}
+                value={value || ''}
+                disabled={true}
+                readOnly={true}
+              />
+            );
+          }
           return (
             <input
               type="date"
-              {...(register ? register(fieldPath, {
+              {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false
-              }) : {})}
+              })}
               className={baseInputClass}
-              disabled={isReadOnly}
-              defaultValue={isReadOnly ? value : field.defaultValue}
             />
           );
 
         case 'email':
+          if (isReadOnly) {
+            return (
+              <input
+                type="email"
+                className={baseInputClass}
+                value={value || ''}
+                disabled={true}
+                readOnly={true}
+              />
+            );
+          }
           return (
             <input
               type="email"
-              {...(register ? register(fieldPath, {
+              {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false,
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: 'Invalid email address'
                 }
-              }) : {})}
+              })}
               className={baseInputClass}
               placeholder={field.placeholder}
-              disabled={isReadOnly}
-              defaultValue={isReadOnly ? value : field.defaultValue}
             />
           );
 
         case 'url':
+          if (isReadOnly) {
+            return (
+              <input
+                type="url"
+                className={baseInputClass}
+                value={value || ''}
+                disabled={true}
+                readOnly={true}
+              />
+            );
+          }
           return (
             <input
               type="url"
-              {...(register ? register(fieldPath, {
+              {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false
-              }) : {})}
+              })}
               className={baseInputClass}
               placeholder={field.placeholder}
-              disabled={isReadOnly}
-              defaultValue={isReadOnly ? value : field.defaultValue}
             />
           );
 
         case 'text':
         default:
+          // In readOnly mode, use a plain input with value
+          // In edit mode, use react-hook-form's register without defaultValue
+          if (isReadOnly) {
+            return (
+              <input
+                type="text"
+                className={baseInputClass}
+                value={value || ''}
+                disabled={true}
+                readOnly={true}
+              />
+            );
+          }
+
+          // Editable mode - use register if available
+          if (!register) {
+            console.warn(`DynamicFormSection: register not provided for field ${fieldPath}`);
+            return (
+              <input
+                type="text"
+                className={baseInputClass}
+                placeholder={field.placeholder}
+              />
+            );
+          }
+
+          // Special handling for productName - using controlled input with manual onChange
+          // This works around an issue with react-hook-form's register
+          if (fieldPath === 'productName') {
+            const currentValue = watch ? watch('productName') : '';
+            return (
+              <input
+                type="text"
+                name="productName"
+                value={currentValue || ''}
+                className={baseInputClass}
+                placeholder={field.placeholder}
+                onChange={(e) => {
+                  if (setValue) {
+                    setValue('productName', e.target.value, { shouldDirty: true, shouldValidate: true });
+                  }
+                }}
+              />
+            );
+          }
+
           return (
             <input
               type="text"
-              {...(register ? register(fieldPath, {
+              {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false,
                 ...(field.validation?.pattern && {
                   pattern: {
@@ -258,11 +364,9 @@ const DynamicFormSection = ({
                     message: `${field.label} must be at most ${field.validation.maxLength} characters`
                   }
                 })
-              }) : {})}
+              })}
               className={baseInputClass}
               placeholder={field.placeholder}
-              disabled={isReadOnly}
-              defaultValue={isReadOnly ? value : field.defaultValue}
             />
           );
       }

@@ -6,7 +6,8 @@ import {
   ShieldCheckIcon,
   ClockIcon,
   DocumentTextIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { systemSettingsAPI } from '../../services/api';
@@ -16,6 +17,8 @@ const SystemSettings = () => {
   const [activeSection, setActiveSection] = useState('general');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
 
   useEffect(() => {
     fetchSettings();
@@ -115,6 +118,7 @@ const SystemSettings = () => {
     { id: 'tickets', name: 'Ticket Configuration', icon: DocumentTextIcon },
     { id: 'security', name: 'Security', icon: ShieldCheckIcon },
     { id: 'integrations', name: 'Integrations', icon: ServerIcon },
+    { id: 'ai', name: 'AI Content Generation', icon: SparklesIcon },
     { id: 'performance', name: 'Performance', icon: CircleStackIcon }
   ];
 
@@ -140,6 +144,32 @@ const SystemSettings = () => {
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const testAzureOpenAI = async () => {
+    try {
+      setTesting(true);
+      setTestResult(null);
+      const response = await systemSettingsAPI.testAzureOpenAI();
+
+      setTestResult({
+        success: true,
+        message: response.data.message,
+        model: response.data.model,
+        response: response.data.response
+      });
+      toast.success('Azure OpenAI connection successful!');
+    } catch (error) {
+      console.error('Azure OpenAI test error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Connection failed';
+      setTestResult({
+        success: false,
+        message: errorMessage
+      });
+      toast.error(`Connection failed: ${errorMessage}`);
+    } finally {
+      setTesting(false);
     }
   };
 
@@ -845,6 +875,748 @@ const SystemSettings = () => {
     </div>
   );
 
+  const renderAISettings = () => (
+    <div className="space-y-6">
+      {/* Azure OpenAI API Configuration */}
+      <div>
+        <h4 className="text-md font-medium text-gray-900 mb-4">Azure OpenAI API Configuration</h4>
+        <p className="text-sm text-gray-600 mb-4">
+          Configure connection to Merck's Azure OpenAI endpoint. <span className="text-amber-600 font-medium">VPN connection required.</span>
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="langdockEnabled"
+              type="checkbox"
+              checked={settings.integrations?.langdock?.enabled || false}
+              onChange={(e) => {
+                const newIntegrations = { ...settings.integrations };
+                newIntegrations.langdock = { ...newIntegrations.langdock, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="langdockEnabled" className="ml-3 text-sm text-gray-700">
+              Enable Azure OpenAI Content Generation
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                API Key <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={settings.integrations?.langdock?.apiKey || ''}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.langdock = { ...newIntegrations.langdock, apiKey: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="Enter your Azure OpenAI API key"
+              />
+              <p className="mt-1 text-xs text-gray-500">Your API key is stored securely</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Environment
+              </label>
+              <select
+                value={settings.integrations?.langdock?.environment || 'dev'}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.langdock = { ...newIntegrations.langdock, environment: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-select"
+              >
+                <option value="dev">Development (dev) - ✓ Verified Working</option>
+                <option value="test">Test</option>
+                <option value="staging">Staging</option>
+                <option value="prod">Production (prod)</option>
+              </select>
+              <p className="mt-1 text-xs text-green-600">
+                ✓ dev environment confirmed working via diagnostics
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                API Version
+              </label>
+              <input
+                type="text"
+                value={settings.integrations?.langdock?.apiVersion || '2024-10-21'}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.langdock = { ...newIntegrations.langdock, apiVersion: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="2024-10-21"
+              />
+              <p className="mt-1 text-xs text-gray-500">Azure OpenAI API version</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Model/Deployment Name
+              </label>
+              <input
+                type="text"
+                value={settings.integrations?.langdock?.model || 'gpt-4o-mini'}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.langdock = { ...newIntegrations.langdock, model: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="gpt-4o-mini"
+              />
+              <p className="mt-1 text-xs text-gray-500">Azure OpenAI deployment name</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Max Tokens
+              </label>
+              <input
+                type="number"
+                value={settings.integrations?.langdock?.maxTokens || 2000}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.langdock = { ...newIntegrations.langdock, maxTokens: parseInt(e.target.value) };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                min="100"
+                max="8000"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Timeout (seconds)
+              </label>
+              <input
+                type="number"
+                value={settings.integrations?.langdock?.timeout || 30}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  newIntegrations.langdock = { ...newIntegrations.langdock, timeout: parseInt(e.target.value) };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                min="10"
+                max="120"
+              />
+            </div>
+          </div>
+
+          {/* Test Connection Button */}
+          <div className="border-t mt-6 pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h5 className="text-sm font-medium text-gray-900">Connection Test</h5>
+                <p className="text-xs text-gray-500 mt-1">
+                  Test the Azure OpenAI API connection. Make sure you are connected to VPN.
+                </p>
+              </div>
+              <button
+                onClick={testAzureOpenAI}
+                disabled={testing || !settings.integrations?.langdock?.enabled || !settings.integrations?.langdock?.apiKey}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  testing || !settings.integrations?.langdock?.enabled || !settings.integrations?.langdock?.apiKey
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {testing ? 'Testing...' : 'Test Connection'}
+              </button>
+            </div>
+
+            {/* Test Result Display */}
+            {testResult && (
+              <div className={`mt-4 p-4 rounded-lg ${
+                testResult.success
+                  ? 'bg-green-50 border border-green-200'
+                  : 'bg-red-50 border border-red-200'
+              }`}>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    {testResult.success ? (
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <h5 className={`text-sm font-medium ${
+                      testResult.success ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      {testResult.success ? 'Connection Successful' : 'Connection Failed'}
+                    </h5>
+                    <p className={`text-sm mt-1 ${
+                      testResult.success ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {testResult.message}
+                    </p>
+                    {testResult.model && (
+                      <p className="text-xs text-gray-600 mt-2">
+                        Model: <span className="font-mono">{testResult.model}</span>
+                      </p>
+                    )}
+                    {testResult.response && (
+                      <div className="mt-2 p-2 bg-white rounded border border-gray-200">
+                        <p className="text-xs text-gray-500 mb-1">Response:</p>
+                        <p className="text-sm text-gray-700">{testResult.response}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!settings.integrations?.langdock?.enabled && (
+              <p className="text-xs text-amber-600 mt-2">
+                ⚠️ Please enable Azure OpenAI integration first
+              </p>
+            )}
+            {settings.integrations?.langdock?.enabled && !settings.integrations?.langdock?.apiKey && (
+              <p className="text-xs text-amber-600 mt-2">
+                ⚠️ Please configure an API key first
+              </p>
+            )}
+          </div>
+
+          {/* Quota Management */}
+          <div className="border-t mt-6 pt-6">
+            <h5 className="text-sm font-medium text-gray-900 mb-3">API Quota & Usage</h5>
+
+            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Total Quota</label>
+                  <input
+                    type="number"
+                    value={settings.integrations?.langdock?.quota?.total || 2000}
+                    onChange={(e) => {
+                      const newIntegrations = { ...settings.integrations };
+                      const quota = { ...newIntegrations.langdock?.quota, total: parseInt(e.target.value) };
+                      quota.remaining = quota.total - (quota.used || 0);
+                      newIntegrations.langdock = { ...newIntegrations.langdock, quota };
+                      setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                    }}
+                    className="form-input text-sm"
+                    min="0"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Used</label>
+                  <div className="form-input text-sm bg-gray-100 cursor-not-allowed">
+                    {settings.integrations?.langdock?.quota?.used || 0}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Remaining</label>
+                  <div className="form-input text-sm bg-gray-100 cursor-not-allowed font-semibold text-green-600">
+                    {(settings.integrations?.langdock?.quota?.total || 2000) - (settings.integrations?.langdock?.quota?.used || 0)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div>
+                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                  <span>Usage Progress</span>
+                  <span>
+                    {Math.round(((settings.integrations?.langdock?.quota?.used || 0) / (settings.integrations?.langdock?.quota?.total || 2000)) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${
+                      ((settings.integrations?.langdock?.quota?.used || 0) / (settings.integrations?.langdock?.quota?.total || 2000)) > 0.9
+                        ? 'bg-red-600'
+                        : ((settings.integrations?.langdock?.quota?.used || 0) / (settings.integrations?.langdock?.quota?.total || 2000)) > 0.7
+                          ? 'bg-yellow-600'
+                          : 'bg-green-600'
+                    }`}
+                    style={{
+                      width: `${Math.min(100, ((settings.integrations?.langdock?.quota?.used || 0) / (settings.integrations?.langdock?.quota?.total || 2000)) * 100)}%`
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Expiry Date</label>
+                  <input
+                    type="date"
+                    value={settings.integrations?.langdock?.quota?.expiryDate
+                      ? new Date(settings.integrations.langdock.quota.expiryDate).toISOString().split('T')[0]
+                      : ''}
+                    onChange={(e) => {
+                      const newIntegrations = { ...settings.integrations };
+                      const quota = { ...newIntegrations.langdock?.quota, expiryDate: new Date(e.target.value) };
+                      newIntegrations.langdock = { ...newIntegrations.langdock, quota };
+                      setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                    }}
+                    className="form-input text-sm"
+                  />
+                </div>
+              </div>
+
+              {settings.integrations?.langdock?.quota?.expiryDate && (
+                <div className="text-xs text-gray-600">
+                  ⏰ API key expires on {new Date(settings.integrations.langdock.quota.expiryDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Prompt Configuration */}
+      <div>
+        <h4 className="text-md font-medium text-gray-900 mb-4">AI Prompt Configuration</h4>
+        <p className="text-sm text-gray-600 mb-4">Configure prompts and parameters for each content type</p>
+
+        {/* Product Description */}
+        <div className="border rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="font-medium text-gray-900">Product Description</h5>
+            <input
+              type="checkbox"
+              checked={settings.aiPrompts?.productDescription?.enabled !== false}
+              onChange={(e) => {
+                const newPrompts = { ...settings.aiPrompts };
+                newPrompts.productDescription = { ...newPrompts.productDescription, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Prompt Template</label>
+              <textarea
+                rows={3}
+                value={settings.aiPrompts?.productDescription?.prompt || ''}
+                onChange={(e) => {
+                  const newPrompts = { ...settings.aiPrompts };
+                  newPrompts.productDescription = { ...newPrompts.productDescription, prompt: e.target.value };
+                  setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                }}
+                className="form-input text-xs"
+                placeholder="Enter prompt template..."
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Max Words</label>
+                <input
+                  type="number"
+                  value={settings.aiPrompts?.productDescription?.maxWords || 200}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.productDescription = { ...newPrompts.productDescription, maxWords: parseInt(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="50"
+                  max="500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Temperature (0-2)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.aiPrompts?.productDescription?.temperature || 0.7}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.productDescription = { ...newPrompts.productDescription, temperature: parseFloat(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="0"
+                  max="2"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Website Title */}
+        <div className="border rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="font-medium text-gray-900">Website Title (SEO)</h5>
+            <input
+              type="checkbox"
+              checked={settings.aiPrompts?.websiteTitle?.enabled !== false}
+              onChange={(e) => {
+                const newPrompts = { ...settings.aiPrompts };
+                newPrompts.websiteTitle = { ...newPrompts.websiteTitle, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Prompt Template</label>
+              <textarea
+                rows={2}
+                value={settings.aiPrompts?.websiteTitle?.prompt || ''}
+                onChange={(e) => {
+                  const newPrompts = { ...settings.aiPrompts };
+                  newPrompts.websiteTitle = { ...newPrompts.websiteTitle, prompt: e.target.value };
+                  setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                }}
+                className="form-input text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Max Characters</label>
+                <input
+                  type="number"
+                  value={settings.aiPrompts?.websiteTitle?.maxChars || 70}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.websiteTitle = { ...newPrompts.websiteTitle, maxChars: parseInt(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="30"
+                  max="100"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Temperature (0-2)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.aiPrompts?.websiteTitle?.temperature || 0.5}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.websiteTitle = { ...newPrompts.websiteTitle, temperature: parseFloat(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="0"
+                  max="2"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Meta Description */}
+        <div className="border rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="font-medium text-gray-900">Meta Description (SEO)</h5>
+            <input
+              type="checkbox"
+              checked={settings.aiPrompts?.metaDescription?.enabled !== false}
+              onChange={(e) => {
+                const newPrompts = { ...settings.aiPrompts };
+                newPrompts.metaDescription = { ...newPrompts.metaDescription, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Prompt Template</label>
+              <textarea
+                rows={2}
+                value={settings.aiPrompts?.metaDescription?.prompt || ''}
+                onChange={(e) => {
+                  const newPrompts = { ...settings.aiPrompts };
+                  newPrompts.metaDescription = { ...newPrompts.metaDescription, prompt: e.target.value };
+                  setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                }}
+                className="form-input text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Max Characters</label>
+                <input
+                  type="number"
+                  value={settings.aiPrompts?.metaDescription?.maxChars || 160}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.metaDescription = { ...newPrompts.metaDescription, maxChars: parseInt(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="100"
+                  max="200"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Temperature (0-2)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.aiPrompts?.metaDescription?.temperature || 0.6}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.metaDescription = { ...newPrompts.metaDescription, temperature: parseFloat(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="0"
+                  max="2"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Features */}
+        <div className="border rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="font-medium text-gray-900">Key Features & Benefits</h5>
+            <input
+              type="checkbox"
+              checked={settings.aiPrompts?.keyFeatures?.enabled !== false}
+              onChange={(e) => {
+                const newPrompts = { ...settings.aiPrompts };
+                newPrompts.keyFeatures = { ...newPrompts.keyFeatures, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Prompt Template</label>
+              <textarea
+                rows={3}
+                value={settings.aiPrompts?.keyFeatures?.prompt || ''}
+                onChange={(e) => {
+                  const newPrompts = { ...settings.aiPrompts };
+                  newPrompts.keyFeatures = { ...newPrompts.keyFeatures, prompt: e.target.value };
+                  setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                }}
+                className="form-input text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Bullet Count</label>
+                <input
+                  type="number"
+                  value={settings.aiPrompts?.keyFeatures?.bulletCount || 5}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.keyFeatures = { ...newPrompts.keyFeatures, bulletCount: parseInt(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="3"
+                  max="10"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Words/Bullet</label>
+                <input
+                  type="number"
+                  value={settings.aiPrompts?.keyFeatures?.wordsPerBullet || 10}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.keyFeatures = { ...newPrompts.keyFeatures, wordsPerBullet: parseInt(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="5"
+                  max="20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Temperature (0-2)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.aiPrompts?.keyFeatures?.temperature || 0.6}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.keyFeatures = { ...newPrompts.keyFeatures, temperature: parseFloat(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="0"
+                  max="2"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Applications */}
+        <div className="border rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="font-medium text-gray-900">Applications</h5>
+            <input
+              type="checkbox"
+              checked={settings.aiPrompts?.applications?.enabled !== false}
+              onChange={(e) => {
+                const newPrompts = { ...settings.aiPrompts };
+                newPrompts.applications = { ...newPrompts.applications, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Prompt Template</label>
+              <textarea
+                rows={2}
+                value={settings.aiPrompts?.applications?.prompt || ''}
+                onChange={(e) => {
+                  const newPrompts = { ...settings.aiPrompts };
+                  newPrompts.applications = { ...newPrompts.applications, prompt: e.target.value };
+                  setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                }}
+                className="form-input text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Item Count</label>
+                <input
+                  type="number"
+                  value={settings.aiPrompts?.applications?.itemCount || 4}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.applications = { ...newPrompts.applications, itemCount: parseInt(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="2"
+                  max="8"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Temperature (0-2)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.aiPrompts?.applications?.temperature || 0.6}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.applications = { ...newPrompts.applications, temperature: parseFloat(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="0"
+                  max="2"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Target Industries */}
+        <div className="border rounded-lg p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <h5 className="font-medium text-gray-900">Target Industries</h5>
+            <input
+              type="checkbox"
+              checked={settings.aiPrompts?.targetIndustries?.enabled !== false}
+              onChange={(e) => {
+                const newPrompts = { ...settings.aiPrompts };
+                newPrompts.targetIndustries = { ...newPrompts.targetIndustries, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Prompt Template</label>
+              <textarea
+                rows={2}
+                value={settings.aiPrompts?.targetIndustries?.prompt || ''}
+                onChange={(e) => {
+                  const newPrompts = { ...settings.aiPrompts };
+                  newPrompts.targetIndustries = { ...newPrompts.targetIndustries, prompt: e.target.value };
+                  setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                }}
+                className="form-input text-xs"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Item Count</label>
+                <input
+                  type="number"
+                  value={settings.aiPrompts?.targetIndustries?.itemCount || 4}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.targetIndustries = { ...newPrompts.targetIndustries, itemCount: parseInt(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="2"
+                  max="8"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Temperature (0-2)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={settings.aiPrompts?.targetIndustries?.temperature || 0.5}
+                  onChange={(e) => {
+                    const newPrompts = { ...settings.aiPrompts };
+                    newPrompts.targetIndustries = { ...newPrompts.targetIndustries, temperature: parseFloat(e.target.value) };
+                    setSettings(prev => ({ ...prev, aiPrompts: newPrompts }));
+                  }}
+                  className="form-input text-xs"
+                  min="0"
+                  max="2"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 p-4 bg-blue-50 rounded-md">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> Temperature controls randomness (0 = deterministic, 2 = very creative).
+            Use {'{productName}'}, {'{casNumber}'}, {'{molecularFormula}'}, etc. as placeholders in prompts.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'general':
@@ -855,6 +1627,8 @@ const SystemSettings = () => {
         return renderSecuritySettings();
       case 'integrations':
         return renderIntegrationsSettings();
+      case 'ai':
+        return renderAISettings();
       case 'performance':
         return renderPerformanceSettings();
       default:

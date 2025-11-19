@@ -6,6 +6,7 @@ const {
   updateSystemSettings,
   testSmtpConnection,
   testPubChemConnection,
+  testAzureOpenAI,
   getSettingsSection
 } = require('../controllers/systemSettingsController');
 
@@ -21,6 +22,7 @@ router.route('/')
 // Test connections
 router.post('/test-smtp', testSmtpConnection);
 router.post('/test-pubchem', testPubChemConnection);
+router.post('/test-azure-openai', testAzureOpenAI);
 
 // Get specific section
 router.get('/:section', getSettingsSection);

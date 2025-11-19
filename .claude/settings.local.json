@@ -52,7 +52,18 @@
       "Bash(do echo -n \"$route: \")",
       "Bash(tree:*)",
       "Bash(lsof:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(python3:*)",
+      "Bash(git branch:*)",
+      "Bash(if [ -f \"ARCHITECTURE.md\" ])",
+      "Bash(then)",
+      "Bash(else)",
+      "Bash(fi)",
+      "WebFetch(domain:docs.langdock.com)",
+      "WebFetch(domain:platform.openai.com)",
+      "Bash(chmod:*)",
+      "WebSearch",
+      "WebFetch(domain:help.sap.com)"
     ],
     "deny": []
   }

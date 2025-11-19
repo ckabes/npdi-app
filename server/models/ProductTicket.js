@@ -279,10 +279,6 @@ const productTicketSchema = new mongoose.Schema({
   },
   productName: {
     type: String,
-    required: false
-  },
-  productLine: {
-    type: String,
     required: true
   },
   productionType: {
@@ -387,6 +383,16 @@ const productTicketSchema = new mongoose.Schema({
     },
     assignedAt: Date
   },
+  npdiTracking: {
+    trackingNumber: String,  // Official NPDI tracking number from external NPDI system
+    initiatedBy: {
+      type: String  // Email address from profile
+    },
+    initiatedAt: Date
+    // When NPDI is initiated, the main ticketNumber field is updated to match this trackingNumber
+    // Example: ticketNumber changes from "NPDI-2025-0055" to "NPDI-2025-0054"
+    // The original ticket number is preserved in statusHistory for audit trail
+  },
   standardCost: {
     type: Number
   },
@@ -449,7 +455,7 @@ const productTicketSchema = new mongoose.Schema({
     reason: String,
     action: {
       type: String,
-      enum: ['TICKET_CREATED', 'STATUS_CHANGE', 'SKU_ASSIGNMENT', 'TICKET_EDIT', 'COMMENT_ADDED'],
+      enum: ['TICKET_CREATED', 'STATUS_CHANGE', 'SKU_ASSIGNMENT', 'TICKET_EDIT', 'COMMENT_ADDED', 'NPDI_INITIATED'],
       default: 'STATUS_CHANGE'
     },
     details: mongoose.Schema.Types.Mixed,
@@ -506,9 +512,31 @@ productTicketSchema.pre('save', function(next) {
 
 productTicketSchema.pre('save', async function(next) {
   if (this.isNew && !this.ticketNumber) {
-    const count = await mongoose.model('ProductTicket').countDocuments();
     const year = new Date().getFullYear();
-    this.ticketNumber = `NPDI-${year}-${String(count + 1).padStart(4, '0')}`;
+    let ticketNumber;
+    let isUnique = false;
+    let attempts = 0;
+    const maxAttempts = 100;
+
+    // Keep trying until we find a unique ticket number
+    while (!isUnique && attempts < maxAttempts) {
+      const count = await mongoose.model('ProductTicket').countDocuments();
+      ticketNumber = `NPDI-${year}-${String(count + attempts + 1).padStart(4, '0')}`;
+
+      // Check if this ticket number already exists
+      const existingTicket = await mongoose.model('ProductTicket').findOne({ ticketNumber });
+
+      if (!existingTicket) {
+        isUnique = true;
+        this.ticketNumber = ticketNumber;
+      } else {
+        attempts++;
+      }
+    }
+
+    if (!isUnique) {
+      return next(new Error('Unable to generate unique ticket number after multiple attempts'));
+    }
   }
   next();
 });

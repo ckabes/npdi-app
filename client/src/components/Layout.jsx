@@ -5,6 +5,7 @@ import {
   HomeIcon,
   DocumentIcon,
   PlusIcon,
+  PencilIcon,
   ChartBarIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
@@ -28,6 +29,9 @@ const Layout = () => {
   const navigation = [
     { name: isPMOPS || isAdmin ? 'PMOps Dashboard' : 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Tickets', href: '/tickets', icon: DocumentIcon },
+    ...(isPMOPS || isAdmin ? [
+      { name: 'Drafts', href: '/drafts', icon: PencilIcon }
+    ] : []),
     ...(isProductManager || isPMOPS || isAdmin ? [
       { name: 'New Ticket', href: '/tickets/new', icon: PlusIcon }
     ] : []),

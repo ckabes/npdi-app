@@ -1266,7 +1266,8 @@ PORT=5000
 CLIENT_URL=http://localhost:5173
 </code></pre><p><strong>Production:</strong></p>
 <pre data-role="codeBlock" data-info="" class="language-text"><code>NODE_ENV=production
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/npdi?retryWrites=true
+# Example only - Replace with your actual MongoDB Atlas credentials
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@your-cluster.mongodb.net/npdi?retryWrites=true
 PORT=5000
 CLIENT_URL=https://npdi.milliporesigma.com
 </code></pre><p><strong>Critical Production Settings:</strong></p>
@@ -1341,8 +1342,8 @@ CLIENT_URL=https://npdi.milliporesigma.com
 <li>Read scaling with secondary nodes</li>
 <li>Zero-downtime maintenance</li>
 </ul>
-<p><strong>Connection String:</strong></p>
-<pre data-role="codeBlock" data-info="" class="language-text"><code>mongodb+srv://username:password@cluster.mongodb.net/npdi?retryWrites=true&amp;w=majority
+<p><strong>Connection String Example (replace with your actual credentials):</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@your-cluster-name.mongodb.net/npdi?retryWrites=true&amp;w=majority
 </code></pre><p><strong>Backup Strategy:</strong></p>
 <ul>
 <li>Automated daily backups (Atlas built-in or mongodump cron)</li>

@@ -96,16 +96,18 @@ const testPubChemConnection = async (req, res) => {
   try {
     const pubchemService = require('../services/pubchemService');
 
-    // Test with a known compound (water)
-    const testResult = await pubchemService.getCompoundData('water');
+    // Test with a known compound using water's CAS number (7732-18-5)
+    const testCAS = '7732-18-5';
+    const testResult = await pubchemService.getCompoundByCAS(testCAS);
 
-    if (testResult) {
+    if (testResult && testResult.cid) {
       res.json({
         success: true,
         message: 'PubChem connection successful',
         testData: {
-          compound: testResult.name,
-          cid: testResult.cid
+          compound: testResult.properties?.iupacName || 'Water',
+          cid: testResult.cid,
+          molecularFormula: testResult.properties?.molecularFormula || 'H2O'
         }
       });
     } else {
@@ -119,6 +121,40 @@ const testPubChemConnection = async (req, res) => {
     res.status(500).json({
       success: false,
       message: `PubChem connection failed: ${error.message}`
+    });
+  }
+};
+
+// @desc    Test Azure OpenAI connection
+// @route   POST /api/system-settings/test-azure-openai
+// @access  Admin
+const testAzureOpenAI = async (req, res) => {
+  try {
+    const langdockService = require('../services/langdockService');
+
+    console.log('Testing Azure OpenAI connection...');
+
+    // Test the connection using the langdock service
+    const testResult = await langdockService.testConnection();
+
+    if (testResult.success) {
+      res.json({
+        success: true,
+        message: testResult.message,
+        model: testResult.model,
+        response: testResult.response
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: testResult.message
+      });
+    }
+  } catch (error) {
+    console.error('Azure OpenAI test error:', error);
+    res.status(500).json({
+      success: false,
+      message: `Azure OpenAI connection failed: ${error.message}`
     });
   }
 };
@@ -157,5 +193,6 @@ module.exports = {
   updateSystemSettings,
   testSmtpConnection,
   testPubChemConnection,
+  testAzureOpenAI,
   getSettingsSection
 };

@@ -219,6 +219,37 @@ const TicketDetails = () => {
     }
   };
 
+  const handleExportDataExcel = async () => {
+    try {
+      toast.loading('Generating Data Export...');
+      const response = await productAPI.exportDataExcel(id);
+
+      // Create a blob from the response
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      // Create a download link and trigger it
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Data_Export_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.dismiss();
+      toast.success('Data Export downloaded successfully');
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      toast.dismiss();
+      toast.error('Failed to export data');
+    }
+  };
+
   const handleUpdateTicket = async (data) => {
     setUpdateLoading(true);
     try {
@@ -239,6 +270,10 @@ const TicketDetails = () => {
   };
 
   const canEdit = () => {
+    // Ticket cannot be edited once NPDI is initiated
+    if (ticket.status === 'NPDI_INITIATED') {
+      return false;
+    }
     return (isPMOPS || isAdmin) || (ticket.status === 'DRAFT' && isProductManager);
   };
 
@@ -369,7 +404,7 @@ const TicketDetails = () => {
                     title="Download PDP Checklist"
                   >
                     <ArrowDownTrayIcon className="w-4 h-4" />
-                    <span>Download PDP Checklist</span>
+                    <span>PDP Checklist</span>
                   </button>
 
                   <button
@@ -378,7 +413,16 @@ const TicketDetails = () => {
                     title="Download PIF"
                   >
                     <ArrowDownTrayIcon className="w-4 h-4" />
-                    <span>Download PIF</span>
+                    <span>PIF</span>
+                  </button>
+
+                  <button
+                    onClick={handleExportDataExcel}
+                    className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-green-500/30"
+                    title="Download Data Export (Excel)"
+                  >
+                    <ArrowDownTrayIcon className="w-4 h-4" />
+                    <span>Data Export</span>
                   </button>
                 </>
               )}
@@ -386,6 +430,56 @@ const TicketDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* NPDI Initiated Banner */}
+      {ticket.status === 'NPDI_INITIATED' && (
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between space-x-4">
+            <div className="flex items-center space-x-4">
+              <div className="bg-white/20 p-3 rounded-lg">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="text-white flex-1">
+                <h2 className="text-2xl font-bold">NPDI Initiated: {ticket.ticketNumber}</h2>
+                <p className="text-green-100 mt-1">
+                  This ticket has been initiated in the NPDI system on {new Date(ticket.npdiTracking?.initiatedAt).toLocaleDateString()}.
+                </p>
+                <p className="text-green-100 text-sm mt-2 font-medium">
+                  🔒 This ticket is now <strong>locked and cannot be edited</strong>. All changes must be made through the NPDI system.
+                </p>
+              </div>
+            </div>
+            {(isPMOPS || isAdmin) && (
+              <div>
+                <button
+                  onClick={async () => {
+                    if (window.confirm('Mark this ticket as COMPLETED? This will close the ticket and archive it.')) {
+                      try {
+                        await productAPI.updateTicket(ticket._id, {
+                          status: 'COMPLETED'
+                        });
+                        toast.success('Ticket marked as completed!');
+                        fetchTicket();
+                      } catch (error) {
+                        console.error('Failed to mark as completed:', error);
+                        toast.error('Failed to mark ticket as completed');
+                      }
+                    }
+                  }}
+                  className="bg-white text-green-600 hover:bg-green-50 font-bold py-3 px-6 rounded-lg shadow-lg transition-all hover:shadow-xl flex items-center space-x-2 whitespace-nowrap"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span>Mark as Completed</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* PMOps SKU Assignment Status Banner */}
       {(isPMOPS || isAdmin) && !editMode && !ticket.partNumber?.baseNumber && ticket.status === 'SUBMITTED' && (
@@ -441,6 +535,99 @@ const TicketDetails = () => {
             <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
               <p className="text-white text-xs font-medium">To-Do</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* NPDI Tracking Number Assignment - Top Priority (appears when ready) */}
+      {(isPMOPS || isAdmin) && !editMode && ticket.status === 'IN_PROCESS' && ticket.partNumber?.baseNumber && (
+        <div className="bg-white shadow rounded-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">NPDI Initiation</h3>
+            <p className="text-sm text-gray-600">All to-dos completed - Enter official NPDI tracking number to initiate</p>
+            <p className="text-xs text-gray-500 mt-1">Current ticket: <span className="font-semibold text-gray-700">{ticket.ticketNumber}</span></p>
+          </div>
+          <div className="p-6">
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              const npdiNumber = e.target.npdiTrackingNumber.value;
+              if (npdiNumber && npdiNumber.trim()) {
+                try {
+                  // IMPORTANT: This changes the ticket number from the original system-generated number
+                  // (e.g., NPDI-2025-0055) to the new NPDI tracking number from the external NPDI system
+                  // (e.g., NPDI-2025-0054). The original number is preserved in activity history.
+                  const updateData = {
+                    npdiTracking: {
+                      trackingNumber: npdiNumber.trim(),
+                      initiatedBy: user?.email,
+                      initiatedAt: new Date().toISOString()
+                    },
+                    ticketNumber: npdiNumber.trim(), // Replace system number with NPDI tracking number
+                    status: 'NPDI_INITIATED'
+                  };
+
+                  console.log('Sending NPDI update:', updateData);
+                  const response = await productAPI.updateTicket(ticket._id, updateData);
+                  console.log('NPDI update response:', response);
+
+                  toast.success(`NPDI initiated! Ticket number updated to ${npdiNumber}`);
+                  fetchTicket();
+                } catch (error) {
+                  console.error('NPDI initiation error:', error);
+                  console.error('Error response:', error.response);
+                  const errorMsg = error.response?.data?.message || error.response?.data?.errors?.[0]?.msg || error.message || 'Unknown error';
+                  toast.error(`Failed to save NPDI tracking number: ${errorMsg}`);
+                }
+              }
+            }}>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 rounded-lg p-5 shadow-sm">
+                <div className="flex items-center mb-3">
+                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center mr-3">
+                    <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <label className="block text-lg font-bold text-gray-900">
+                      Official NPDI Tracking Number *
+                    </label>
+                    <p className="text-sm text-blue-800 font-medium">This will become the new ticket number and initiate NPDI (ticket will be locked)</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <input
+                    name="npdiTrackingNumber"
+                    type="text"
+                    className="form-input border-2 border-blue-300 focus:border-blue-500 focus:ring-blue-500 text-lg font-medium flex-1"
+                    placeholder="e.g., 100000000000000778902025"
+                    defaultValue={ticket.npdiTracking?.trackingNumber || ''}
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-primary px-8 py-3 text-base shadow-md hover:shadow-lg transition-shadow"
+                  >
+                    Initiate NPDI
+                  </button>
+                </div>
+                <div className="mt-3 bg-amber-50 border-l-4 border-amber-500 p-3 rounded">
+                  <div className="flex items-start">
+                    <svg className="h-5 w-5 text-amber-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <div className="text-sm">
+                      <p className="font-semibold text-amber-800">⚠️ Warning: This action is permanent</p>
+                      <p className="text-amber-700 mt-1">
+                        • The ticket number will change from <strong>{ticket.ticketNumber}</strong> to the NPDI number you enter<br/>
+                        • The ticket will become <strong>non-editable and locked</strong><br/>
+                        • All changes must be made through the NPDI system<br/>
+                        • The original ticket number will be preserved in activity history
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -535,20 +722,22 @@ const TicketDetails = () => {
                 <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
               </div>
               <div className="card-body space-y-6">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Product Line *
-                    </label>
-                    <input
-                      {...registerEdit('productLine')}
-                      type="text"
-                      className="form-input"
-                      placeholder="Enter product line"
-                      defaultValue={ticket.productLine}
-                    />
-                  </div>
+                {/* Product Name - Full width at top */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Name *
+                    <span className="text-xs text-gray-500 ml-2">(Commercial/Marketing name, different from chemical name)</span>
+                  </label>
+                  <input
+                    {...registerEdit('productName')}
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g., Sigma-Aldrich Premium Grade Acetone"
+                    defaultValue={ticket.productName}
+                  />
+                </div>
 
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Strategic Business Unit *
@@ -613,7 +802,8 @@ const TicketDetails = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      IUPAC Name
+                      IUPAC Name (Chemical Name)
+                      <span className="text-xs text-gray-500 ml-2">(Auto-populated from PubChem)</span>
                     </label>
                     <input
                       {...registerEdit('chemicalProperties.iupacName')}
@@ -648,19 +838,6 @@ const TicketDetails = () => {
                       className="form-input"
                       placeholder="e.g., CCO (for ethanol)"
                       defaultValue={ticket.chemicalProperties?.canonicalSMILES}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Product/Chemical Name
-                    </label>
-                    <input
-                      {...registerEdit('productName')}
-                      type="text"
-                      className="form-input"
-                      placeholder="Enter chemical or product name"
-                      defaultValue={ticket.productName}
                     />
                   </div>
 
@@ -1625,38 +1802,31 @@ const TicketDetails = () => {
               <h3 className="text-lg font-medium text-gray-900">Product Information</h3>
             </div>
             <div className="card-body">
+              {/* Product Name - Full width at top */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-500 mb-1">
+                  Product Name
+                  <span className="text-xs text-gray-400 ml-2">(Commercial/Marketing name)</span>
+                </label>
+                {editMode && canEdit() ? (
+                  <input
+                    {...registerEdit('productName')}
+                    type="text"
+                    className="form-input text-base font-medium"
+                    defaultValue={ticket.productName}
+                    placeholder="e.g., Sigma-Aldrich Premium Grade Acetone"
+                  />
+                ) : (
+                  <p className="text-base font-medium text-gray-900">{ticket.productName || 'Not specified'}</p>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">Product Name</label>
-                  {editMode && canEdit() ? (
-                    <input
-                      {...registerEdit('productName')}
-                      type="text"
-                      className="mt-1 form-input text-sm"
-                      defaultValue={ticket.productName}
-                    />
-                  ) : (
-                    <p className="mt-1 text-sm text-gray-900">{ticket.productName}</p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500">Product Line</label>
-                  {editMode && canEdit() ? (
-                    <input
-                      {...registerEdit('productLine')}
-                      type="text"
-                      className="mt-1 form-input text-sm"
-                      defaultValue={ticket.productLine}
-                    />
-                  ) : (
-                    <p className="mt-1 text-sm text-gray-900">{ticket.productLine}</p>
-                  )}
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500">SBU</label>
                   {editMode && canEdit() ? (
-                    <select 
-                      {...registerEdit('sbu')} 
+                    <select
+                      {...registerEdit('sbu')}
                       className="mt-1 form-select text-sm"
                       defaultValue={ticket.sbu}
                     >
@@ -2172,8 +2342,8 @@ const TicketDetails = () => {
             </div>
           )}
 
-          {/* PMOps SKU Assignment */}
-          {(isPMOPS || isAdmin) && !editMode && ticket.status === 'SUBMITTED' && (
+          {/* PMOps SKU Assignment Section (if needed) */}
+          {(isPMOPS || isAdmin) && !editMode && ticket.status === 'SUBMITTED' && !ticket.partNumber?.baseNumber && (
             <SKUAssignment ticket={ticket} onUpdate={fetchTicket} />
           )}
 
@@ -2334,13 +2504,8 @@ const TicketDetails = () => {
             </div>
           )}
 
-          {/* Pricing Information - Editable for Product Managers, Viewable for PMOps when not editing */}
-          {(ticket.standardCost || ticket.pricingData) && (
-            // Product Managers can always see pricing 
-            isProductManager || 
-            // PMOps/Admin can see pricing when not in edit mode
-            (!editMode && (isPMOPS || isAdmin))
-          ) && (
+          {/* Pricing Information - Only visible to Product Managers */}
+          {(ticket.standardCost || ticket.pricingData) && isProductManager && (
             <div className="card">
               <div className="card-header">
                 <h3 className="text-lg font-medium text-gray-900">Pricing Information</h3>
@@ -2457,114 +2622,97 @@ const TicketDetails = () => {
           )}
 
           {/* CorpBase Website Data */}
-          {ticket.corpbaseData && (
-            <div className="card">
-              <div className="card-header">
-                <div className="flex items-center justify-between">
+          <div className="card">
+            <div className="card-header">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   <h3 className="text-lg font-medium text-gray-900">CorpBase Website Data</h3>
-                  {ticket.corpbaseData.aiGenerated && (
-                    <div className="flex items-center space-x-2">
-                      <svg className="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-sm text-purple-600 font-medium">AI Generated</span>
-                    </div>
-                  )}
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                    </svg>
+                    AI-Powered
+                  </span>
                 </div>
-              </div>
-              <div className="card-body space-y-6">
-                {ticket.corpbaseData.productDescription && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Product Description</label>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <p className="text-sm text-gray-900">{ticket.corpbaseData.productDescription}</p>
-                      {ticket.corpbaseData.aiGenerated && (
-                        <p className="text-xs text-purple-600 mt-2">
-                          ✨ Generated on {new Date(ticket.corpbaseData.generatedAt).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {ticket.corpbaseData.keyFeatures && ticket.corpbaseData.keyFeatures.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-2">Key Features</label>
-                      <ul className="list-disc list-inside text-sm text-gray-900 space-y-1">
-                        {(Array.isArray(ticket.corpbaseData.keyFeatures) ? 
-                          ticket.corpbaseData.keyFeatures : 
-                          ticket.corpbaseData.keyFeatures.split('\n')).map((feature, index) => (
-                          <li key={index}>{feature.trim()}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {ticket.corpbaseData.applications && ticket.corpbaseData.applications.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-2">Applications</label>
-                      <ul className="list-disc list-inside text-sm text-gray-900 space-y-1">
-                        {(Array.isArray(ticket.corpbaseData.applications) ? 
-                          ticket.corpbaseData.applications : 
-                          ticket.corpbaseData.applications.split('\n')).map((app, index) => (
-                          <li key={index}>{app.trim()}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {ticket.corpbaseData.targetMarkets && ticket.corpbaseData.targetMarkets.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-2">Target Markets</label>
-                      <ul className="list-disc list-inside text-sm text-gray-900 space-y-1">
-                        {(Array.isArray(ticket.corpbaseData.targetMarkets) ? 
-                          ticket.corpbaseData.targetMarkets : 
-                          ticket.corpbaseData.targetMarkets.split('\n')).map((market, index) => (
-                          <li key={index}>{market.trim()}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {ticket.corpbaseData.competitiveAdvantages && ticket.corpbaseData.competitiveAdvantages.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-500 mb-2">Competitive Advantages</label>
-                      <ul className="list-disc list-inside text-sm text-gray-900 space-y-1">
-                        {(Array.isArray(ticket.corpbaseData.competitiveAdvantages) ? 
-                          ticket.corpbaseData.competitiveAdvantages : 
-                          ticket.corpbaseData.competitiveAdvantages.split('\n')).map((advantage, index) => (
-                          <li key={index}>{advantage.trim()}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                {ticket.corpbaseData.technicalSpecifications && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Technical Specifications</label>
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <pre className="text-sm text-gray-900 whitespace-pre-line font-mono">
-                        {ticket.corpbaseData.technicalSpecifications}
-                      </pre>
-                    </div>
-                  </div>
-                )}
-
-                {ticket.corpbaseData.qualityStandards && ticket.corpbaseData.qualityStandards.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-2">Quality Standards</label>
-                    <ul className="list-disc list-inside text-sm text-gray-900 space-y-1">
-                      {ticket.corpbaseData.qualityStandards.map((standard, index) => (
-                        <li key={index}>{standard}</li>
-                      ))}
-                    </ul>
+                {ticket.corpbaseData?.aiGenerated && (
+                  <div className="flex items-center space-x-2">
+                    <svg className="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm text-purple-600 font-medium">AI Generated</span>
                   </div>
                 )}
               </div>
             </div>
-          )}
+            <div className="card-body space-y-6">
+              {/* Product Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-2">Product Description</label>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-900 whitespace-pre-line">
+                    {ticket.corpbaseData?.productDescription || 'Not provided'}
+                  </p>
+                  {ticket.corpbaseData?.aiGenerated && ticket.corpbaseData?.generatedAt && (
+                    <p className="text-xs text-purple-600 mt-2">
+                      ✨ AI-generated on {new Date(ticket.corpbaseData.generatedAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* SEO Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-2">Website Title (SEO)</label>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <p className="text-sm text-gray-900">
+                      {ticket.corpbaseData?.websiteTitle || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-2">Meta Description (SEO)</label>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                    <p className="text-sm text-gray-900">
+                      {ticket.corpbaseData?.metaDescription || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Key Features & Benefits */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-2">Key Features & Benefits</label>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-900 whitespace-pre-line">
+                    {ticket.corpbaseData?.keyFeatures || 'Not provided'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Applications and Target Industries */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-2">Applications</label>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-900 whitespace-pre-line">
+                      {ticket.corpbaseData?.applications || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-2">Target Industries</label>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <p className="text-sm text-gray-900 whitespace-pre-line">
+                      {ticket.corpbaseData?.targetIndustries || 'Not provided'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Enhanced Hazard Classification with GHS Data */}
           {ticket.hazardClassification && (
@@ -2913,6 +3061,8 @@ const TicketDetails = () => {
                           return '✏️';
                         case 'COMMENT_ADDED':
                           return '💬';
+                        case 'NPDI_INITIATED':
+                          return '🚀';
                         default:
                           return '📝';
                       }
@@ -2930,6 +3080,8 @@ const TicketDetails = () => {
                           return 'text-orange-600 bg-orange-50 border-orange-200';
                         case 'COMMENT_ADDED':
                           return 'text-gray-600 bg-gray-50 border-gray-200';
+                        case 'NPDI_INITIATED':
+                          return 'text-emerald-600 bg-emerald-50 border-emerald-200';
                         default:
                           return 'text-gray-600 bg-gray-50 border-gray-200';
                       }
@@ -2973,7 +3125,35 @@ const TicketDetails = () => {
                                 {history.reason}
                               </p>
                             )}
-                            {history.details && (
+
+                            {/* Special display for NPDI Initiation */}
+                            {history.action === 'NPDI_INITIATED' && history.details && (
+                              <div className="mt-3 bg-white rounded-lg border border-emerald-200 p-3">
+                                <div className="text-xs font-semibold text-emerald-800 mb-2">📋 Ticket Number Change:</div>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <span className="text-gray-500 font-medium">Original Number:</span>
+                                    <div className="text-gray-900 font-mono font-semibold mt-1">
+                                      {history.details.previousTicketNumber}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span className="text-emerald-600 font-medium">NPDI Number:</span>
+                                    <div className="text-emerald-700 font-mono font-semibold mt-1">
+                                      {history.details.newTicketNumber}
+                                    </div>
+                                  </div>
+                                </div>
+                                {history.details.initiatedAt && (
+                                  <div className="mt-2 pt-2 border-t border-emerald-100 text-xs text-gray-600">
+                                    <span className="font-medium">Initiated:</span> {new Date(history.details.initiatedAt).toLocaleString()}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Generic details display for other actions */}
+                            {history.action !== 'NPDI_INITIATED' && history.details && (
                               <div className="mt-2 text-xs text-gray-600 bg-white/50 rounded p-2 break-words overflow-wrap-anywhere">
                                 <strong>Details:</strong>
                                 {typeof history.details === 'object'

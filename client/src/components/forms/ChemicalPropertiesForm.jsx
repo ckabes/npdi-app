@@ -32,6 +32,19 @@ const ChemicalPropertiesForm = ({
   const [showAddPropertyMenu, setShowAddPropertyMenu] = useState(false);
   const [valueSelectionModal, setValueSelectionModal] = useState(null);
 
+  // Track which fields have been manually edited (lose green background when edited)
+  const [editedFields, setEditedFields] = useState(new Set());
+
+  // Helper function to mark a field as edited
+  const markFieldAsEdited = (fieldName) => {
+    setEditedFields(prev => new Set([...prev, fieldName]));
+  };
+
+  // Helper function to check if field should have green background
+  const isFieldAutoPopulated = (fieldName) => {
+    return autoPopulated && !editedFields.has(fieldName);
+  };
+
   // Debug logging
   console.log('ChemicalPropertiesForm - additionalProps:', additionalProps);
 
@@ -109,7 +122,15 @@ const ChemicalPropertiesForm = ({
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="text-lg font-medium text-gray-900">Chemical Properties</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-lg font-medium text-gray-900">Chemical Properties</h3>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+            <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            PubChem Integration
+          </span>
+        </div>
       </div>
       <div className="card-body space-y-6">
         {autoPopulated && (
@@ -187,12 +208,15 @@ const ChemicalPropertiesForm = ({
             <input
               {...register('chemicalProperties.molecularFormula')}
               type="text"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('molecularFormula') ? 'bg-green-50' : ''}`}
               placeholder="e.g., C2H6O"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('molecularFormula');
+              }}
             />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
+            {isFieldAutoPopulated('molecularFormula') && (
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
             )}
           </div>
 
@@ -203,12 +227,15 @@ const ChemicalPropertiesForm = ({
             <input
               {...register('chemicalProperties.iupacName')}
               type="text"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('iupacName') ? 'bg-green-50' : ''}`}
               placeholder="IUPAC systematic name"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('iupacName');
+              }}
             />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
+            {isFieldAutoPopulated('iupacName') && (
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
             )}
           </div>
 
@@ -220,12 +247,15 @@ const ChemicalPropertiesForm = ({
               {...register('chemicalProperties.molecularWeight')}
               type="number"
               step="0.01"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('molecularWeight') ? 'bg-green-50' : ''}`}
               placeholder="g/mol"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('molecularWeight');
+              }}
             />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
+            {isFieldAutoPopulated('molecularWeight') && (
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
             )}
           </div>
 
@@ -236,9 +266,12 @@ const ChemicalPropertiesForm = ({
             <input
               {...register('chemicalProperties.canonicalSMILES')}
               type="text"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('canonicalSMILES') ? 'bg-green-50' : ''}`}
               placeholder="e.g., CCO (for ethanol)"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('canonicalSMILES');
+              }}
             />
             {autoPopulated && (
               <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
@@ -255,12 +288,15 @@ const ChemicalPropertiesForm = ({
             <textarea
               {...register('chemicalProperties.inchi')}
               rows="2"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('inchi') ? 'bg-green-50' : ''}`}
               placeholder="International Chemical Identifier"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('inchi');
+              }}
             />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
+            {isFieldAutoPopulated('inchi') && (
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
             )}
           </div>
 
@@ -271,12 +307,15 @@ const ChemicalPropertiesForm = ({
             <input
               {...register('chemicalProperties.inchiKey')}
               type="text"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('inchiKey') ? 'bg-green-50' : ''}`}
               placeholder="Hashed InChI identifier"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('inchiKey');
+              }}
             />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
+            {isFieldAutoPopulated('inchiKey') && (
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
             )}
           </div>
 
@@ -290,9 +329,11 @@ const ChemicalPropertiesForm = ({
               className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
               placeholder="Enter chemical or product name manually if not auto-populated"
               readOnly={readOnly}
+              // Note: Product name is always editable (unlike other chemical properties)
+              // Users can rename products even after auto-population from CAS lookup
             />
             {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
             )}
             {!watch('productName') && !readOnly && (
               <p className="mt-1 text-xs text-gray-500">Required if cannot be auto-populated from CAS lookup</p>
@@ -497,12 +538,15 @@ const ChemicalPropertiesForm = ({
             <textarea
               {...register('chemicalProperties.synonyms')}
               rows="3"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('synonyms') ? 'bg-green-50' : ''}`}
               placeholder="Common names, trade names, alternate chemical names (comma-separated)"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('synonyms');
+              }}
             />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (limited to 10 most common)</p>
+            {isFieldAutoPopulated('synonyms') && (
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem - limited to 10 most common (editable)</p>
             )}
             {!readOnly && (
               <p className="mt-1 text-xs text-gray-500">
@@ -518,12 +562,15 @@ const ChemicalPropertiesForm = ({
             <textarea
               {...register('chemicalProperties.hazardStatements')}
               rows="4"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+              className={`form-input ${isFieldAutoPopulated('hazardStatements') ? 'bg-green-50' : ''}`}
               placeholder="GHS hazard statements (H-codes), one per line"
-              readOnly={autoPopulated || readOnly}
+              readOnly={readOnly}
+              onChange={(e) => {
+                markFieldAsEdited('hazardStatements');
+              }}
             />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem GHS data</p>
+            {isFieldAutoPopulated('hazardStatements') && (
+              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem GHS data (duplicates removed, editable)</p>
             )}
             {!readOnly && (
               <p className="mt-1 text-xs text-gray-500">
@@ -540,12 +587,15 @@ const ChemicalPropertiesForm = ({
               <input
                 {...register('chemicalProperties.unNumber')}
                 type="text"
-                className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
+                className={`form-input ${isFieldAutoPopulated('unNumber') ? 'bg-green-50' : ''}`}
                 placeholder="e.g., UN1170"
-                readOnly={autoPopulated || readOnly}
+                readOnly={readOnly}
+                onChange={(e) => {
+                  markFieldAsEdited('unNumber');
+                }}
               />
-              {autoPopulated && (
-                <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (if available)</p>
+              {isFieldAutoPopulated('unNumber') && (
+                <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
               )}
               {!readOnly && (
                 <p className="mt-1 text-xs text-gray-500">

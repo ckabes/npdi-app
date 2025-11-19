@@ -597,11 +597,11 @@ router.post('/:id/restore-default', async (req, res) => {
             fieldKey: 'productName',
             label: 'Product Name',
             type: 'text',
-            required: false,
+            required: true,
             visible: true,
             editable: true,
-            placeholder: 'Enter product name',
-            helpText: 'The commercial name of the product',
+            placeholder: 'Enter commercial/marketing product name',
+            helpText: 'The commercial or marketing name for this product (different from chemical name)',
             gridColumn: 'full',
             order: 1,
             isCustom: false
@@ -617,7 +617,7 @@ router.post('/:id/restore-default', async (req, res) => {
             placeholder: 'Enter product line',
             helpText: 'Product category or line',
             gridColumn: 'half',
-            order: 2,
+            order: 1,
             isCustom: false
           },
           {
@@ -630,7 +630,7 @@ router.post('/:id/restore-default', async (req, res) => {
             defaultValue: 'P90',
             helpText: 'Business unit responsible for this product',
             gridColumn: 'half',
-            order: 3,
+            order: 2,
             isCustom: false,
             options: [
               { value: '775', label: 'SBU 775' },

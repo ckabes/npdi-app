@@ -22,12 +22,21 @@ const CreateTicket = () => {
   const [compositionLoadingIndex, setCompositionLoadingIndex] = useState(null);
   const [template, setTemplate] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const [generatingAIContent, setGeneratingAIContent] = useState(false);
+  const [aiFieldsLoading, setAIFieldsLoading] = useState({
+    productDescription: false,
+    websiteTitle: false,
+    metaDescription: false,
+    keyFeatures: false,
+    applications: false,
+    targetIndustries: false
+  });
   const { user, isProductManager, isPMOPS } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
+      productName: '',
       priority: 'MEDIUM',
-      productLine: 'Chemical Products',
       sbu: isProductManager ? user?.sbu : 'P90',
       productionType: 'Produced', // Default to Produced
       skuVariants: [],
@@ -249,10 +258,12 @@ const CreateTicket = () => {
       }
 
       if (data.chemicalProperties.hazardStatements && Array.isArray(data.chemicalProperties.hazardStatements)) {
-        const cleanStatements = data.chemicalProperties.hazardStatements
+        // Remove duplicates by using a Set, then filter and limit
+        const uniqueStatements = [...new Set(data.chemicalProperties.hazardStatements)]
           .filter(s => s && s.trim().length > 0)
-          .slice(0, 10) // Limit to first 10
-          .join('\n');
+          .slice(0, 10); // Limit to first 10 unique statements
+
+        const cleanStatements = uniqueStatements.join('\n');
         if (cleanStatements) {
           setValue('chemicalProperties.hazardStatements', cleanStatements, { shouldDirty: true });
         }
@@ -516,77 +527,160 @@ const CreateTicket = () => {
     }, 100);
   };
 
-  const generateProductDescription = () => {
+  const generateProductDescription = async () => {
     if (!productName) {
       toast.error('Please enter a product name first');
       return;
     }
 
-    // Generate Claude-style product description based on available information
-    const generateDescription = () => {
-      const name = productName.trim();
-      const formula = molecularFormula || '';
-      const cas = casNumber || '';
-      const businessUnit = sbu || 'Life Science';
-      
-      // Create a comprehensive product description
-      let description = `${name} is a high-quality chemical compound`;
-      
-      if (formula) {
-        description += ` with the molecular formula ${formula}`;
-      }
-      
-      if (cas) {
-        description += ` (CAS: ${cas})`;
-      }
-      
-      description += ` offered by MilliporeSigma for research and development applications.`;
-      
-      // Add business unit specific context
-      switch (businessUnit) {
-        case 'Life Science':
-          description += ` This product is particularly suited for life science research, including cell biology, molecular biology, and biochemical studies.`;
-          break;
-        case 'Process Solutions':
-          description += ` Designed for process development and manufacturing applications, this product meets stringent quality requirements for industrial use.`;
-          break;
-        case 'Electronics':
-          description += ` This electronic-grade material is ideal for semiconductor manufacturing and electronic component production.`;
-          break;
-        case 'Healthcare':
-          description += ` Formulated to meet healthcare industry standards, suitable for pharmaceutical and medical device applications.`;
-          break;
-        default:
-          description += ` This versatile compound serves multiple research and industrial applications.`;
-      }
-      
-      description += ` Available in multiple package sizes to meet diverse research needs, each lot is carefully tested to ensure consistent quality and purity. Our commitment to excellence makes this an ideal choice for researchers and professionals requiring reliable, high-performance chemical products.`;
-      
-      return description;
-    };
+    setGeneratingAIContent(true);
 
-    // Generate and populate the description
-    const generatedDesc = generateDescription();
-    setValue('corpbaseData.productDescription', generatedDesc, { shouldDirty: true });
-    
-    // Generate complementary website title
-    const websiteTitle = `${productName} | High-Quality Chemical | MilliporeSigma`;
-    setValue('corpbaseData.websiteTitle', websiteTitle, { shouldDirty: true });
-    
-    // Generate meta description
-    const metaDesc = `Buy ${productName}${molecularFormula ? ` (${molecularFormula})` : ''} from MilliporeSigma. High purity, reliable quality for research applications. Multiple sizes available.`;
-    setValue('corpbaseData.metaDescription', metaDesc.substring(0, 160), { shouldDirty: true });
-    
-    // Generate key features
-    const keyFeatures = `• High purity and consistent quality
-• Rigorous quality control testing
-• Available in multiple package sizes
-• Suitable for research applications
-• Reliable supply chain and fast delivery
-• Comprehensive documentation and support`;
-    setValue('corpbaseData.keyFeatures', keyFeatures, { shouldDirty: true });
-    
-    toast.success('Product description generated successfully!');
+    // Reset all field loading states
+    setAIFieldsLoading({
+      productDescription: false,
+      websiteTitle: false,
+      metaDescription: false,
+      keyFeatures: false,
+      applications: false,
+      targetIndustries: false
+    });
+
+    try {
+      // Prepare product data for AI generation
+      const productData = {
+        productName: productName.trim(),
+        casNumber: casNumber || '',
+        molecularFormula: molecularFormula || '',
+        molecularWeight: watch('chemicalProperties.molecularWeight') || '',
+        iupacName: watch('chemicalProperties.iupacName') || '',
+        sbu: sbu || 'Life Science'
+      };
+
+      console.log('Generating AI content for:', productData);
+
+      const toastId = toast.loading('Starting AI content generation...', { duration: Infinity });
+
+      // Call the AI generation endpoint
+      const response = await productAPI.generateCorpBaseContent(productData);
+      const result = response.data;
+
+      console.log('AI generation result:', result);
+
+      if (result.success && result.content) {
+        // Populate fields one by one with visual feedback
+        const fields = [
+          { key: 'productDescription', label: 'Product Description', data: result.content.productDescription },
+          { key: 'websiteTitle', label: 'Website Title', data: result.content.websiteTitle },
+          { key: 'metaDescription', label: 'Meta Description', data: result.content.metaDescription },
+          { key: 'keyFeatures', label: 'Key Features', data: result.content.keyFeatures },
+          { key: 'applications', label: 'Applications', data: result.content.applications },
+          { key: 'targetIndustries', label: 'Target Industries', data: result.content.targetIndustries }
+        ];
+
+        for (const field of fields) {
+          if (field.data) {
+            // Show loading state for this field
+            setAIFieldsLoading(prev => ({ ...prev, [field.key]: true }));
+            toast.loading(`Generating ${field.label}...`, { id: toastId });
+
+            // Small delay for visual feedback
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Set the value
+            setValue(`corpbaseData.${field.key}`, field.data, { shouldDirty: true });
+
+            // Mark as complete
+            setAIFieldsLoading(prev => ({ ...prev, [field.key]: false }));
+          }
+        }
+
+        toast.dismiss(toastId);
+
+        // Show different message based on whether AI was used
+        if (result.aiGenerated) {
+          toast.success('✨ AI-generated content created successfully!', { duration: 4000 });
+        } else {
+          toast.success('Template-based content generated (AI not available).', { duration: 4000 });
+        }
+
+      } else {
+        console.warn('AI generation failed:', result.message);
+        toast.dismiss(toastId);
+        toast.error(result.message || 'Failed to generate content. Please try again.');
+      }
+
+    } catch (error) {
+      console.error('Generate description error:', error);
+      toast.dismiss();
+
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to generate content';
+
+      // Check if it's a VPN/network connectivity issue
+      if (errorMsg.includes('VPN') || errorMsg.includes('ENOTFOUND') || errorMsg.includes('ETIMEDOUT') || errorMsg.includes('network')) {
+        toast('Not connected to Merck network. Generating content using standard templates instead.', {
+          icon: '⚠️',
+          duration: 5000,
+          style: {
+            background: '#FEF3C7',
+            color: '#92400E',
+            border: '1px solid #FCD34D'
+          }
+        });
+
+        // Try to generate with templates anyway
+        try {
+          const response = await productAPI.generateCorpBaseContent({
+            productName: productName.trim(),
+            casNumber: casNumber || '',
+            molecularFormula: molecularFormula || '',
+            molecularWeight: watch('chemicalProperties.molecularWeight') || '',
+            iupacName: watch('chemicalProperties.iupacName') || '',
+            sbu: sbu || 'Life Science',
+            forceTemplate: true // Flag to force template-based generation
+          });
+
+          const result = response.data;
+          if (result.success && result.content) {
+            // Populate fields with template content
+            const fields = [
+              { key: 'productDescription', label: 'Product Description', data: result.content.productDescription },
+              { key: 'websiteTitle', label: 'Website Title', data: result.content.websiteTitle },
+              { key: 'metaDescription', label: 'Meta Description', data: result.content.metaDescription },
+              { key: 'keyFeatures', label: 'Key Features', data: result.content.keyFeatures },
+              { key: 'applications', label: 'Applications', data: result.content.applications },
+              { key: 'targetIndustries', label: 'Target Industries', data: result.content.targetIndustries }
+            ];
+
+            for (const field of fields) {
+              if (field.data) {
+                setValue(`corpbaseData.${field.key}`, field.data, { shouldDirty: true });
+              }
+            }
+            toast.success('Standard template content generated successfully.');
+          }
+        } catch (templateError) {
+          console.error('Template generation also failed:', templateError);
+          toast.error('Unable to generate content. Please enter information manually.');
+        }
+      }
+      // Check if it's an AI configuration issue
+      else if (errorMsg.includes('not enabled') || errorMsg.includes('API key')) {
+        toast.error('AI content generation is not configured. Please contact your administrator.');
+      } else {
+        toast.error(`Content generation failed: ${errorMsg}`);
+      }
+    } finally {
+      setGeneratingAIContent(false);
+      // Reset all field loading states
+      setAIFieldsLoading({
+        productDescription: false,
+        websiteTitle: false,
+        metaDescription: false,
+        keyFeatures: false,
+        applications: false,
+        targetIndustries: false
+      });
+    }
   };
 
   // CAS lookup for composition components
@@ -621,9 +715,13 @@ const CreateTicket = () => {
   // Auto-adjust weights proportionally to total 100%
   const handleWeightChange = (changedIndex, newWeight) => {
     const totalComponents = compositionFields.length;
-    if (totalComponents <= 1) return; // No adjustment needed for single component
 
     const newWeightNum = parseFloat(newWeight) || 0;
+
+    // First, set the changed field's value explicitly to ensure it's registered
+    setValue(`composition.components.${changedIndex}.weightPercent`, newWeightNum, { shouldDirty: true });
+
+    if (totalComponents <= 1) return; // No adjustment needed for single component
 
     // Get current weights for all other components
     const otherComponents = compositionFields
@@ -754,13 +852,17 @@ const CreateTicket = () => {
                               </div>
                               <button
                                 type="button"
-                                onClick={() => appendComposition({
-                                  proprietary: false,
-                                  componentCAS: '',
-                                  weightPercent: 0,
-                                  componentName: '',
-                                  componentFormula: ''
-                                })}
+                                onClick={() => {
+                                  console.log('Adding new component to composition (header button)');
+                                  appendComposition({
+                                    proprietary: false,
+                                    componentCAS: '',
+                                    weightPercent: 0,
+                                    componentName: '',
+                                    componentFormula: ''
+                                  });
+                                  toast.success('New component added to table');
+                                }}
                                 className="btn btn-sm btn-secondary"
                               >
                                 + Add Component
@@ -774,13 +876,17 @@ const CreateTicket = () => {
                                 {casNumber && productName && molecularFormula && (
                                   <button
                                     type="button"
-                                    onClick={() => appendComposition({
-                                      proprietary: false,
-                                      componentCAS: casNumber,
-                                      weightPercent: 100,
-                                      componentName: productName,
-                                      componentFormula: molecularFormula
-                                    })}
+                                    onClick={() => {
+                                      console.log('Populating composition with main chemical data');
+                                      appendComposition({
+                                        proprietary: false,
+                                        componentCAS: casNumber,
+                                        weightPercent: 100,
+                                        componentName: productName,
+                                        componentFormula: molecularFormula
+                                      });
+                                      toast.success(`Added ${productName} at 100%`);
+                                    }}
                                     className="mt-3 btn btn-sm btn-primary"
                                   >
                                     Populate with Chemical Data (100%)
@@ -914,16 +1020,23 @@ const CreateTicket = () => {
                             )}
                             {compositionFields.length > 0 && (
                               <div className="mt-4 text-sm text-gray-600">
-                                <p className="font-medium">Total Weight: {compositionFields.reduce((sum, _, idx) => {
-                                  const weight = watch(`composition.components.${idx}.weightPercent`) || 0;
-                                  return sum + parseFloat(weight);
-                                }, 0).toFixed(2)}%</p>
-                                {Math.abs(compositionFields.reduce((sum, _, idx) => {
-                                  const weight = watch(`composition.components.${idx}.weightPercent`) || 0;
-                                  return sum + parseFloat(weight);
-                                }, 0) - 100) > 0.01 && (
-                                  <p className="text-orange-600 mt-1">⚠ Warning: Total weight should equal 100%</p>
-                                )}
+                                {(() => {
+                                  const totalWeight = compositionFields.reduce((sum, _, idx) => {
+                                    const weight = watch(`composition.components.${idx}.weightPercent`) || 0;
+                                    return sum + parseFloat(weight);
+                                  }, 0);
+                                  const roundedTotal = parseFloat(totalWeight.toFixed(2));
+                                  const isOffBy = Math.abs(roundedTotal - 100) > 0.1;
+
+                                  return (
+                                    <>
+                                      <p className="font-medium">Total Weight: {roundedTotal.toFixed(2)}%</p>
+                                      {isOffBy && (
+                                        <p className="text-orange-600 mt-1">⚠ Warning: Total weight should equal 100%</p>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
                             )}
                           </div>
@@ -984,6 +1097,8 @@ const CreateTicket = () => {
                         onGenerateDescription={generateProductDescription}
                         readOnly={false}
                         showGenerateButton={true}
+                        isGenerating={generatingAIContent}
+                        fieldsLoading={aiFieldsLoading}
                       />
                     );
 

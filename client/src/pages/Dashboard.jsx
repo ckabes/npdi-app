@@ -14,7 +14,8 @@ import {
   PencilIcon,
   CheckIcon,
   InformationCircleIcon,
-  XMarkIcon
+  XMarkIcon,
+  DocumentIcon
 } from '@heroicons/react/24/outline';
 import { StatusBadge, PriorityBadge } from '../components/badges';
 import toast from 'react-hot-toast';
@@ -24,13 +25,20 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [recentTickets, setRecentTickets] = useState([]);
+  const [myTickets, setMyTickets] = useState([]);
+  const [allRecentTickets, setAllRecentTickets] = useState([]);
+  const [draftTickets, setDraftTickets] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [showMonthlyRateModal, setShowMonthlyRateModal] = useState(false);
+  const [showThisWeekModal, setShowThisWeekModal] = useState(false);
 
   useEffect(() => {
     fetchStats();
-    fetchRecentTickets();
+    fetchMyTickets();
+    if (isPMOPS) {
+      fetchAllRecentTickets();
+    }
+    fetchDraftTickets();
   }, []);
 
   const fetchStats = async () => {
@@ -45,17 +53,57 @@ const Dashboard = () => {
     }
   };
 
-  const fetchRecentTickets = async () => {
+  const fetchMyTickets = async () => {
     try {
-      // Fetch recent tickets (last 5)
-      const response = await productAPI.getTickets({ page: 1, limit: 5 });
-      setRecentTickets(response.data.tickets || []);
+      // Fetch ALL tickets created by the current user (excluding drafts)
+      const params = {
+        page: 1,
+        limit: 1000, // Large limit to get all tickets
+        status: 'SUBMITTED,IN_PROCESS,NPDI_INITIATED,COMPLETED',
+        createdBy: user?.email, // Filter by user's email
+        sortBy: 'updatedAt', // Sort by last updated
+        sortOrder: 'desc' // Most recent first
+      };
 
-      // Fetch recent activity (status changes, comments, edits)
-      const activityResponse = await productAPI.getRecentActivity({ limit: 10 });
-      setRecentActivity(activityResponse.data.activities || []);
+      const response = await productAPI.getTickets(params);
+      setMyTickets(response.data.tickets || []);
     } catch (error) {
-      console.error('Failed to fetch recent tickets:', error);
+      console.error('Failed to fetch my tickets:', error);
+    }
+  };
+
+  const fetchAllRecentTickets = async () => {
+    try {
+      // For PMOps: fetch all tickets in the system (excluding drafts)
+      const params = {
+        page: 1,
+        limit: 10,
+        status: 'SUBMITTED,IN_PROCESS,NPDI_INITIATED,COMPLETED',
+        // No createdBy filter - show all tickets
+        sortBy: 'updatedAt', // Sort by last updated
+        sortOrder: 'desc' // Most recent first
+      };
+
+      const response = await productAPI.getTickets(params);
+      setAllRecentTickets(response.data.tickets || []);
+    } catch (error) {
+      console.error('Failed to fetch all recent tickets:', error);
+    }
+  };
+
+  const fetchDraftTickets = async () => {
+    try {
+      // Fetch draft tickets for the current user
+      const response = await productAPI.getTickets({
+        page: 1,
+        limit: 5,
+        status: 'DRAFT',
+        sortBy: 'updatedAt', // Sort by last updated
+        sortOrder: 'desc' // Most recent first
+      });
+      setDraftTickets(response.data.tickets || []);
+    } catch (error) {
+      console.error('Failed to fetch draft tickets:', error);
     }
   };
 
@@ -102,15 +150,48 @@ const Dashboard = () => {
   };
 
   const formatTimeAgo = (timestamp) => {
+    if (!timestamp) return 'Unknown time';
+
     const now = new Date();
     const time = new Date(timestamp);
+
+    // Check if timestamp is valid
+    if (isNaN(time.getTime())) {
+      console.error('Invalid timestamp:', timestamp);
+      return 'Invalid date';
+    }
+
     const diffInSeconds = Math.floor((now - time) / 1000);
 
-    if (diffInSeconds < 60) return 'just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    return time.toLocaleDateString();
+    // Less than 1 minute
+    if (diffInSeconds < 60) {
+      return diffInSeconds <= 10 ? 'just now' : `${diffInSeconds}s ago`;
+    }
+
+    // Less than 1 hour
+    if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes}m ago`;
+    }
+
+    // Less than 24 hours
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours}h ago`;
+    }
+
+    // Less than 7 days
+    if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days}d ago`;
+    }
+
+    // More than 7 days - show actual date
+    return time.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: time.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
   };
 
   if (loading) {
@@ -240,20 +321,36 @@ const Dashboard = () => {
             </div>
           </Link>
 
-          <Link
-            to="/tickets?status=COMPLETED"
-            className="card hover:shadow-lg transition-shadow cursor-pointer"
-          >
-            <div className="card-body">
-              <p className="text-xs font-medium text-gray-500 uppercase">This Week</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{throughput.completedThisWeek}</p>
-              <p className="text-xs text-gray-500 mt-1">Completed tickets</p>
-            </div>
-          </Link>
+          <div className="card hover:shadow-lg transition-shadow relative">
+            <Link
+              to="/tickets?status=COMPLETED"
+              className="card-body block"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase">This Week</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{throughput.completedThisWeek}</p>
+                  <p className="text-xs text-gray-500 mt-1">Completed tickets (last 7 days)</p>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowThisWeekModal(true);
+                  }}
+                  className="text-millipore-blue hover:text-millipore-blue-dark relative z-10"
+                  title="Click for details about this metric"
+                >
+                  <InformationCircleIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </Link>
+          </div>
 
           <div
             onClick={() => setShowMonthlyRateModal(true)}
             className="card hover:shadow-lg transition-shadow cursor-pointer relative"
+            title="Estimated monthly throughput based on last 7 days (click for details)"
           >
             <div className="card-body">
               <div className="flex items-center justify-between">
@@ -566,8 +663,9 @@ const Dashboard = () => {
                   <h5 className="font-semibold text-yellow-900 mb-2">Tickets Used in Calculation:</h5>
                   <p className="text-sm text-yellow-800">
                     This metric is based on tickets with status <strong>COMPLETED</strong> that were
-                    completed within the last 7 days. The calculation provides an estimate of team
-                    throughput and helps forecast capacity planning.
+                    completed within the <strong>last 7 days (rolling window)</strong>. The calculation
+                    provides an estimate of team throughput and helps forecast capacity planning. The
+                    window automatically updates daily to always reflect the most recent 7-day period.
                   </p>
                 </div>
 
@@ -592,6 +690,103 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
+        {/* This Week Explanation Modal */}
+        {showThisWeekModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+            <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center">
+                  <InformationCircleIcon className="h-6 w-6 text-millipore-blue mr-2" />
+                  <h3 className="text-xl font-semibold text-gray-900">This Week - Completed Tickets</h3>
+                </div>
+                <button
+                  onClick={() => setShowThisWeekModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">What This Metric Shows</h4>
+                  <p className="text-gray-700">
+                    This metric displays the number of tickets that were completed within the last 7 days using a <strong>rolling window</strong> calculation.
+                  </p>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h5 className="font-semibold text-blue-900 mb-2">How It Works:</h5>
+                  <ul className="space-y-2 text-sm text-blue-800">
+                    <li className="flex items-start">
+                      <span className="font-bold mr-2">•</span>
+                      <span>Counts tickets with status <strong>COMPLETED</strong></span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="font-bold mr-2">•</span>
+                      <span>Uses the actual completion date from ticket status history</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="font-bold mr-2">•</span>
+                      <span>Includes only tickets completed in the last 7 days from today</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="font-bold mr-2">•</span>
+                      <span>The window automatically updates daily (not a calendar week)</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h5 className="font-semibold text-gray-900 mb-2">Current Status:</h5>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-sm text-gray-600">Tickets completed in last 7 days:</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleDateString()} - {new Date().toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-4xl font-bold text-millipore-blue">
+                        {throughput.completedThisWeek}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h5 className="font-semibold text-green-900 mb-2">Rolling Window Explained:</h5>
+                  <p className="text-sm text-green-800">
+                    Unlike a calendar week (Monday-Sunday), this uses a <strong>rolling 7-day window</strong>.
+                    For example, if today is Thursday, it counts tickets completed from last Thursday through today.
+                    Tomorrow, it will count from last Friday through tomorrow. This provides a more accurate and
+                    consistent measure of recent team performance.
+                  </p>
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  <p>
+                    <strong>Note:</strong> This metric updates automatically every time you refresh the dashboard.
+                    It reflects real-time completion data based on when tickets transitioned to COMPLETED status.
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end p-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowThisWeekModal(false)}
+                  className="btn btn-primary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -600,18 +795,18 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-white shadow rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
+      <div className="bg-gradient-to-r from-millipore-blue to-blue-600 shadow-lg rounded-lg">
+        <div className="px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-white">
                 Welcome back, {user?.firstName}!
               </h1>
-              <p className="text-gray-600">{formatRoleName(user?.role)}</p>
+              <p className="text-blue-100 mt-1">{formatRoleName(user?.role)}</p>
             </div>
             <Link
               to="/tickets/new"
-              className="btn btn-primary flex items-center"
+              className="bg-white text-millipore-blue hover:bg-gray-100 font-medium py-2 px-4 rounded-lg shadow transition-colors flex items-center"
             >
               <PlusIcon className="h-5 w-5 mr-2" />
               New Ticket
@@ -622,125 +817,184 @@ const Dashboard = () => {
 
       {/* Quick Stats for Product Managers */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Link to="/tickets?status=DRAFT" className="card hover:shadow-lg transition-shadow">
+        <Link to="/tickets?status=DRAFT" className="card bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200 hover:shadow-lg transition-shadow">
           <div className="card-body">
-            <p className="text-xs font-medium text-gray-500 uppercase">Draft Tickets</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{statusCounts.draft}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-600 uppercase">Draft Tickets</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{statusCounts.draft}</p>
+                <p className="text-xs text-gray-500 mt-1">Work in progress</p>
+              </div>
+              <div className="p-3 bg-gray-200 rounded-full">
+                <PencilIcon className="h-8 w-8 text-gray-700" />
+              </div>
+            </div>
           </div>
         </Link>
 
-        <Link to="/tickets?status=SUBMITTED" className="card hover:shadow-lg transition-shadow">
+        <Link to="/tickets?status=SUBMITTED" className="card bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200 hover:shadow-lg transition-shadow">
           <div className="card-body">
-            <p className="text-xs font-medium text-gray-500 uppercase">Submitted</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{statusCounts.submitted}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-yellow-600 uppercase">Submitted</p>
+                <p className="text-3xl font-bold text-yellow-900 mt-1">{statusCounts.submitted}</p>
+                <p className="text-xs text-yellow-600 mt-1">Awaiting review</p>
+              </div>
+              <div className="p-3 bg-yellow-200 rounded-full">
+                <ClockIcon className="h-8 w-8 text-yellow-700" />
+              </div>
+            </div>
           </div>
         </Link>
 
-        <Link to="/tickets?status=IN_PROCESS" className="card hover:shadow-lg transition-shadow">
+        <Link to="/tickets?status=IN_PROCESS" className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-shadow">
           <div className="card-body">
-            <p className="text-xs font-medium text-gray-500 uppercase">In Process</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{statusCounts.inProcess}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-blue-600 uppercase">In Process</p>
+                <p className="text-3xl font-bold text-blue-900 mt-1">{statusCounts.inProcess}</p>
+                <p className="text-xs text-blue-600 mt-1">Being processed</p>
+              </div>
+              <div className="p-3 bg-blue-200 rounded-full">
+                <ChartBarIcon className="h-8 w-8 text-blue-700" />
+              </div>
+            </div>
           </div>
         </Link>
 
-        <Link to="/tickets?status=COMPLETED" className="card hover:shadow-lg transition-shadow">
+        <Link to="/tickets?status=COMPLETED" className="card bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-shadow">
           <div className="card-body">
-            <p className="text-xs font-medium text-gray-500 uppercase">Completed</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{statusCounts.completed}</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-green-600 uppercase">Completed</p>
+                <p className="text-3xl font-bold text-green-900 mt-1">{statusCounts.completed}</p>
+                <p className="text-xs text-green-600 mt-1">Successfully done</p>
+              </div>
+              <div className="p-3 bg-green-200 rounded-full">
+                <CheckCircleIcon className="h-8 w-8 text-green-700" />
+              </div>
+            </div>
           </div>
         </Link>
       </div>
 
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Recent Tickets */}
-        <div className="card">
-          <div className="card-header">
+        {/* My Tickets - TOP SECTION */}
+        <div className="card border-t-4 border-t-blue-500">
+          <div className="card-header bg-gradient-to-r from-blue-50 to-blue-100">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Recent Tickets</h3>
+              <div className="flex items-center">
+                <DocumentIcon className="h-6 w-6 text-blue-600 mr-2" />
+                <h3 className="text-lg font-medium text-gray-900">My Tickets</h3>
+              </div>
               <Link to="/tickets" className="text-sm text-millipore-blue hover:text-millipore-blue-dark">
                 View All →
               </Link>
             </div>
           </div>
           <div className="card-body p-0">
-            {recentTickets.length > 0 ? (
+            {myTickets.length > 0 ? (
               <div className="divide-y divide-gray-200">
-                {recentTickets.map((ticket) => (
+                {myTickets.map((ticket) => (
                   <Link
                     key={ticket._id}
                     to={`/tickets/${ticket._id}`}
-                    className="block px-6 py-4 hover:bg-gray-50 transition-colors"
+                    className="block px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-blue-200"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <ClockIcon className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
                           <p className="text-sm font-medium text-gray-900">
                             {ticket.ticketNumber}
                           </p>
                           <StatusBadge status={ticket.status} />
+                          {ticket.priority && <PriorityBadge priority={ticket.priority} />}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1 truncate">
+                        <p className="text-sm text-gray-700 mb-1">
                           {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Created {new Date(ticket.createdAt).toLocaleDateString()}
-                        </p>
+                        <div className="flex items-center space-x-3 text-xs text-gray-500">
+                          <span>SBU {ticket.sbu}</span>
+                          <span>•</span>
+                          <span
+                            title={ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit'
+                            }) : 'Unknown time'}
+                            className="cursor-help"
+                          >
+                            Updated {formatTimeAgo(ticket.updatedAt)}
+                          </span>
+                        </div>
                       </div>
-                      <PriorityBadge priority={ticket.priority} />
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
               <div className="px-6 py-8 text-center text-gray-500">
-                <p>No tickets yet</p>
-                <Link to="/tickets/new" className="text-millipore-blue hover:text-millipore-blue-dark text-sm mt-2 inline-block">
-                  Create your first ticket
-                </Link>
+                <ClockIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p className="text-sm">No tickets found</p>
+                <button
+                  onClick={() => navigate('/tickets/new')}
+                  className="mt-3 text-sm text-millipore-blue hover:text-millipore-blue-dark font-medium"
+                >
+                  Create New Ticket →
+                </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Recent Activity Feed */}
-        <div className="card">
-          <div className="card-header">
+        {/* My Drafts Section */}
+        <div className="card border-t-4 border-t-gray-400">
+          <div className="card-header bg-gradient-to-r from-gray-50 to-gray-100">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
-              <Link to="/tickets" className="text-sm text-millipore-blue hover:text-millipore-blue-dark">
+              <div className="flex items-center">
+                <PencilIcon className="h-6 w-6 text-gray-600 mr-2" />
+                <h3 className="text-lg font-medium text-gray-900">My Drafts</h3>
+              </div>
+              <Link to="/tickets?status=DRAFT" className="text-sm text-millipore-blue hover:text-millipore-blue-dark">
                 View All →
               </Link>
             </div>
           </div>
           <div className="card-body p-0">
-            {recentActivity.length > 0 ? (
+            {draftTickets.length > 0 ? (
               <div className="divide-y divide-gray-200">
-                {recentActivity.slice(0, 8).map((activity, index) => (
+                {draftTickets.map((ticket) => (
                   <Link
-                    key={`${activity.ticketId}-${activity.timestamp}-${index}`}
-                    to={`/tickets/${activity.ticketId}`}
-                    className={`block px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 ${getActivityBgColor(activity.type)}`}
+                    key={ticket._id}
+                    to={`/tickets/${ticket._id}`}
+                    className="block px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-gray-300"
                   >
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 mt-0.5">
-                        {getActivityIcon(activity.type)}
+                        <PencilIcon className="h-5 w-5 text-gray-500" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
                           <p className="text-sm font-medium text-gray-900">
-                            {activity.ticketNumber}
+                            {ticket.ticketNumber}
                           </p>
-                          <StatusBadge status={activity.status} />
-                          {activity.priority && <PriorityBadge priority={activity.priority} />}
+                          <StatusBadge status={ticket.status} />
+                          {ticket.priority && <PriorityBadge priority={ticket.priority} />}
                         </div>
-                        <p className="text-sm text-gray-700 mb-1 line-clamp-2">
-                          {activity.description}
+                        <p className="text-sm text-gray-700 mb-1">
+                          {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled Draft'}
                         </p>
                         <div className="flex items-center space-x-3 text-xs text-gray-500">
-                          <span className="font-medium">{activity.user}</span>
+                          <span>Created {new Date(ticket.createdAt).toLocaleDateString()}</span>
                           <span>•</span>
-                          <span>{formatTimeAgo(activity.timestamp)}</span>
+                          <span>Last updated {formatTimeAgo(ticket.updatedAt)}</span>
                         </div>
                       </div>
                     </div>
@@ -749,11 +1003,94 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="px-6 py-8 text-center text-gray-500">
-                <p>No recent activity</p>
+                <PencilIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p className="text-sm">No draft tickets</p>
+                <button
+                  onClick={() => navigate('/tickets/new')}
+                  className="mt-3 text-sm text-millipore-blue hover:text-millipore-blue-dark font-medium"
+                >
+                  Create New Ticket →
+                </button>
               </div>
             )}
           </div>
         </div>
+
+        {/* Recent Tickets - PMOps Only */}
+        {isPMOPS && (
+          <div className="card border-t-4 border-t-green-500">
+            <div className="card-header bg-gradient-to-r from-green-50 to-green-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <ChartBarIcon className="h-6 w-6 text-green-600 mr-2" />
+                  <h3 className="text-lg font-medium text-gray-900">Recent Tickets (All Users)</h3>
+                </div>
+                <Link to="/tickets" className="text-sm text-millipore-blue hover:text-millipore-blue-dark">
+                  View All →
+                </Link>
+              </div>
+            </div>
+            <div className="card-body p-0">
+              {allRecentTickets.length > 0 ? (
+                <div className="divide-y divide-gray-200">
+                  {allRecentTickets.map((ticket) => (
+                    <Link
+                      key={ticket._id}
+                      to={`/tickets/${ticket._id}`}
+                      className="block px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-green-200"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <DocumentIcon className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              {ticket.ticketNumber}
+                            </p>
+                            <StatusBadge status={ticket.status} />
+                            {ticket.priority && <PriorityBadge priority={ticket.priority} />}
+                          </div>
+                          <p className="text-sm text-gray-700 mb-1">
+                            {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
+                          </p>
+                          <div className="flex items-center space-x-3 text-xs text-gray-500">
+                            {ticket.createdBy && (
+                              <>
+                                <span className="font-medium">{ticket.createdBy}</span>
+                                <span>•</span>
+                              </>
+                            )}
+                            <span>SBU {ticket.sbu}</span>
+                            <span>•</span>
+                            <span
+                              title={ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                              }) : 'Unknown time'}
+                              className="cursor-help"
+                            >
+                              Updated {formatTimeAgo(ticket.updatedAt)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-6 py-8 text-center text-gray-500">
+                  <DocumentIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm">No recent tickets</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

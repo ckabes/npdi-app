@@ -12,9 +12,16 @@ router.get('/recent-activity', productController.getRecentActivity);
 // CAS number lookup endpoint
 router.get('/cas-lookup/:casNumber', productController.lookupCAS);
 
+// AI-powered CorpBase content generation endpoint
+router.post('/generate-corpbase-content', [
+  body('productData.productName').notEmpty().trim().withMessage('Product name is required'),
+  body('productData.casNumber').optional().trim(),
+  body('productData.molecularFormula').optional().trim(),
+  body('fields').optional().isArray().withMessage('Fields must be an array')
+], productController.generateCorpBaseContent);
+
 router.post('/', [
-  body('productName').optional().trim(),
-  body('productLine').notEmpty().trim(),
+  body('productName').notEmpty().trim(),
   body('sbu').optional().custom(value => {
     if (value === '') return true; // Allow empty strings, will be cleaned up in controller
     return ['775', 'P90', '440', 'P87', 'P89', 'P85'].includes(value);
@@ -48,7 +55,6 @@ router.post('/', [
 
 router.post('/draft', [
   body('productName').optional().trim(),
-  body('productLine').optional().trim(),
   body('sbu').optional().custom(value => {
     if (value === '') return true;
     return ['775', 'P90', '440', 'P87', 'P89', 'P85'].includes(value);
@@ -64,7 +70,6 @@ router.get('/:id', productController.getTicketById);
 
 router.put('/:id', [
   body('productName').optional().notEmpty().trim(),
-  body('productLine').optional().notEmpty().trim(),
   body('chemicalProperties.casNumber').optional().matches(/^\d{1,7}-\d{2}-\d$/),
   body('skuVariants').optional().isArray({ min: 1 })
 ], productController.updateTicket);
@@ -83,5 +88,8 @@ router.get('/:id/export-pdp', productController.exportPDPChecklist);
 
 // Export ticket as PIF
 router.get('/:id/export-pif', productController.exportPIF);
+
+// Export ticket data as Excel
+router.get('/:id/export-data', productController.exportDataExcel);
 
 module.exports = router;

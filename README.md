@@ -8,7 +8,8 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 - **Product Ticket Management**: Create and manage development tickets for new chemical products
 - **Multi-SKU Support**: Handle prepack, -CONF, -SPEC, and -VAR SKUs per product
 - **Profile-Based Access**: Separate interfaces for Product Managers, PM-OPS team, and Administrators
-- **Status Workflow**: DRAFT → SUBMITTED → IN_PROCESS → COMPLETED/CANCELED with audit trail
+- **Status Workflow**: DRAFT → SUBMITTED → IN_PROCESS → NPDI_INITIATED → COMPLETED/CANCELED with audit trail
+- **NPDI Integration**: Seamless transition to official NPDI system with ticket number synchronization
 - **SBU Organization**: Tickets organized by Strategic Business Unit
 - **Dynamic Form Configuration**: Customizable form fields with live preview editor
 

@@ -61,27 +61,13 @@ const defaultFormConfig = {
           fieldKey: 'productName',
           label: 'Product Name',
           type: 'text',
-          required: false,
-          visible: true,
-          editable: true,
-          placeholder: 'Enter product name',
-          helpText: 'The commercial name of the product',
-          gridColumn: 'full',
-          order: 1,
-          isCustom: false
-        },
-        {
-          fieldKey: 'productLine',
-          label: 'Product Line',
-          type: 'text',
           required: true,
           visible: true,
           editable: true,
-          defaultValue: 'Chemical Products',
-          placeholder: 'Enter product line',
-          helpText: 'Product category or line',
-          gridColumn: 'half',
-          order: 2,
+          placeholder: 'Enter commercial/marketing product name',
+          helpText: 'The commercial or marketing name for this product (different from chemical name)',
+          gridColumn: 'full',
+          order: 1,
           isCustom: false
         },
         {
@@ -94,7 +80,7 @@ const defaultFormConfig = {
           defaultValue: 'P90',
           helpText: 'Business unit responsible for this product',
           gridColumn: 'half',
-          order: 3,
+          order: 2,
           isCustom: false,
           options: [
             { value: '775', label: 'SBU 775' },
@@ -115,7 +101,7 @@ const defaultFormConfig = {
           defaultValue: 'MEDIUM',
           helpText: 'Priority level for development',
           gridColumn: 'half',
-          order: 4,
+          order: 3,
           isCustom: false,
           options: [
             { value: 'LOW', label: 'Low' },
@@ -134,7 +120,7 @@ const defaultFormConfig = {
           placeholder: 'Enter primary manufacturing plant',
           helpText: 'Primary manufacturing location',
           gridColumn: 'half',
-          order: 5,
+          order: 4,
           isCustom: false
         },
         {
@@ -147,7 +133,7 @@ const defaultFormConfig = {
           placeholder: 'Select brand...',
           helpText: 'Product brand',
           gridColumn: 'half',
-          order: 6,
+          order: 5,
           isCustom: false,
           options: [
             { value: 'Sigma-Aldrich', label: 'Sigma-Aldrich' },
@@ -443,7 +429,7 @@ const defaultFormConfig = {
       description: 'Define the chemical components that make up this product',
       visible: true,
       collapsible: true,
-      defaultExpanded: false,
+      defaultExpanded: true,
       order: 5,
       isCustom: false,
       fields: [

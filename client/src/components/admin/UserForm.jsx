@@ -14,7 +14,6 @@ const UserForm = ({ user, onSave, onCancel, refreshKey }) => {
       firstName: '',
       lastName: '',
       role: 'PRODUCT_MANAGER',
-      sbu: '',
       password: '',
       isActive: true,
       templateId: ''
@@ -47,13 +46,6 @@ const UserForm = ({ user, onSave, onCancel, refreshKey }) => {
     { value: 'PRODUCT_MANAGER', label: 'Product Manager' },
     { value: 'PM_OPS', label: 'PMOps' },
     { value: 'ADMIN', label: 'Administrator' }
-  ];
-
-  const sbuOptions = [
-    { value: 'Life Science', label: 'Life Science' },
-    { value: 'Process Solutions', label: 'Process Solutions' },
-    { value: 'Electronics', label: 'Electronics' },
-    { value: 'Healthcare', label: 'Healthcare' }
   ];
 
   const onSubmit = (data) => {
@@ -161,31 +153,6 @@ const UserForm = ({ user, onSave, onCancel, refreshKey }) => {
                 <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
               )}
             </div>
-
-            {/* SBU - Only for Product Managers */}
-            {selectedRole === 'PRODUCT_MANAGER' && (
-              <div>
-                <label htmlFor="sbu" className="block text-sm font-medium text-gray-700 mb-2">
-                  SBU (Strategic Business Unit) *
-                </label>
-                <select
-                  {...register('sbu', {
-                    required: selectedRole === 'PRODUCT_MANAGER' ? 'SBU is required for Product Managers' : false
-                  })}
-                  className="form-select"
-                >
-                  <option value="">Select SBU</option>
-                  {sbuOptions.map(sbu => (
-                    <option key={sbu.value} value={sbu.value}>
-                      {sbu.label}
-                    </option>
-                  ))}
-                </select>
-                {errors.sbu && (
-                  <p className="mt-1 text-sm text-red-600">{errors.sbu.message}</p>
-                )}
-              </div>
-            )}
 
             {/* Template Assignment - Only for Product Managers */}
             {selectedRole === 'PRODUCT_MANAGER' && (

@@ -298,7 +298,7 @@ const PMOPSDashboard = () => {
                           {ticket.productName}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {ticket.productLine}
+                          SBU {ticket.sbu}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

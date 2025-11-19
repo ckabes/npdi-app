@@ -69,10 +69,33 @@ export const productAPI = {
       throw error;
     });
   },
+  generateCorpBaseContent: (productData, fields = null) => {
+    console.log('API: Starting AI content generation for', productData.productName);
+
+    // Extract forceTemplate flag if present
+    const { forceTemplate, ...cleanProductData } = productData;
+
+    return apiClient.post('/products/generate-corpbase-content', {
+      productData: cleanProductData,
+      fields,
+      forceTemplate: forceTemplate || false
+    }, {
+      timeout: 60000 // 60 second timeout for AI generation
+    }).then(response => {
+      console.log('API: AI content generation successful', response.data);
+      return response;
+    }).catch(error => {
+      console.error('API: AI content generation failed', error);
+      throw error;
+    });
+  },
   exportPDPChecklist: (id) => apiClient.get(`/products/${id}/export-pdp`, {
     responseType: 'blob' // Important for binary data
   }),
   exportPIF: (id) => apiClient.get(`/products/${id}/export-pif`, {
+    responseType: 'blob' // Important for binary data
+  }),
+  exportDataExcel: (id) => apiClient.get(`/products/${id}/export-data`, {
     responseType: 'blob' // Important for binary data
   })
 };
@@ -114,7 +137,8 @@ export const systemSettingsAPI = {
   updateSettings: (settings) => apiClient.put('/system-settings', settings),
   getSection: (section) => apiClient.get(`/system-settings/${section}`),
   testSmtp: (config) => apiClient.post('/system-settings/test-smtp', config),
-  testPubChem: () => apiClient.post('/system-settings/test-pubchem')
+  testPubChem: () => apiClient.post('/system-settings/test-pubchem'),
+  testAzureOpenAI: () => apiClient.post('/system-settings/test-azure-openai')
 };
 
 export const userPreferencesAPI = {

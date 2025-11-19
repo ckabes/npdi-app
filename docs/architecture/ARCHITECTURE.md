@@ -1377,7 +1377,8 @@ CLIENT_URL=http://localhost:5173
 **Production:**
 ```
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/npdi?retryWrites=true
+# Example only - Replace with your actual MongoDB Atlas credentials
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@your-cluster.mongodb.net/npdi?retryWrites=true
 PORT=5000
 CLIENT_URL=https://npdi.milliporesigma.com
 ```
@@ -1465,9 +1466,9 @@ server {
 - Read scaling with secondary nodes
 - Zero-downtime maintenance
 
-**Connection String:**
+**Connection String Example (replace with your actual credentials):**
 ```
-mongodb+srv://username:password@cluster.mongodb.net/npdi?retryWrites=true&w=majority
+mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@your-cluster-name.mongodb.net/npdi?retryWrites=true&w=majority
 ```
 
 **Backup Strategy:**
