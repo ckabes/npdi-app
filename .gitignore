@@ -40,3 +40,4 @@ coverage/
 
 # Deployment documentation (contains sensitive server information)
 DEPLOYMENT_GUIDE.md
+MONITORING_STRATEGY.md
