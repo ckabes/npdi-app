@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const encryption = require('../utils/encryption');
 
 const systemSettingsSchema = new mongoose.Schema({
   // General Settings
@@ -63,7 +64,7 @@ const systemSettingsSchema = new mongoose.Schema({
     },
     langdock: {
       enabled: { type: Boolean, default: false },
-      apiKey: { type: String, default: '' }, // Stored encrypted
+      apiKey: { type: String, default: '' }, // Encrypted at rest using AES-256-GCM
       environment: {
         type: String,
         enum: ['dev', 'test', 'staging', 'prod'],
@@ -192,6 +193,59 @@ const systemSettingsSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Pre-save middleware to encrypt sensitive fields
+systemSettingsSchema.pre('save', function(next) {
+  // Encrypt Azure OpenAI API key if it's being modified and not already encrypted
+  if (this.isModified('integrations.langdock.apiKey')) {
+    const apiKey = this.integrations?.langdock?.apiKey;
+    if (apiKey && apiKey !== '' && !encryption.isEncrypted(apiKey)) {
+      console.log('Encrypting Azure OpenAI API key...');
+      this.integrations.langdock.apiKey = encryption.encrypt(apiKey);
+    }
+  }
+
+  // Encrypt webhook secret if modified and not already encrypted
+  if (this.isModified('integrations.webhook.secret')) {
+    const secret = this.integrations?.webhook?.secret;
+    if (secret && secret !== '' && !encryption.isEncrypted(secret)) {
+      console.log('Encrypting webhook secret...');
+      this.integrations.webhook.secret = encryption.encrypt(secret);
+    }
+  }
+
+  next();
+});
+
+// Method to get decrypted API key (for internal use only)
+systemSettingsSchema.methods.getDecryptedApiKey = function() {
+  const encryptedKey = this.integrations?.langdock?.apiKey;
+  if (!encryptedKey || encryptedKey === '') {
+    return '';
+  }
+
+  try {
+    return encryption.decrypt(encryptedKey);
+  } catch (error) {
+    console.error('Error decrypting API key:', error);
+    return '';
+  }
+};
+
+// Method to get decrypted webhook secret (for internal use only)
+systemSettingsSchema.methods.getDecryptedWebhookSecret = function() {
+  const encryptedSecret = this.integrations?.webhook?.secret;
+  if (!encryptedSecret || encryptedSecret === '') {
+    return '';
+  }
+
+  try {
+    return encryption.decrypt(encryptedSecret);
+  } catch (error) {
+    console.error('Error decrypting webhook secret:', error);
+    return '';
+  }
+};
 
 // Ensure only one settings document exists
 systemSettingsSchema.statics.getSettings = async function() {

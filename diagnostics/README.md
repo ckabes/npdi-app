@@ -31,8 +31,8 @@ Tests DNS resolution for Azure OpenAI endpoints.
 - Network configuration
 
 **Expected results:**
-- ✓ If VPN is connected: All Merck endpoints should resolve
-- ✗ If VPN is NOT connected: Merck endpoints will fail to resolve
+-  Yes If VPN is connected: All Merck endpoints should resolve
+-  No If VPN is NOT connected: Merck endpoints will fail to resolve
 
 ---
 
@@ -60,9 +60,9 @@ Tests network connectivity to Azure OpenAI endpoints.
 - VPN interface detection
 
 **Expected results:**
-- DNS resolution: ✓ (requires VPN)
-- TCP port 443: ✓ (requires VPN)
-- VPN interface: ✓ (should detect tun/tap interface)
+- DNS resolution:  Yes (requires VPN)
+- TCP port 443:  Yes (requires VPN)
+- VPN interface:  Yes (should detect tun/tap interface)
 
 ---
 
@@ -88,7 +88,7 @@ AZURE_OPENAI_ENV=dev ./3-test-api-curl.sh
 - SSL/TLS handshake
 
 **Expected results:**
-- HTTP 200: ✓ Success - API is working
+- HTTP 200:  Yes Success - API is working
 - HTTP 401: Authentication failed (check API key)
 - HTTP 404: Endpoint not found (check model/environment)
 - Connection error: VPN or network issue
@@ -107,7 +107,7 @@ export AZURE_OPENAI_API_VERSION="2024-10-21"
 
 ### DNS Resolution Failed (ENOTFOUND)
 ```
-✗ Cannot resolve api.nlp.prod.uptimize.merckgroup.com
+ No Cannot resolve api.nlp.prod.uptimize.merckgroup.com
 ```
 
 **Cause:** VPN is not connected
@@ -121,7 +121,7 @@ export AZURE_OPENAI_API_VERSION="2024-10-21"
 
 ### Connection Refused (ECONNREFUSED)
 ```
-✗ Connection refused on port 443
+ No Connection refused on port 443
 ```
 
 **Cause:** Firewall blocking, or service is down
@@ -136,7 +136,7 @@ export AZURE_OPENAI_API_VERSION="2024-10-21"
 
 ### Authentication Failed (HTTP 401)
 ```
-✗ Authentication failed (HTTP 401)
+ No Authentication failed (HTTP 401)
 ```
 
 **Cause:** Invalid or expired API key
@@ -150,7 +150,7 @@ export AZURE_OPENAI_API_VERSION="2024-10-21"
 
 ### Endpoint Not Found (HTTP 404)
 ```
-✗ Endpoint not found (HTTP 404)
+ No Endpoint not found (HTTP 404)
 ```
 
 **Cause:** Wrong model/deployment name or environment

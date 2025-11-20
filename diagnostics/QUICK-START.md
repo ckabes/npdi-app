@@ -67,32 +67,32 @@ AZURE_OPENAI_ENV=dev ./3-test-api-curl.sh
 
 ### If VPN is NOT Connected:
 ```
-✗ Cannot resolve api.nlp.dev.uptimize.merckgroup.com
-✗ ENOTFOUND
-✗ No VPN interface found
+ No Cannot resolve api.nlp.dev.uptimize.merckgroup.com
+ No ENOTFOUND
+ No No VPN interface found
 ```
 
 **Action:** Connect to Merck VPN and try again
 
 ### If VPN IS Connected:
 ```
-✓ Resolved to: 10.x.x.x
-✓ Port is open and accepting connections
-✓ VPN interface detected
+ Yes Resolved to: 10.x.x.x
+ Yes Port is open and accepting connections
+ Yes VPN interface detected
 ```
 
 **Action:** Proceed to API key testing
 
 ### If API Key is Wrong:
 ```
-✗ Authentication failed (HTTP 401)
+ No Authentication failed (HTTP 401)
 ```
 
 **Action:** Check your API key in Admin Dashboard
 
 ### If Environment/Model is Wrong:
 ```
-✗ Endpoint not found (HTTP 404)
+ No Endpoint not found (HTTP 404)
 ```
 
 **Action:** Verify:
@@ -106,7 +106,7 @@ After running diagnostics and fixing issues:
 
 1. Navigate to: **Admin Dashboard → System Settings → AI Content Generation**
 2. Configure:
-   - Enable: ✓ Enable Azure OpenAI Content Generation
+   - Enable:  Yes Enable Azure OpenAI Content Generation
    - API Key: `your-key-here`
    - Environment: `dev` (or whichever environment works)
    - API Version: `2024-10-21`

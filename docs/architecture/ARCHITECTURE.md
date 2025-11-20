@@ -1347,7 +1347,7 @@ The Teams integration provides real-time notifications for ticket events through
 
 **Status-Based Styling:**
 - Color-coded based on status (blue for submitted, green for completed, etc.)
-- Signal words (📋, ✅, ⚠️) for visual identification
+- Signal words (,  ,  WARNING:) for visual identification
 
 #### 7.2.5 Event Types Supported
 

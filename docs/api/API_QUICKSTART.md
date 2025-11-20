@@ -363,4 +363,4 @@ GET  /tickets/schema            # Get data schema
 &sortOrder=desc                # Sort direction
 ```
 
-Happy coding! 🚀
+Happy coding!

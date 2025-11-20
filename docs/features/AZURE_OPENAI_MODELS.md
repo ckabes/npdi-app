@@ -5,7 +5,7 @@
 **Environment: dev**
 - Endpoint: `https://api.nlp.dev.uptimize.merckgroup.com`
 - Tested Model: `gpt-4o-mini`
-- Status: ✓ Working (confirmed via diagnostics)
+- Status:  Yes Working (confirmed via diagnostics)
 
 ## Available Models (Dev & Prod)
 
@@ -116,7 +116,7 @@ For MilliporeSigma product content generation:
 
 1. Navigate to: **Admin Dashboard → System Settings → AI Content Generation**
 2. Configure:
-   - **Enable**: ✓ Enable Azure OpenAI Content Generation
+   - **Enable**:  Yes Enable Azure OpenAI Content Generation
    - **Environment**: `dev` (confirmed working)
    - **API Version**: `2024-10-21`
    - **Model/Deployment Name**: `gpt-4o-mini` (exact name)

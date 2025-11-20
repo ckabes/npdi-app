@@ -21,10 +21,10 @@ When a ticket is initiated in the NPDI (New Product Development & Introduction) 
 - **PMOps Action**: Enters external NPDI tracking number from NPDI system
 - **Input Example**: `NPDI-2025-0054` (from external NPDI system)
 - **System Action**:
-  - ✅ **REPLACES** the original ticket number with the new NPDI tracking number
-  - ✅ Status changes to `NPDI_INITIATED`
-  - ✅ Ticket becomes **locked and non-editable**
-  - ✅ Activity log records the ticket number change
+  -   **REPLACES** the original ticket number with the new NPDI tracking number
+  -   Status changes to `NPDI_INITIATED`
+  -   Ticket becomes **locked and non-editable**
+  -   Activity log records the ticket number change
 
 ### Ticket Number Change Example
 
@@ -46,7 +46,7 @@ AFTER NPDI Initiation:
 When NPDI is initiated, the system logs:
 
 ```
-🚀 NPDI Initiated
+ NPDI Initiated
 Status: NPDI_INITIATED
 Action: NPDI_INITIATED
 Message: "NPDI initiated by [User Name]. Ticket number changed from 'NPDI-2025-0055' to 'NPDI-2025-0054'. NPDI Tracking: NPDI-2025-0054"
@@ -62,13 +62,13 @@ Details:
 
 After NPDI initiation, the **new ticket number** (NPDI-2025-0054) appears in:
 
-1. ✅ **Ticket Header** - Top of ticket details page
-2. ✅ **NPDI Banner** - "NPDI Initiated: NPDI-2025-0054"
-3. ✅ **Dashboard List** - All ticket listings
-4. ✅ **Activity History** - Shows the transition
-5. ✅ **Database** - `ticketNumber` field updated
-6. ✅ **Search Results** - Searchable by new number
-7. ✅ **Exports/Reports** - Uses new number
+1.   **Ticket Header** - Top of ticket details page
+2.   **NPDI Banner** - "NPDI Initiated: NPDI-2025-0054"
+3.   **Dashboard List** - All ticket listings
+4.   **Activity History** - Shows the transition
+5.   **Database** - `ticketNumber` field updated
+6.   **Search Results** - Searchable by new number
+7.   **Exports/Reports** - Uses new number
 
 ## Important Notes
 
@@ -145,7 +145,7 @@ After NPDI initiation, the **new ticket number** (NPDI-2025-0054) appears in:
 ### For All Users
 
 After NPDI initiation:
-- Search for ticket using new number: `NPDI-2025-0054` ✅
+- Search for ticket using new number: `NPDI-2025-0054`  
 - Old number in activity history for reference
 - Ticket is locked - no edits allowed
 - Clear indication that NPDI has been initiated
