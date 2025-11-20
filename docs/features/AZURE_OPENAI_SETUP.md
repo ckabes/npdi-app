@@ -48,7 +48,7 @@ https://api.nlp.prod.uptimize.merckgroup.com/openai/deployments/gpt-4o-mini/chat
 
 ## VPN Requirement
 
-**⚠️ IMPORTANT:** You must be connected to the Merck VPN to access the Azure OpenAI API endpoint.
+** WARNING: IMPORTANT:** You must be connected to the Merck VPN to access the Azure OpenAI API endpoint.
 
 Without VPN connection, you will receive connection errors such as:
 - `ENOTFOUND` - Cannot resolve hostname

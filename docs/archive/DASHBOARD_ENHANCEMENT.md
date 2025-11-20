@@ -7,7 +7,7 @@
 
 ## Changes Made
 
-### 1. Added Recent Tickets Section ✅
+### 1. Added Recent Tickets Section  
 
 **Location:** Left column of two-column layout
 
@@ -30,7 +30,7 @@
 
 ---
 
-### 2. Added Recent Status Updates Section ✅
+### 2. Added Recent Status Updates Section  
 
 **Location:** Right column of two-column layout
 
@@ -54,7 +54,7 @@
 
 ---
 
-### 3. Fixed Role Display ✅
+### 3. Fixed Role Display  
 
 **Problem:** Role was displaying as "PRODUCT_MANAGER" with underscore
 
@@ -102,7 +102,7 @@ const formatRoleName = (role) => {
 │ │ NPDI-2025-0001     │ │ │ │ NPDI-2025-0005     │ │
 │ │ [SUBMITTED]   [M]  │ │ │ │ [IN_PROCESS]  [H]  │ │
 │ │ Ethanol            │ │ │ │ Methanol           │ │
-│ │ Created 10/12/2025 │ │ │ │ 🕐 Updated ...     │ │
+│ │ Created 10/12/2025 │ │ │ │ Updated ...     │ │
 │ └────────────────────┘ │ │ └────────────────────┘ │
 │ ...                    │ │ ...                    │
 │ [View All →]           │ │ [View All →]           │
@@ -301,8 +301,8 @@ Both sections use:
 ## Conclusion
 
 The Product Manager dashboard has been significantly enhanced with:
-✅ Recent Tickets section (5 most recent)
-✅ Recent Status Updates section (5 most recently updated)
-✅ Fixed role display (no more underscore)
+  Recent Tickets section (5 most recent)
+  Recent Status Updates section (5 most recently updated)
+  Fixed role display (no more underscore)
 
 These changes make the dashboard more useful and informative for Product Managers, providing quick access to recent activity and better overview of their tickets.

@@ -18,7 +18,7 @@ Enhanced the Product Manager dashboard to replace the generic "Recent Status Upd
 
 ## Changes Made
 
-### 1. Backend - New Endpoint ✅
+### 1. Backend - New Endpoint  
 
 **File:** `/server/controllers/productController.js`
 
@@ -121,7 +121,7 @@ router.get('/recent-activity', productController.getRecentActivity);
 
 ---
 
-### 2. API Client Update ✅
+### 2. API Client Update  
 
 **File:** `/client/src/services/api.js`
 
@@ -136,7 +136,7 @@ export const productAPI = {
 
 ---
 
-### 3. Dashboard Component Update ✅
+### 3. Dashboard Component Update  
 
 **File:** `/client/src/pages/Dashboard.jsx`
 
@@ -293,11 +293,11 @@ const formatTimeAgo = (timestamp) => {
 
 | Activity Type | Icon | Border Color | Background |
 |---------------|------|--------------|------------|
-| STATUS_CHANGE | 🔄 Arrow (blue) | Blue | Blue tint |
-| COMMENT_ADDED | 💬 Chat bubble (green) | Green | Green tint |
-| TICKET_EDIT | ✏️ Pencil (orange) | Orange | Orange tint |
-| SKU_ASSIGNMENT | ✓ Check (purple) | Purple | Purple tint |
-| TICKET_CREATED | ➕ Plus (gray) | Gray | Gray tint |
+| STATUS_CHANGE |  Arrow (blue) | Blue | Blue tint |
+| COMMENT_ADDED |  Chat bubble (green) | Green | Green tint |
+| TICKET_EDIT |  Pencil (orange) | Orange | Orange tint |
+| SKU_ASSIGNMENT |  Yes Check (purple) | Purple | Purple tint |
+| TICKET_CREATED |  Plus (gray) | Gray | Gray tint |
 
 ### Layout Structure:
 
@@ -305,16 +305,16 @@ const formatTimeAgo = (timestamp) => {
 ┌────────────────────────────────────────────┐
 │ Recent Activity                [View All →]│
 ├────────────────────────────────────────────┤
-│ ┃ 🔄  NPDI-2025-0005  [IN_PROCESS] [HIGH] │
+│ ┃   NPDI-2025-0005  [IN_PROCESS] [HIGH] │
 │ ┃     Status changed from SUBMITTED to     │
 │ ┃     IN_PROCESS                           │
 │ ┃     Sarah Johnson • 2h ago              │
 ├────────────────────────────────────────────┤
-│ ┃ 💬  NPDI-2025-0003  [SUBMITTED] [MED]   │
+│ ┃   NPDI-2025-0003  [SUBMITTED] [MED]   │
 │ ┃     Comment: "Please expedite this..."  │
 │ ┃     John Smith • 3h ago                 │
 ├────────────────────────────────────────────┤
-│ ┃ ✏️  NPDI-2025-0001  [DRAFT] [LOW]       │
+│ ┃   NPDI-2025-0001  [DRAFT] [LOW]       │
 │ ┃     Ticket edited: Updated pricing...   │
 │ ┃     Mike Wilson • 1d ago                │
 └────────────────────────────────────────────┘
@@ -324,22 +324,22 @@ const formatTimeAgo = (timestamp) => {
 
 ## Features
 
-### 1. Specific Activity Details ✅
+### 1. Specific Activity Details  
 - Shows **exactly what changed** (not just "updated")
 - Example: "Status changed from SUBMITTED to IN_PROCESS"
 - Example: "Comment: 'Please expedite this request'"
 - Example: "SKU assigned: SIGMA-12345-1G"
 
-### 2. Activity Highlighting ✅
+### 2. Activity Highlighting  
 - **Color-coded left borders** for visual distinction
 - **Different icons** for each activity type
 - **Background tints** for better grouping
 
-### 3. User Attribution ✅
+### 3. User Attribution  
 - Shows who performed each action
 - Consistent with user information flow (firstName + lastName)
 
-### 4. Time Information ✅
+### 4. Time Information  
 - Smart time formatting:
   - "just now" (< 1 minute)
   - "5m ago" (< 1 hour)
@@ -347,7 +347,7 @@ const formatTimeAgo = (timestamp) => {
   - "3d ago" (< 7 days)
   - Full date (> 7 days)
 
-### 5. Ticket Context ✅
+### 5. Ticket Context  
 - Ticket number (clickable link)
 - Current status badge
 - Priority badge
@@ -431,7 +431,7 @@ The backend scans multiple tickets and aggregates all activities into a unified 
 ```
 
 **Display:**
-- 🔄 Blue arrow icon
+-  Blue arrow icon
 - Blue left border
 - "NPDI-2025-0005 [IN_PROCESS] [HIGH]"
 - "Status changed from SUBMITTED to IN_PROCESS"
@@ -451,7 +451,7 @@ The backend scans multiple tickets and aggregates all activities into a unified 
 ```
 
 **Display:**
-- 💬 Green chat bubble icon
+-  Green chat bubble icon
 - Green left border
 - "NPDI-2025-0003 [SUBMITTED] [URGENT]"
 - "Comment: 'Please expedite this request as it's blocking production'"
@@ -479,15 +479,15 @@ The backend scans multiple tickets and aggregates all activities into a unified 
 ## Files Modified
 
 ### Backend:
-- ✅ `/server/controllers/productController.js` - Added `getRecentActivity` endpoint
-- ✅ `/server/routes/products.js` - Added route for activity endpoint
+-   `/server/controllers/productController.js` - Added `getRecentActivity` endpoint
+-   `/server/routes/products.js` - Added route for activity endpoint
 
 ### Frontend:
-- ✅ `/client/src/services/api.js` - Added `getRecentActivity` API method
-- ✅ `/client/src/pages/Dashboard.jsx` - Replaced "Recent Status Updates" with activity feed
+-   `/client/src/services/api.js` - Added `getRecentActivity` API method
+-   `/client/src/pages/Dashboard.jsx` - Replaced "Recent Status Updates" with activity feed
 
 ### Documentation:
-- ✅ `/ACTIVITY_FEED_ENHANCEMENT.md` (this file)
+-   `/ACTIVITY_FEED_ENHANCEMENT.md` (this file)
 
 ---
 
@@ -567,12 +567,12 @@ The backend scans multiple tickets and aggregates all activities into a unified 
 The activity feed enhancement successfully addresses the user's request to "specify what was changed in the Recent status updates" and "highlight recently added comments or ticket changes".
 
 **Key Achievements:**
-✅ Unified activity feed showing all types of changes
-✅ Specific descriptions of what changed
-✅ Visual highlighting with icons and colors
-✅ User attribution for accountability
-✅ Smart time formatting
-✅ Better dashboard overview for Product Managers
+  Unified activity feed showing all types of changes
+  Specific descriptions of what changed
+  Visual highlighting with icons and colors
+  User attribution for accountability
+  Smart time formatting
+  Better dashboard overview for Product Managers
 
 **Impact:**
 - More informative dashboard

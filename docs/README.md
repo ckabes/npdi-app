@@ -2,7 +2,7 @@
 
 Welcome to the NPDI (New Product Development & Introduction) Portal documentation.
 
-## 📚 Documentation Index
+## Documentation Index
 
 ### Getting Started
 - [Main README](../README.md) - Project overview and quick start
@@ -31,6 +31,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md) - How to customize forms
 
 ### Security
+- [API Key Storage](security/API_KEY_STORAGE.md) - How API keys are encrypted and stored
 - [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md) - npm package security audit
 
 ### Archive
@@ -38,7 +39,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 
 ---
 
-## 🚀 Quick Links for Common Tasks
+## Quick Links for Common Tasks
 
 ### For Developers
 1. **First Time Setup**: Start with [Setup Guide](guides/SETUP_GUIDE.md)
@@ -51,24 +52,25 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 3. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
 
 ### For IT/Infrastructure
-1. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
+1. **API Key Security**: [API Key Storage](security/API_KEY_STORAGE.md)
+2. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
 
 ---
 
-## 📋 Implemented Features
-- ✅ Core ticket management system with status workflow
-- ✅ REST API with API key authentication for external integrations
-- ✅ PubChem integration for automatic chemical data population
-- ✅ Dynamic form configuration with live preview editor
-- ✅ Profile-based access control (Product Manager, PM-OPS, Admin)
-- ✅ Microsoft Teams webhook notifications for ticket events
-- ✅ Excel export (PDP Checklist and Product Information Forms)
-- ✅ AI content generation via Azure OpenAI (product descriptions, marketing content)
-- ✅ Data export services for reporting and analysis
+## Implemented Features
+- Core ticket management system with status workflow
+- REST API with API key authentication for external integrations
+- PubChem integration for automatic chemical data population
+- Dynamic form configuration with live preview editor
+- Profile-based access control (Product Manager, PM-OPS, Admin)
+- Microsoft Teams webhook notifications for ticket events
+- Excel export (PDP Checklist and Product Information Forms)
+- AI content generation via Azure OpenAI (product descriptions, marketing content)
+- Data export services for reporting and analysis
 
 ---
 
-## 🏗️ Documentation Structure
+## Documentation Structure
 
 ```
 docs/
@@ -103,7 +105,7 @@ docs/
 
 ---
 
-## 🔍 Finding What You Need
+## Finding What You Need
 
 ### Search Tips
 1. Use your editor's file search (Ctrl+P / Cmd+P)
@@ -132,7 +134,7 @@ A: Check [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMEN
 
 ---
 
-## 📝 Contributing to Documentation
+## Contributing to Documentation
 
 When adding new documentation:
 
@@ -163,7 +165,7 @@ When adding new documentation:
 
 ---
 
-## 🆘 Getting Help
+## Getting Help
 
 - **Development issues**: Check [Architecture Documentation](architecture/ARCHITECTURE.md)
 - **API questions**: See [API Documentation](api/API_DOCUMENTATION.md)

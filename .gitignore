@@ -41,3 +41,6 @@ coverage/
 # Deployment documentation (contains sensitive server information)
 DEPLOYMENT_GUIDE.md
 MONITORING_STRATEGY.md
+
+# Security analysis (contains vulnerability details and defense strategies)
+SECURITY_ANALYSIS.md
