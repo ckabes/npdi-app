@@ -60,16 +60,16 @@ router.use(requireAdmin);  // Only ADMIN role can access
 Each role has granular view/edit privileges for different sections:
 
 **Product Manager:**
-- ✅ View/Edit: Tickets, Drafts, SKU Variants, Chemical Properties, etc.
-- ❌ View/Edit: Pricing Data, Admin Panel
+-   View/Edit: Tickets, Drafts, SKU Variants, Chemical Properties, etc.
+-   View/Edit: Pricing Data, Admin Panel
 
 **PM Operations:**
-- ✅ View/Edit: Tickets, SKU Assignment, Pricing Data
-- ✅ View Only: Drafts, Chemical Properties
-- ❌ View/Edit: Admin Panel
+-   View/Edit: Tickets, SKU Assignment, Pricing Data
+-   View Only: Drafts, Chemical Properties
+-   View/Edit: Admin Panel
 
 **Administrator:**
-- ✅ View/Edit: Everything including Admin Panel
+-   View/Edit: Everything including Admin Panel
 
 These privileges are stored in MongoDB and can be edited via the Admin Dashboard > Permissions tab.
 
@@ -78,27 +78,27 @@ These privileges are stored in MongoDB and can be edited via the Admin Dashboard
 ### Frontend
 
 **`client/src/services/api.js`**
-- ✅ Reverted to use profile headers (not JWT tokens)
-- ✅ Redirect to `/select-profile` on 401 errors
+-   Reverted to use profile headers (not JWT tokens)
+-   Redirect to `/select-profile` on 401 errors
 
 ### Backend
 
 **`server/middleware/auth.js`**
-- ✅ Added `authenticateProfile` middleware (reads headers)
-- ✅ Kept `authenticate` for JWT (if needed later)
-- ✅ Updated privilege checking to use `getPrivilegesForRole`
+-   Added `authenticateProfile` middleware (reads headers)
+-   Kept `authenticate` for JWT (if needed later)
+-   Updated privilege checking to use `getPrivilegesForRole`
 
 **`server/routes/users.js`**
-- ✅ Changed from `authenticate` → `authenticateProfile`
+-   Changed from `authenticate` → `authenticateProfile`
 
 **`server/routes/permissions.js`**
-- ✅ Changed from `authenticate` → `authenticateProfile`
+-   Changed from `authenticate` → `authenticateProfile`
 
 **`server/routes/formConfig.js`**
-- ✅ Changed from `authenticate` → `authenticateProfile`
+-   Changed from `authenticate` → `authenticateProfile`
 
 **`server/routes/auth.js`**
-- ✅ Changed from `authenticate` → `authenticateProfile`
+-   Changed from `authenticate` → `authenticateProfile`
 
 ## How to Use
 
@@ -136,7 +136,7 @@ In Admin Dashboard > Permissions:
 
 ## Security Considerations
 
-⚠️ **This system is for development only!**
+ WARNING: **This system is for development only!**
 
 - Headers can be spoofed (anyone can send admin headers)
 - No password protection
@@ -220,12 +220,12 @@ curl -X PATCH http://localhost:5000/api/permissions/PRODUCT_MANAGER/tickets/edit
 
 ## Summary
 
-- ✅ No JWT tokens, passwords, or authentication required
-- ✅ Simple profile selection with role-based access
-- ✅ Privileges stored in MongoDB and editable via Admin UI
-- ✅ Profile headers sent with every request
-- ✅ Backend creates user object from headers
-- ✅ Admin routes protected by `requireAdmin` middleware
-- ✅ Redirects to `/select-profile` on 401 errors
+-   No JWT tokens, passwords, or authentication required
+-   Simple profile selection with role-based access
+-   Privileges stored in MongoDB and editable via Admin UI
+-   Profile headers sent with every request
+-   Backend creates user object from headers
+-   Admin routes protected by `requireAdmin` middleware
+-   Redirects to `/select-profile` on 401 errors
 
 The system is now working as a profile-based access control system without true authentication!

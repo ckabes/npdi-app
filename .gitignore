@@ -34,3 +34,16 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
+
+# Save files
+*.save
+
+# Deployment documentation (contains sensitive server information)
+DEPLOYMENT_GUIDE.md
+MONITORING_STRATEGY.md
+
+# Security analysis (contains vulnerability details and defense strategies)
+SECURITY_ANALYSIS.md
+
+# Dependency management (contains vulnerability details and update strategy)
+DEPENDENCY_MANAGEMENT.md

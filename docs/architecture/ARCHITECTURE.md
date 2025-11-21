@@ -25,7 +25,7 @@
 
 ## 1. Executive Summary
 
-The NPDI (New Product Data Introduction) Application is a full-stack web application designed to streamline the chemical product introduction workflow at MilliporeSigma. The system facilitates collaboration between Product Managers, Product Management Operations (PMOps) teams, and administrators through a secure, role-based interface.
+The NPDI (New Product Data Introduction) Application is a full-stack web application designed to initiate and capture chemical product development tickets at MilliporeSigma. The system facilitates collaboration between Product Managers, Product Management Operations (PMOps) teams, and administrators for preparing product information prior to formal NPDI system submission.
 
 ### Key Architectural Characteristics
 
@@ -42,7 +42,7 @@ The NPDI (New Product Data Introduction) Application is a full-stack web applica
 
 ### 2.1 Business Context
 
-The NPDI application manages the complete lifecycle of new chemical product introductions, from initial ticket creation through SKU assignment, pricing calculations, and final NPDI initiation. The system serves three primary user roles:
+The NPDI application facilitates the interface between Product Managers and Product Management Operations (PMOps) for initiating new chemical product development tickets. The system captures product data, manages ticket workflow, and prepares information for formal NPDI system submission. The system serves three primary user roles:
 
 - **Product Managers:** Create and submit product tickets
 - **PMOps Team:** Review, process, and assign SKUs to submitted tickets
@@ -500,6 +500,36 @@ Services encapsulate complex operations and external integrations:
 - `parseGHSData(ghsData)` - Extracts GHS classification information
 - `parsePhysicalProperties(data)` - Extracts experimental properties
 
+**AI Content Service** (`aiContentService.js`):
+- Generates marketing content using Azure OpenAI
+- Template-based prompt generation
+- Variable substitution for personalization
+- Content type management (descriptions, titles, features)
+
+**Langdock Service** (`langdockService.js`):
+- Azure OpenAI API integration (Merck NLP endpoint)
+- Environment-specific endpoint configuration
+- Authentication and request handling
+- Error handling with VPN troubleshooting
+
+**Teams Notification Service** (`teamsNotificationService.js`):
+- Sends formatted notifications to Microsoft Teams channels
+- Adaptive Card generation
+- Event-based notification triggers
+- Webhook URL management
+
+**PDP Checklist Export Service** (`pdpChecklistExportService.js`):
+- Generates Excel files from ticket data
+- Template-based export with data mapping
+- Preserves formatting from template files
+- Maps ticket fields to specific checklist rows
+
+**Data Export Service** (`dataExportService.js`):
+- General data export functionality
+- Multiple format support (Excel, CSV, JSON)
+- Filtered export capabilities
+- Batch export operations
+
 #### 4.1.5 Utilities
 
 **Location:** `server/utils/`
@@ -759,9 +789,8 @@ The application uses MongoDB, a document-oriented NoSQL database, chosen for:
 ### 5.3 Data Relationships
 
 **Referencing Strategy:**
-- User references stored as ObjectIds (when using database auth)
-- Currently using header-based profile authentication (development)
-- Future migration to full user authentication planned
+- User references stored as ObjectIds
+- Currently using header-based profile authentication
 
 **Embedded Documents:**
 - Chemical properties embedded in tickets (1-to-1 relationship)
@@ -1264,14 +1293,275 @@ const generateAIProductDescription = (pubchemData, casNumber) => {
 
 **Usage:** Pre-populates CorpBase marketing content fields
 
-### 7.2 Future Integration Points
+### 7.2 Microsoft Teams Integration
 
-**Planned Integrations:**
-- **SAP ERP** - SKU creation and part number assignment
-- **Email Service (SMTP)** - Ticket notifications and workflow alerts
-- **Document Management System** - Attach certificates of analysis, SDSs
-- **Chemical Inventory System** - Stock level checking
-- **Regulatory Databases** - REACH, TSCA compliance validation
+#### 7.2.1 Purpose
+
+The Teams integration provides real-time notifications for ticket events through Microsoft Teams channels using Incoming Webhooks.
+
+**Benefits:**
+- Immediate awareness of ticket status changes
+- Centralized team communication
+- Reduced email notification overhead
+- Flexible event subscription model
+
+#### 7.2.2 Integration Architecture
+
+**Service Layer:** `server/services/teamsNotificationService.js`
+
+**Webhook Configuration:**
+- Configurable through Admin Dashboard → System Settings → Integrations
+- Webhook URL stored in SystemSettings collection
+- Event triggers configurable (status changes, comments, assignments, creation)
+
+#### 7.2.3 Notification Flow
+
+```
+1. Ticket event occurs (status change, comment, etc.)
+   ↓
+2. productController detects event
+   ↓
+3. Checks SystemSettings for Teams integration enabled
+   ↓
+4. Calls teamsNotificationService.notifyStatusChange()
+   ↓
+5. Service formats Adaptive Card payload
+   ↓
+6. HTTP POST to Teams webhook URL
+   ↓
+7. Teams channel receives formatted notification
+```
+
+#### 7.2.4 Adaptive Card Format
+
+**Card Structure:**
+- Header with status icon and title
+- Ticket information section:
+  - Ticket Number
+  - Product Name
+  - SBU
+  - Priority
+  - Status transition (old → new)
+  - Changed by user
+- Action button: "View Ticket" (direct link to ticket details)
+
+**Status-Based Styling:**
+- Color-coded based on status (blue for submitted, green for completed, etc.)
+- Signal words (,  ,  WARNING:) for visual identification
+
+#### 7.2.5 Event Types Supported
+
+**Current Implementation:**
+- `notifyStatusChange()` - Ticket status updates
+- `notifyTicketCreated()` - New ticket creation
+- `notifyCommentAdded()` - Comment additions
+- `notifyAssignmentChanged()` - Ticket assignments
+
+**Configuration:**
+Each event can be enabled/disabled independently in System Settings.
+
+#### 7.2.6 Error Handling
+
+- Non-blocking: Teams failures don't prevent ticket operations
+- Graceful degradation: Logs webhook errors without user impact
+- Configurable retry logic
+- Automatic disable on persistent failures
+
+### 7.3 Azure OpenAI Integration
+
+#### 7.3.1 Purpose
+
+The Azure OpenAI integration provides AI-powered content generation for product marketing materials using Merck's internal NLP API endpoint.
+
+**Benefits:**
+- Automated product descriptions generation
+- Marketing content creation (website titles, meta descriptions, key features)
+- Consistent content quality
+- Reduced manual content creation time
+- Leverages chemical properties for accurate descriptions
+
+#### 7.3.2 Integration Architecture
+
+**Service Layer:** `server/services/langdockService.js` (name retained for backward compatibility)
+
+**API Endpoint:** `https://api.nlp.{environment}.uptimize.merckgroup.com/openai/deployments/{model}/chat/completions`
+
+**Environments Supported:**
+- `dev` - Development environment
+- `test` - Testing environment
+- `staging` - Staging environment
+- `prod` - Production environment
+
+**Models Available:**
+- `gpt-4o-mini` - Recommended (fast, cost-effective)
+- `gpt-4o` - Higher quality (higher cost)
+- `gpt-5-mini` - Latest generation
+
+#### 7.3.3 Configuration
+
+**Admin Dashboard Configuration:**
+- Enable/disable AI content generation
+- API Key management
+- Environment selection
+- API version configuration
+- Model/deployment name
+- Max tokens per request
+- Timeout settings
+- Test connection functionality
+
+**Configurable Content Types:**
+1. Product Description (200 words, 0.7 temperature)
+2. Website Title (70 chars, 0.5 temperature)
+3. Meta Description (160 chars, 0.6 temperature)
+4. Key Features & Benefits (5 bullets, 0.6 temperature)
+5. Applications (4 items, 0.6 temperature)
+6. Target Industries (4 items, 0.5 temperature)
+
+Each content type has customizable:
+- Prompt template with variable placeholders
+- Length parameters (max words, max characters)
+- Temperature (creativity level)
+- Enable/disable toggle
+
+#### 7.3.4 Content Generation Flow
+
+```
+1. User clicks "Generate with AI" in CorpBase form
+   ↓
+2. Frontend calls POST /api/products/generate-corpbase-content
+   ↓
+3. systemSettingsController retrieves AI configuration
+   ↓
+4. For each enabled content type:
+   a) Replace template variables with ticket data
+   b) Call langdockService.generateContent()
+   c) Azure OpenAI processes request
+   d) Return generated content
+   ↓
+5. Controller aggregates all generated content
+   ↓
+6. Frontend populates form fields sequentially
+   ↓
+7. User reviews and edits before saving
+```
+
+#### 7.3.5 Template Variables
+
+Available placeholders for prompt templates:
+- `{productName}` - Product name
+- `{casNumber}` - CAS registry number
+- `{molecularFormula}` - Molecular formula
+- `{molecularWeight}` - Molecular weight
+- `{iupacName}` - IUPAC name
+- `{sbu}` - Strategic Business Unit
+- `{maxWords}` - Maximum word count
+- `{maxChars}` - Maximum characters
+- `{bulletCount}` - Number of bullets
+- `{wordsPerBullet}` - Words per bullet
+- `{itemCount}` - Number of items
+
+#### 7.3.6 Security & Authentication
+
+**API Key Security:**
+- Stored encrypted in SystemSettings collection
+- Masked in admin interface (show last 8 characters only)
+- Header format: `api-key: {API_KEY}`
+- VPN requirement for Merck internal endpoint
+
+**Rate Limiting:**
+- Model-specific limits enforced by Azure
+- Quota tracking in admin dashboard
+- Default quotas: 1,000 calls/day (GPT-4), 10,000 calls/day (other models)
+
+#### 7.3.7 Error Handling
+
+**Connection Errors:**
+- VPN connectivity checks
+- Timeout handling (30 seconds default)
+- Fallback to template-based generation
+
+**API Errors:**
+- 401: Invalid API key
+- 404: Model/deployment not found
+- 429: Rate limit exceeded
+- Detailed error messages with troubleshooting hints
+
+### 7.4 Data Export Services
+
+#### 7.4.1 PDP Checklist Export Service
+
+**Service Layer:** `server/services/pdpChecklistExportService.js`
+
+**Purpose:** Generates Excel files populated with ticket data for Product Development Process (PDP) checklists.
+
+**Implementation:**
+- Uses ExcelJS library
+- Reads template file: `PDP Checklist.xlsx`
+- Populates Column O with ticket data
+- Preserves all original formatting
+- Maps 74 specific fields from ticket to checklist rows
+
+**Key Mappings:**
+- Row 3: CorpBase Product Number
+- Row 4: CorpBase Brand
+- Row 10: Primary name
+- Row 11: Name suffix
+- Row 15: Assay/Purity
+- Row 25-26: InChI and InChI Key
+- Row 28: Packaging (from SKU variants)
+- Row 56-57: Product description and applications
+- Row 69-71: Keywords, meta title, meta description
+
+**Data Sources:**
+- Chemical properties (CAS, formula, molecular weight)
+- Quality specifications (MQ quality levels)
+- SKU variants (package sizes)
+- CorpBase data (product description, applications)
+- Physical properties (boiling point, density, melting point)
+
+#### 7.4.2 Data Export Service
+
+**Service Layer:** `server/services/dataExportService.js`
+
+**Purpose:** General data export functionality for various report formats.
+
+**Export Formats:**
+- Excel (XLSX) - Structured ticket data
+- CSV - Bulk data export
+- JSON - API data exchange
+
+**Export Features:**
+- Filtered exports (by status, SBU, date range)
+- Custom column selection
+- Data transformation and formatting
+- Batch export capabilities
+
+#### 7.4.3 Export Controller Integration
+
+**Endpoint:** `POST /api/products/:id/export`
+
+**Flow:**
+```
+1. User clicks "Export to Excel" button
+   ↓
+2. Frontend calls export endpoint with ticket ID
+   ↓
+3. productController retrieves ticket data
+   ↓
+4. Calls pdpChecklistExportService.generatePDPChecklist()
+   ↓
+5. Service generates Excel workbook
+   ↓
+6. Controller sets response headers for file download
+   ↓
+7. Browser downloads Excel file
+```
+
+**Response Headers:**
+```javascript
+res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+res.setHeader('Content-Disposition', `attachment; filename=PDP-Checklist-${ticketNumber}.xlsx`);
+```
 
 ---
 
@@ -1844,10 +2134,9 @@ ticketNumber: { type: String, unique: true }
 useFormConfig() // Reduces API calls
 ```
 
-**Future Enhancements:**
-- Redis for session storage (when migrating from profile-based auth)
-- CDN for static assets
-- API response caching (GET endpoints)
+**Additional Caching:**
+- CDN for static assets in production
+- API response caching for GET endpoints
 
 #### 9.7.4 Pagination
 
@@ -1871,13 +2160,11 @@ Non-critical operations run asynchronously:
 apiKeyRecord.recordUsage().catch(err => {
   console.error('Error recording usage:', err);
 });
-```
 
-**Future Enhancements:**
-- Background job queue (Bull, BullMQ)
-- Email notifications (async)
-- Report generation (async)
-- Batch PubChem enrichment
+// Teams notifications sent asynchronously
+teamsNotificationService.notifyStatusChange(ticket, oldStatus, newStatus, user)
+  .catch(err => console.error('Teams notification failed:', err));
+```
 
 ### 9.8 Version Control & Collaboration
 
@@ -1932,54 +2219,9 @@ npm outdated           # Check for updates
 
 ---
 
-## 10. Future Architectural Considerations
+## 10. Conclusion
 
-### 10.1 Planned Enhancements
-
-**Authentication Migration:**
-- Migrate from profile-based to JWT or OAuth2
-- Implement session management
-- Add password reset workflow
-
-**Microservices Potential:**
-- Extract PubChem service to separate microservice
-- Dedicated notification service
-- Reporting service for analytics
-
-**Real-Time Features:**
-- WebSocket integration for live ticket updates
-- Real-time collaboration on ticket editing
-- Push notifications for status changes
-
-**Advanced Search:**
-- Elasticsearch integration for full-text search
-- Faceted search with filters
-- Synonym and fuzzy matching
-
-**Analytics & Reporting:**
-- Business intelligence dashboards
-- Ticket processing metrics
-- SBU performance comparisons
-- Forecasting and trend analysis
-
-### 10.2 Technical Debt Management
-
-**Current Known Items:**
-- Profile-based authentication (temporary solution)
-- Populate calls with null createdBy (needs migration)
-- Manual SKU assignment (SAP integration planned)
-
-**Mitigation Strategy:**
-- Document all technical debt
-- Prioritize based on impact and effort
-- Allocate time in each sprint for debt reduction
-- Track in backlog with "tech-debt" label
-
----
-
-## 11. Conclusion
-
-The NPDI Application implements a robust, maintainable MVC architecture that supports the complex workflows of chemical product introduction at MilliporeSigma. The clear separation of concerns, comprehensive security model, and thoughtful integration architecture provide a solid foundation for current operations and future growth.
+The NPDI Application implements a robust, maintainable MVC architecture that supports the ticket initiation workflow for chemical product development at MilliporeSigma. The clear separation of concerns, comprehensive security model, and thoughtful integration architecture provide a solid foundation for capturing product data and facilitating collaboration between Product Managers and PMOps teams.
 
 **Key Architectural Strengths:**
 - **Maintainability:** MVC pattern enables isolated changes and testing

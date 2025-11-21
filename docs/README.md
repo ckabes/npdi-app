@@ -2,12 +2,11 @@
 
 Welcome to the NPDI (New Product Development & Introduction) Portal documentation.
 
-## 📚 Documentation Index
+## Documentation Index
 
 ### Getting Started
 - [Main README](../README.md) - Project overview and quick start
 - [Setup Guide](guides/SETUP_GUIDE.md) - Installation and configuration
-- [Claude AI Configuration](../CLAUDE.md) - AI assistant settings
 
 ### API Documentation
 - [API Documentation](api/API_DOCUMENTATION.md) - Complete API reference
@@ -17,98 +16,61 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 
 ### Architecture
 - [Architecture Overview](architecture/ARCHITECTURE.md) - System design and components
-- [Architecture HTML](architecture/ARCHITECTURE.html) - Interactive architecture diagram
-- [Architecture Pattern Analysis](architecture/ARCHITECTURE_PATTERN_ANALYSIS.md) - Design patterns used
-- [Architecture Verification](architecture/ARCHITECTURE_VERIFICATION_REPORT.md) - Validation report
+
+### Features
+- [AI Content Generation](features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration for content generation
+- [AI Content Fields Reference](features/AI_CONTENT_FIELDS.md) - Complete field mapping and configuration
+- [AI Generation Improvements](features/AI_GENERATION_IMPROVEMENTS.md) - Recent enhancements to AI features
+- [Azure OpenAI Setup](features/AZURE_OPENAI_SETUP.md) - Configuration guide for Azure OpenAI
+- [Azure OpenAI Models](features/AZURE_OPENAI_MODELS.md) - Available models and recommendations
 
 ### Integrations
-
-#### Microsoft Teams
 - [Microsoft Teams Integration](integrations/TEAMS_INTEGRATION.md) - Teams webhook notifications setup
-
-#### Microsoft Entra ID Authentication (Choose ONE approach)
-
-**Option 1: Application Proxy (Recommended - Faster & Simpler)** ⭐
-- [Application Proxy Implementation Plan](integrations/ENTRA_APP_PROXY_IMPLEMENTATION_PLAN.md) - **1-2 weeks, minimal code**
-- [Application Proxy Checklist](integrations/ENTRA_APP_PROXY_CHECKLIST.md) - Day-by-day implementation guide
-- [IT Requirements for App Proxy](integrations/IT_REQUIREMENTS_APP_PROXY.md) - **📋 Send this to your IT team**
-
-**Option 2: MSAL/OAuth Integration (Advanced - More Flexible)**
-- [MSAL Implementation Plan](integrations/ENTRA_ID_IMPLEMENTATION_PLAN.md) - 3-4 weeks, full OAuth 2.0
-- [MSAL Checklist](integrations/ENTRA_ID_CHECKLIST.md) - Implementation checklist
-- [IT Requirements for MSAL](integrations/IT_REQUIREMENTS_ENTRA_ID.md) - For MSAL approach
-
-**Decision Guide:**
-- **Use Application Proxy if:** You want fast implementation (1-2 weeks), have Entra ID Premium, internal app
-- **Use MSAL if:** Need Microsoft Graph API access, cloud-hosted app, don't have Premium licensing
 
 ### User Guides
 - [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md) - How to customize forms
 
 ### Security
+- [API Key Storage](security/API_KEY_STORAGE.md) - How API keys are encrypted and stored
 - [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md) - npm package security audit
-- [Security Assessment HTML](security/DEPENDENCY_SECURITY_ASSESSMENT.html) - Interactive security report
-
-### Reports
-- [Server Sizing Report](reports/SERVER_SIZING_REPORT.md) - Infrastructure requirements
-- [Ticket Storage Analysis](reports/TICKET_STORAGE_ANALYSIS.md) - Database schema analysis
 
 ### Archive
 - [Historical documentation](archive/) - Old documentation kept for reference
 
 ---
 
-## 🚀 Quick Links for Common Tasks
+## Quick Links for Common Tasks
 
 ### For Developers
 1. **First Time Setup**: Start with [Setup Guide](guides/SETUP_GUIDE.md)
 2. **API Integration**: Read [API Quick Start](api/API_QUICKSTART.md)
 3. **Understanding the System**: Review [Architecture Overview](architecture/ARCHITECTURE.md)
-4. **Implementing Authentication**:
-   - **Fast & Simple**: [Application Proxy Implementation](integrations/ENTRA_APP_PROXY_IMPLEMENTATION_PLAN.md) ⭐ (1-2 weeks)
-   - **Advanced**: [MSAL Implementation](integrations/ENTRA_ID_IMPLEMENTATION_PLAN.md) (3-4 weeks)
 
 ### For Administrators
-1. **Setting up Authentication**:
-   - **Recommended**: Send [Application Proxy IT Requirements](integrations/IT_REQUIREMENTS_APP_PROXY.md) to IT team
-   - **Alternative**: Send [MSAL IT Requirements](integrations/IT_REQUIREMENTS_ENTRA_ID.md) to IT team
-2. **Configuring Forms**: Use [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md)
-3. **Managing API Access**: See [API Key Setup](api/API_KEY_SETUP.md)
-4. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
+1. **Configuring Forms**: Use [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md)
+2. **Managing API Access**: See [API Key Setup](api/API_KEY_SETUP.md)
+3. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
 
 ### For IT/Infrastructure
-1. **Authentication Setup** (choose one):
-   - **Application Proxy** ⭐: [IT Requirements (1-2 hours)](integrations/IT_REQUIREMENTS_APP_PROXY.md)
-   - **MSAL/OAuth**: [IT Requirements (1.5 hours)](integrations/IT_REQUIREMENTS_ENTRA_ID.md)
-2. **Server Sizing**: [Server Sizing Report](reports/SERVER_SIZING_REPORT.md)
-3. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
+1. **API Key Security**: [API Key Storage](security/API_KEY_STORAGE.md)
+2. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
 
 ---
 
-## 📋 Current Project Status
-
-### Completed Features
-- ✅ Core ticket management system
-- ✅ REST API with authentication
-- ✅ PubChem integration for chemical data
-- ✅ Dynamic form configuration
-- ✅ Profile-based access control
-- ✅ Teams webhook notifications
-- ✅ Excel export (PDP Checklist, PIF)
-
-### In Progress
-- 🔄 Microsoft Entra ID integration (Planning phase)
-- 🔄 Role-based permissions enhancement
-
-### Planned
-- 📅 Teams direct messaging (requires Entra ID + Graph API)
-- 📅 Advanced reporting and analytics
-- 📅 Document attachment system
-- 📅 Email notifications
+## Implemented Features
+- Core ticket management system with status workflow
+- REST API with API key authentication for external integrations
+- PubChem integration for automatic chemical data population
+- Dynamic form configuration with live preview editor
+- Profile-based access control (Product Manager, PM-OPS, Admin)
+- Microsoft Teams webhook notifications for ticket events
+- Excel export (PDP Checklist and Product Information Forms)
+- AI content generation via Azure OpenAI (product descriptions, marketing content)
+- Data export services for reporting and analysis
 
 ---
 
-## 🏗️ Documentation Structure
+## Documentation Structure
 
 ```
 docs/
@@ -119,34 +81,31 @@ docs/
 │   ├── API_KEY_SETUP.md          # API key management
 │   └── CHANGELOG_API_KEYS.md     # API changelog
 ├── architecture/                 # System architecture
-│   ├── ARCHITECTURE.md           # Architecture overview
-│   ├── ARCHITECTURE.html         # Visual diagrams
-│   ├── ARCHITECTURE_PATTERN_ANALYSIS.md
-│   └── ARCHITECTURE_VERIFICATION_REPORT.md
+│   └── ARCHITECTURE.md           # Architecture overview
+├── features/                     # Feature documentation
+│   ├── AI_CONTENT_GENERATION.md # AI content features
+│   ├── AI_CONTENT_FIELDS.md     # Field mapping reference
+│   ├── AI_GENERATION_IMPROVEMENTS.md # Recent AI improvements
+│   ├── AZURE_OPENAI_SETUP.md    # Azure OpenAI configuration
+│   ├── AZURE_OPENAI_MODELS.md   # Available AI models
+│   └── NPDI_WORKFLOW.md         # Workflow documentation
 ├── integrations/                 # Third-party integrations
-│   ├── TEAMS_INTEGRATION.md      # Microsoft Teams webhooks
-│   ├── ENTRA_ID_IMPLEMENTATION_PLAN.md  # ⭐ Main Entra ID doc
-│   ├── ENTRA_ID_CHECKLIST.md     # Implementation checklist
-│   └── IT_REQUIREMENTS_ENTRA_ID.md      # IT setup requirements
+│   └── TEAMS_INTEGRATION.md      # Microsoft Teams webhooks
 ├── guides/                       # How-to guides
 │   ├── SETUP_GUIDE.md            # Installation guide
 │   └── FORM_CONFIGURATION_GUIDE.md
 ├── security/                     # Security documentation
-│   ├── DEPENDENCY_SECURITY_ASSESSMENT.md
-│   └── DEPENDENCY_SECURITY_ASSESSMENT.html
-├── reports/                      # Technical reports
-│   ├── SERVER_SIZING_REPORT.md
-│   └── TICKET_STORAGE_ANALYSIS.md
+│   └── DEPENDENCY_SECURITY_ASSESSMENT.md
 └── archive/                      # Historical documentation
+    ├── CLAUDE.md                 # Development assistant config
+    ├── SESSION_SUMMARY_2025_11_06.md
     ├── CLEANUP_ANALYSIS.md
-    ├── NEXTJS_CLEANUP_SUMMARY.md
-    ├── PROJECT_CLEANUP_COMPLETE.md
     └── ... (old docs from previous refactoring)
 ```
 
 ---
 
-## 🔍 Finding What You Need
+## Finding What You Need
 
 ### Search Tips
 1. Use your editor's file search (Ctrl+P / Cmd+P)
@@ -175,7 +134,7 @@ A: Check [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMEN
 
 ---
 
-## 📝 Contributing to Documentation
+## Contributing to Documentation
 
 When adding new documentation:
 
@@ -206,7 +165,7 @@ When adding new documentation:
 
 ---
 
-## 🆘 Getting Help
+## Getting Help
 
 - **Development issues**: Check [Architecture Documentation](architecture/ARCHITECTURE.md)
 - **API questions**: See [API Documentation](api/API_DOCUMENTATION.md)
@@ -217,5 +176,5 @@ For additional support, contact the NPDI development team.
 
 ---
 
-**Last Updated:** 2025-11-06
+**Last Updated:** 2025-11-19
 **Maintained by:** NPDI Development Team

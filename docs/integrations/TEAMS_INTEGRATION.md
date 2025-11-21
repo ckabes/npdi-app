@@ -39,10 +39,10 @@ The NPDI application now supports Microsoft Teams notifications via Incoming Web
 5. Check the box to **Enable Teams notifications**
 6. Paste the webhook URL you copied from Teams into the **Teams Webhook URL** field
 7. Select which notification events you want to enable:
-   - ✅ **Notify on status changes** (recommended) - Sends notifications to ticket originators when status changes
-   - ⬜ Notify on ticket creation - Sends notifications when new tickets are created
-   - ⬜ Notify on comments - Sends notifications when comments are added
-   - ⬜ Notify on assignment - Sends notifications when tickets are assigned
+   - **Notify on status changes** (recommended) - Sends notifications to ticket originators when status changes
+   - Notify on ticket creation - Sends notifications when new tickets are created
+   - Notify on comments - Sends notifications when comments are added
+   - Notify on assignment - Sends notifications when tickets are assigned
 8. Click **Save Settings** at the top right
 
 ### Step 3: Test the Integration
@@ -56,7 +56,7 @@ The NPDI application now supports Microsoft Teams notifications via Incoming Web
 Teams notifications use **Adaptive Cards** for rich formatting. Each notification includes:
 
 ### Header
-- Status icon and title (e.g., "📋 Ticket Status Updated")
+- Status icon and title (e.g., "Ticket Status Updated")
 - Color-coded status badge
 
 ### Ticket Information

@@ -15,7 +15,7 @@ This checklist documents critical issues that need to be addressed to ensure cha
 
 ---
 
-## 🚨 CRITICAL ISSUES
+##  ALERT: CRITICAL ISSUES
 
 ### 1. Data Model Mismatch: targetMargin vs targetMargins
 **Priority:** CRITICAL
@@ -105,7 +105,7 @@ const getCurrentUser = (req) => {
 
 ---
 
-## 🔴 HIGH PRIORITY ISSUES
+## HIGH PRIORITY ISSUES
 
 ### 4. Duplicate Chemical Properties Section (268 lines)
 **Priority:** HIGH
@@ -301,7 +301,7 @@ Create utility function: `cleanEnumValues(data)` called once before validation
 
 ---
 
-## 🟡 MEDIUM PRIORITY ISSUES
+## MEDIUM PRIORITY ISSUES
 
 ### 11. Multiple Badge Component Implementations
 **Priority:** MEDIUM
@@ -346,7 +346,7 @@ Create shared components directory: `src/components/badges/`
 
 ---
 
-## ✅ LOW PRIORITY ISSUES
+##   LOW PRIORITY ISSUES
 
 ### 13. Inconsistent File/Component Naming
 **Priority:** LOW
@@ -418,40 +418,40 @@ export const ticketSchema = z.object({
 
 ---
 
-## 📊 RECOMMENDED REFACTORING ORDER
+##  RECOMMENDED REFACTORING ORDER
 
 ### Phase 1: Critical Fixes (Week 1)
-1. ✅ Add NPDI_INITIATED to backend enum
-2. ✅ Fix targetMargin/targetMargins data model mismatch
-3. ✅ Implement proper authentication (or document as future work)
+1.   Add NPDI_INITIATED to backend enum
+2.   Fix targetMargin/targetMargins data model mismatch
+3.   Implement proper authentication (or document as future work)
 
 ### Phase 2: Extract Shared Components (Week 2-3)
-1. ✅ Create shared `ChemicalPropertiesForm.jsx`
-2. ✅ Create shared `QualitySpecificationsForm.jsx`
-3. ✅ Create shared `PricingCalculationForm.jsx`
-4. ✅ Create shared `SKUVariantsForm.jsx`
-5. ✅ Create shared `CorpBaseDataForm.jsx`
+1.   Create shared `ChemicalPropertiesForm.jsx`
+2.   Create shared `QualitySpecificationsForm.jsx`
+3.   Create shared `PricingCalculationForm.jsx`
+4.   Create shared `SKUVariantsForm.jsx`
+5.   Create shared `CorpBaseDataForm.jsx`
 
 ### Phase 3: Extract Utilities (Week 3)
-1. ✅ Create `utils/pricingCalculations.js`
-2. ✅ Create `utils/enumCleaner.js`
-3. ✅ Create shared badge components
+1.   Create `utils/pricingCalculations.js`
+2.   Create `utils/enumCleaner.js`
+3.   Create shared badge components
 
 ### Phase 4: Cleanup (Week 4)
-1. ✅ Refactor CreateTicket.jsx to use shared components
-2. ✅ Refactor TicketDetails.jsx to use shared components
-3. ✅ Remove unused dependencies
-4. ✅ Update component organization
+1.   Refactor CreateTicket.jsx to use shared components
+2.   Refactor TicketDetails.jsx to use shared components
+3.   Remove unused dependencies
+4.   Update component organization
 
 ### Phase 5: Testing & Documentation (Week 5)
-1. ✅ Add unit tests for shared utilities
-2. ✅ Add integration tests for form components
-3. ✅ Update documentation
-4. ✅ Code review and QA
+1.   Add unit tests for shared utilities
+2.   Add integration tests for form components
+3.   Update documentation
+4.   Code review and QA
 
 ---
 
-## 🎯 SUCCESS METRICS
+##  SUCCESS METRICS
 
 After refactoring, the codebase should achieve:
 
@@ -464,7 +464,7 @@ After refactoring, the codebase should achieve:
 
 ---
 
-## 📝 NOTES
+##  NOTES
 
 ### Data Model Alignment Required
 Before major refactoring, align on:
