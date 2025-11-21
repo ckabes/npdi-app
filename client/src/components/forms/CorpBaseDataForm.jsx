@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import UNSPSCSelector from './UNSPSCSelector';
 
 /**
  * CorpBaseDataForm Component
@@ -6,6 +7,8 @@ import React from 'react';
  *
  * @param {Object} props
  * @param {Function} props.register - react-hook-form register function
+ * @param {Function} props.setValue - react-hook-form setValue function
+ * @param {Function} props.watch - react-hook-form watch function
  * @param {Function} props.onGenerateDescription - callback for generating product description
  * @param {boolean} props.readOnly - whether form should be read-only
  * @param {boolean} props.showGenerateButton - whether to show generate description button
@@ -14,12 +17,18 @@ import React from 'react';
  */
 const CorpBaseDataForm = ({
   register,
+  setValue,
+  watch,
   onGenerateDescription,
   readOnly = false,
   showGenerateButton = true,
   isGenerating = false,
   fieldsLoading = {}
 }) => {
+  const [isUNSPSCSelectorOpen, setIsUNSPSCSelectorOpen] = useState(false);
+
+  // Watch the UNSPSC code value
+  const unspscCode = watch('corpbaseData.unspscCode');
   // Loading spinner component
   const LoadingSpinner = () => (
     <svg className="animate-spin h-4 w-4 text-blue-600 inline-block ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -159,7 +168,49 @@ const CorpBaseDataForm = ({
             />
           </div>
         </div>
+
+        {/* UNSPSC Code Field */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            UNSPSC Code
+            <span className="text-xs text-gray-500 ml-2">(United Nations Standard Products and Services Code)</span>
+          </label>
+          <div className="flex gap-2">
+            <input
+              {...register('corpbaseData.unspscCode')}
+              type="text"
+              className="form-input flex-1"
+              placeholder="Select UNSPSC classification code..."
+              readOnly={readOnly}
+            />
+            {!readOnly && (
+              <button
+                type="button"
+                onClick={() => setIsUNSPSCSelectorOpen(true)}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Browse
+              </button>
+            )}
+          </div>
+          {unspscCode && (
+            <p className="mt-1 text-sm text-gray-600">
+              Selected: <span className="font-medium">{unspscCode}</span>
+            </p>
+          )}
+        </div>
       </div>
+
+      {/* UNSPSC Selector Modal */}
+      <UNSPSCSelector
+        isOpen={isUNSPSCSelectorOpen}
+        onClose={() => setIsUNSPSCSelectorOpen(false)}
+        onSelect={(code) => setValue('corpbaseData.unspscCode', code, { shouldDirty: true })}
+        currentValue={unspscCode}
+      />
     </div>
   );
 };
