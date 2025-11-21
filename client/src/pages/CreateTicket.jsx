@@ -171,7 +171,6 @@ const CreateTicket = () => {
     setAutoPopulated(false); // Reset state
 
     // Clear all existing fields before fetching new data
-    setValue('productName', '', { shouldDirty: true });
     setValue('chemicalProperties.molecularFormula', '', { shouldDirty: true });
     setValue('chemicalProperties.molecularWeight', '', { shouldDirty: true });
     setValue('chemicalProperties.iupacName', '', { shouldDirty: true });
@@ -218,12 +217,7 @@ const CreateTicket = () => {
       const data = response.data.data;
       
       console.log('Received data:', data);
-      
-      // Auto-populate basic fields safely
-      if (data.productName && !watch('productName')) {
-        setValue('productName', data.productName, { shouldDirty: true });
-      }
-      
+
       // Auto-populate chemical properties safely
       if (data.chemicalProperties) {
         if (data.chemicalProperties.molecularFormula) {

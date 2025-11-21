@@ -988,13 +988,19 @@ const generateCorpBaseContent = async (req, res) => {
 
     // Validate required product data
     if (!productData || !productData.productName) {
+      console.error('[CorpBase API] Missing required product name');
       return res.status(400).json({
         success: false,
         message: 'Product name is required for content generation'
       });
     }
 
-    console.log('Generating CorpBase content for:', productData.productName);
+    console.log('='.repeat(80));
+    console.log('[CorpBase API] Content generation request received');
+    console.log('[CorpBase API] Product:', productData.productName);
+    console.log('[CorpBase API] Force template mode:', forceTemplate || false);
+    console.log('[CorpBase API] Specific fields requested:', fields ? fields.join(', ') : 'all');
+    console.log('='.repeat(80));
 
     // Prepare product data for AI service
     const enrichedData = {
@@ -1008,8 +1014,9 @@ const generateCorpBaseContent = async (req, res) => {
 
     // If forceTemplate is true, skip AI and use template-based generation
     if (forceTemplate) {
-      console.log('Force template mode: using template-based generation');
-      const fallbackResult = await aiContentService.generateTemplateBasedContent(enrichedData);
+      console.log('[CorpBase API] Force template mode enabled - skipping AI');
+      const fallbackResult = aiContentService.generateTemplateBasedContent(enrichedData);
+      console.log('[CorpBase API] Template-based content generated successfully');
       return res.json(fallbackResult);
     }
 
@@ -1017,22 +1024,41 @@ const generateCorpBaseContent = async (req, res) => {
     const result = await aiContentService.generateCorpBaseContent(enrichedData, fields);
 
     if (result.success) {
-      console.log('CorpBase content generated successfully');
+      console.log('[CorpBase API] AI content generation successful');
+      console.log('[CorpBase API] Generated fields:', Object.keys(result.content).filter(k => result.content[k]).join(', '));
       res.json(result);
     } else {
-      console.warn('CorpBase content generation failed, trying fallback');
+      console.warn('[CorpBase API] AI generation failed - using template fallback');
+      console.warn('[CorpBase API] Failure reason:', result.message || result.error);
       // Try fallback if primary generation failed
-      const fallbackResult = await aiContentService.generateTemplateBasedContent(enrichedData);
+      const fallbackResult = aiContentService.generateTemplateBasedContent(enrichedData);
+      fallbackResult.fallbackReason = result.message || result.error;
+      console.log('[CorpBase API] Template-based fallback content generated');
       res.json(fallbackResult);
     }
 
   } catch (error) {
-    console.error('Generate CorpBase content error:', error);
-    res.status(500).json({
+    console.error('[CorpBase API] Exception during content generation:', error.message);
+    console.error('[CorpBase API] Stack trace:', error.stack);
+
+    // Provide detailed error information
+    const errorResponse = {
       success: false,
       message: 'Failed to generate content: ' + error.message,
-      error: error.message
-    });
+      error: error.message,
+      timestamp: new Date().toISOString()
+    };
+
+    // Add specific guidance based on error type
+    if (error.message.includes('API key')) {
+      errorResponse.hint = 'Configure the Azure OpenAI API key in Admin Dashboard > System Settings > Integrations > Langdock';
+    } else if (error.message.includes('not enabled')) {
+      errorResponse.hint = 'Enable AI content generation in Admin Dashboard > System Settings > Integrations > Langdock';
+    } else if (error.message.includes('VPN') || error.message.includes('ENOTFOUND')) {
+      errorResponse.hint = 'Ensure you are connected to the Merck VPN to access internal Azure OpenAI services';
+    }
+
+    res.status(500).json(errorResponse);
   }
 };
 

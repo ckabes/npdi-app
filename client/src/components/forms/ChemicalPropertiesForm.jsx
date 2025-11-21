@@ -321,27 +321,6 @@ const ChemicalPropertiesForm = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Product/Chemical Name
-            </label>
-            <input
-              {...register('productName')}
-              type="text"
-              className={`form-input ${autoPopulated ? 'bg-green-50' : ''}`}
-              placeholder="Enter chemical or product name manually if not auto-populated"
-              readOnly={readOnly}
-              // Note: Product name is always editable (unlike other chemical properties)
-              // Users can rename products even after auto-population from CAS lookup
-            />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
-            )}
-            {!watch('productName') && !readOnly && (
-              <p className="mt-1 text-xs text-gray-500">Required if cannot be auto-populated from CAS lookup</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
               Physical State
             </label>
             <select
