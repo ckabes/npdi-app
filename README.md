@@ -1,6 +1,6 @@
 # MilliporeSigma NPDI Portal
 
-A comprehensive New Product Development and Introduction (NPDI) application for managing chemical product development workflows at MilliporeSigma.
+A New Product Development and Introduction (NPDI) ticket initiation application for capturing product data and facilitating workflow between Product Managers and PMOps at MilliporeSigma.
 
 ## Features
 
@@ -26,6 +26,9 @@ A comprehensive New Product Development and Introduction (NPDI) application for 
 - **REST API**: External application integration with API key authentication
 - **User Preferences**: Customizable dashboard layouts and notification settings
 - **System Settings**: Configurable security policies, integrations, and performance options
+- **Microsoft Teams Integration**: Webhook notifications for ticket status changes and events
+- **AI Content Generation**: Azure OpenAI integration for automated product descriptions and marketing content
+- **Data Export**: Excel export functionality for PDP Checklists and product information forms
 
 ## Tech Stack
 
@@ -85,9 +88,17 @@ npdi-app/
 │   │   └── users.js          # User/profile management routes
 │   ├── scripts/              # Utility scripts
 │   │   ├── generateApiKey.js
-│   │   └── seedApiKey.js
+│   │   ├── seedApiKey.js
+│   │   ├── seedFormConfig.js
+│   │   ├── testAzureOpenAI.js
+│   │   └── testSAPConnectivity.js
 │   ├── services/             # External service integrations
-│   │   └── pubchemService.js
+│   │   ├── pubchemService.js
+│   │   ├── aiContentService.js
+│   │   ├── langdockService.js
+│   │   ├── teamsNotificationService.js
+│   │   ├── pdpChecklistExportService.js
+│   │   └── dataExportService.js
 │   ├── utils/                # Helper utilities
 │   │   └── enumCleaner.js
 │   └── index.js              # Server entry point
@@ -104,30 +115,26 @@ npdi-app/
 ├── docs/                     # Project documentation
 │   ├── api/                 # API documentation
 │   ├── architecture/        # System architecture docs
-│   ├── integrations/        # Third-party integrations (Teams, Entra ID)
+│   ├── integrations/        # Third-party integrations (Teams)
 │   ├── guides/              # How-to guides
 │   ├── security/            # Security assessments
 │   ├── reports/             # Technical reports
 │   ├── archive/             # Historical documentation
 │   └── README.md            # Documentation index
-├── CLAUDE.md                # AI assistant configuration
 └── README.md                # This file
 ```
 
 ## Documentation
 
-📚 **Comprehensive documentation is available in the [docs/](docs/) folder.**
+**Comprehensive documentation is available in the [docs/](docs/) folder.**
 
 **Quick Links:**
-- [📖 Documentation Index](docs/README.md) - Complete documentation guide
-- [🚀 Setup Guide](docs/guides/SETUP_GUIDE.md) - Installation and configuration
-- [🔌 API Documentation](docs/api/API_DOCUMENTATION.md) - REST API reference
-- [🏗️ Architecture](docs/architecture/ARCHITECTURE.md) - System design
-- [👥 Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
-- [🔐 Microsoft Authentication](docs/README.md#microsoft-entra-id-authentication-choose-one-approach) - Two options available
-  - ⭐ [Application Proxy](docs/integrations/ENTRA_APP_PROXY_IMPLEMENTATION_PLAN.md) (1-2 weeks, simple)
-  - [MSAL/OAuth](docs/integrations/ENTRA_ID_IMPLEMENTATION_PLAN.md) (3-4 weeks, advanced)
-- [🛡️ Security Assessment](docs/security/DEPENDENCY_SECURITY_ASSESSMENT.md) - Security audit
+- [Documentation Index](docs/README.md) - Complete documentation guide
+- [Setup Guide](docs/guides/SETUP_GUIDE.md) - Installation and configuration
+- [API Documentation](docs/api/API_DOCUMENTATION.md) - REST API reference
+- [Architecture](docs/architecture/ARCHITECTURE.md) - System design
+- [Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
+- [AI Content Generation](docs/features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration
 
 ## Getting Started
 
@@ -269,7 +276,7 @@ The application uses a profile-based authentication system:
 - `PUT /api/system-settings` - Update system settings
 - `POST /api/system-settings/test-pubchem` - Test PubChem connection
 
-For detailed API documentation including request/response examples, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
+For detailed API documentation including request/response examples, see [docs/api/API_DOCUMENTATION.md](docs/api/API_DOCUMENTATION.md).
 
 ## External API Integration
 
@@ -293,7 +300,7 @@ The application provides a REST API for external systems to integrate with the N
 - List tickets with filtering options
 - Full CRUD operations on tickets
 
-See [API_KEY_SETUP.md](./API_KEY_SETUP.md) for detailed setup instructions.
+See [docs/api/API_KEY_SETUP.md](docs/api/API_KEY_SETUP.md) for detailed setup instructions.
 
 ## Development
 
@@ -326,10 +333,7 @@ npm run build
 9. Configure CORS for production domains
 
 ### Docker Support
-Docker configuration can be added for containerized deployments. The application is designed to be containerizable with separate containers for:
-- Node.js application server
-- MongoDB database
-- Nginx reverse proxy
+The application is designed to be containerizable with separate containers for Node.js application server, MongoDB database, and Nginx reverse proxy.
 
 ## Security Features
 
@@ -347,18 +351,10 @@ Docker configuration can be added for containerized deployments. The application
 ## Architecture Notes
 
 ### Authentication System
-The application uses a **profile-based authentication** system for development and testing:
+The application uses a **profile-based authentication** system:
 - User profiles stored in file-based JSON (`/server/data/devProfiles.json`)
 - Profile data passed via request headers (`x-user-role`, `x-user-email`, etc.)
 - Managed by `devProfileController.js` and `authenticateProfile` middleware
-- Suitable for development; can be replaced with JWT/SSO for production
-
-### Future Enhancements
-The following features are planned for future implementation:
-- **Archived Tickets View**: UI to view and manage archived tickets (backend route exists)
-- **Document Management**: File upload system for SDSs, COAs, spec sheets (schema ready)
-- **Email Notifications**: SMTP integration for ticket status updates
-- **Advanced Analytics**: Deeper insights into ticket patterns and bottlenecks
 
 ## Contributing
 

@@ -7,13 +7,17 @@ const getSystemSettings = async (req, res) => {
   try {
     const settings = await SystemSettings.getSettings();
 
-    // Don't send sensitive data like SMTP password to frontend
+    // Don't send sensitive data to frontend - mask encrypted values
     const sanitizedSettings = settings.toObject();
     if (sanitizedSettings.email?.smtpPassword) {
       sanitizedSettings.email.smtpPassword = '********';
     }
     if (sanitizedSettings.integrations?.webhook?.secret) {
       sanitizedSettings.integrations.webhook.secret = '********';
+    }
+    // Mask Azure OpenAI API key (encrypted in database)
+    if (sanitizedSettings.integrations?.langdock?.apiKey) {
+      sanitizedSettings.integrations.langdock.apiKey = '********';
     }
 
     res.json(sanitizedSettings);
@@ -31,23 +35,29 @@ const updateSystemSettings = async (req, res) => {
     const userId = req.user.email;  // Use email from profile
     const updates = req.body;
 
-    // Don't allow updating password if it's masked
+    // Don't allow updating secrets if they're masked (user didn't change them)
     if (updates.email?.smtpPassword === '********') {
       delete updates.email.smtpPassword;
     }
     if (updates.integrations?.webhook?.secret === '********') {
       delete updates.integrations.webhook.secret;
     }
+    if (updates.integrations?.langdock?.apiKey === '********') {
+      delete updates.integrations.langdock.apiKey;
+    }
 
     const settings = await SystemSettings.updateSettings(updates, userId);
 
-    // Sanitize response
+    // Sanitize response - mask all sensitive values
     const sanitizedSettings = settings.toObject();
     if (sanitizedSettings.email?.smtpPassword) {
       sanitizedSettings.email.smtpPassword = '********';
     }
     if (sanitizedSettings.integrations?.webhook?.secret) {
       sanitizedSettings.integrations.webhook.secret = '********';
+    }
+    if (sanitizedSettings.integrations?.langdock?.apiKey) {
+      sanitizedSettings.integrations.langdock.apiKey = '********';
     }
 
     res.json({

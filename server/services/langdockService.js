@@ -60,6 +60,12 @@ class LangdockService {
       const settings = await this.loadSettings();
       const langdockConfig = settings.integrations.langdock;
 
+      // Decrypt the API key for use (encrypted at rest in database)
+      const apiKey = settings.getDecryptedApiKey();
+      if (!apiKey || apiKey === '') {
+        throw new Error('Azure OpenAI API key is not configured or could not be decrypted');
+      }
+
       // Build Azure OpenAI endpoint URL
       // Format: https://api.nlp.{env}.uptimize.merckgroup.com/openai/deployments/{model}/chat/completions?api-version={version}
       const environment = langdockConfig.environment || 'prod';
@@ -92,7 +98,7 @@ class LangdockService {
       console.log('[Azure OpenAI]   Environment:', environment);
       console.log('[Azure OpenAI]   Model/Deployment:', model);
       console.log('[Azure OpenAI]   API Version:', apiVersion);
-      console.log('[Azure OpenAI]   API Key:', '****' + langdockConfig.apiKey.slice(-8));
+      console.log('[Azure OpenAI]   API Key:', '****' + apiKey.slice(-8));
       console.log('[Azure OpenAI]   Temperature:', payload.temperature);
       console.log('[Azure OpenAI]   Max Tokens:', payload.max_tokens);
       console.log('[Azure OpenAI]   Timeout:', (langdockConfig.timeout || 30), 'seconds');
@@ -103,7 +109,7 @@ class LangdockService {
       const startTime = Date.now();
       const response = await axios.post(url, payload, {
         headers: {
-          'api-key': langdockConfig.apiKey,  // Azure OpenAI uses 'api-key' header
+          'api-key': apiKey,  // Azure OpenAI uses 'api-key' header (decrypted from database)
           'Content-Type': 'application/json'
         },
         timeout,
