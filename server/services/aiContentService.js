@@ -353,31 +353,36 @@ class AIContentService {
     console.log('[AI Content] Using template-based content generation (no AI)');
     const { productName, molecularFormula, casNumber, sbu } = productData;
 
-    let description = `${productName} is a high-quality chemical compound`;
+    // Build HTML-formatted description
+    let descriptionParts = [];
 
+    let intro = `<strong>${productName}</strong> is a high-quality chemical compound`;
     if (molecularFormula) {
-      description += ` with the molecular formula ${molecularFormula}`;
+      intro += ` with the molecular formula <strong>${molecularFormula}</strong>`;
     }
-
     if (casNumber) {
-      description += ` (CAS: ${casNumber})`;
+      intro += ` (CAS: ${casNumber})`;
     }
-
-    description += ` offered by MilliporeSigma for research and development applications.`;
+    intro += ` offered by MilliporeSigma for research and development applications.`;
+    descriptionParts.push(`<p>${intro}</p>`);
 
     // Add business unit specific context
+    let context = '';
     switch (sbu) {
       case 'Life Science':
-        description += ` This product is particularly suited for life science research, including cell biology, molecular biology, and biochemical studies.`;
+        context = `This product is particularly suited for life science research, including cell biology, molecular biology, and biochemical studies.`;
         break;
       case 'Process Solutions':
-        description += ` Designed for process development and manufacturing applications, this product meets stringent quality requirements for industrial use.`;
+        context = `Designed for process development and manufacturing applications, this product meets stringent quality requirements for industrial use.`;
         break;
       default:
-        description += ` This versatile compound serves multiple research and industrial applications.`;
+        context = `This versatile compound serves multiple research and industrial applications.`;
     }
+    descriptionParts.push(`<p>${context}</p>`);
 
-    description += ` Available in multiple package sizes to meet diverse research needs, each lot is carefully tested to ensure consistent quality and purity.`;
+    descriptionParts.push(`<p>Available in multiple package sizes to meet diverse research needs, each lot is carefully tested to ensure consistent quality and purity.</p>`);
+
+    const description = descriptionParts.join('\n');
 
     return {
       success: true,
@@ -387,8 +392,8 @@ class AIContentService {
         productDescription: description,
         websiteTitle: `${productName} | High-Quality Chemical | MilliporeSigma`,
         metaDescription: `Buy ${productName}${molecularFormula ? ` (${molecularFormula})` : ''} from MilliporeSigma. High purity, reliable quality for research applications.`.substring(0, 160),
-        keyFeatures: `• High purity and consistent quality\n• Rigorous quality control testing\n• Available in multiple package sizes\n• Suitable for research applications\n• Reliable supply chain and fast delivery`,
-        applications: 'Research and Development\nLaboratory Analysis\nChemical Synthesis\nQuality Control',
+        keyFeatures: `<ul>\n<li>High purity and consistent quality</li>\n<li>Rigorous quality control testing</li>\n<li>Available in multiple package sizes</li>\n<li>Suitable for research applications</li>\n<li>Reliable supply chain and fast delivery</li>\n</ul>`,
+        applications: '<ul>\n<li>Research and Development</li>\n<li>Laboratory Analysis</li>\n<li>Chemical Synthesis</li>\n<li>Quality Control</li>\n</ul>',
         targetIndustries: 'Pharmaceutical R&D, Biotechnology, Academic Research, Chemical Manufacturing'
       }
     };
