@@ -1088,6 +1088,8 @@ const CreateTicket = () => {
                       <CorpBaseDataForm
                         key={section.sectionKey}
                         register={register}
+                        setValue={setValue}
+                        watch={watch}
                         onGenerateDescription={generateProductDescription}
                         readOnly={false}
                         showGenerateButton={true}

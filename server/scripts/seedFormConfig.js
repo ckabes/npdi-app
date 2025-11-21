@@ -550,6 +550,19 @@ const defaultFormConfig = {
           gridColumn: 'full',
           order: 5,
           isCustom: false
+        },
+        {
+          fieldKey: 'unspscCode',
+          label: 'UNSPSC Code',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Select UNSPSC classification code...',
+          helpText: 'United Nations Standard Products and Services Code for product classification',
+          gridColumn: 'full',
+          order: 6,
+          isCustom: false
         }
       ]
     }
