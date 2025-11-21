@@ -506,7 +506,7 @@ Services encapsulate complex operations and external integrations:
 - Variable substitution for personalization
 - Content type management (descriptions, titles, features)
 
-**Langdock Service** (`langdockService.js`):
+**Azure OpenAI Service** (`azureOpenAIService.js`):
 - Azure OpenAI API integration (Merck NLP endpoint)
 - Environment-specific endpoint configuration
 - Authentication and request handling
@@ -1382,7 +1382,9 @@ The Azure OpenAI integration provides AI-powered content generation for product 
 
 #### 7.3.2 Integration Architecture
 
-**Service Layer:** `server/services/langdockService.js` (name retained for backward compatibility)
+**Service Layer:** `server/services/azureOpenAIService.js`
+
+Note: Database fields use `integrations.langdock` namespace for backward compatibility.
 
 **API Endpoint:** `https://api.nlp.{environment}.uptimize.merckgroup.com/openai/deployments/{model}/chat/completions`
 
@@ -1434,7 +1436,7 @@ Each content type has customizable:
    ↓
 4. For each enabled content type:
    a) Replace template variables with ticket data
-   b) Call langdockService.generateContent()
+   b) Call azureOpenAIService.generateCompletion()
    c) Azure OpenAI processes request
    d) Return generated content
    ↓

@@ -140,12 +140,12 @@ const testPubChemConnection = async (req, res) => {
 // @access  Admin
 const testAzureOpenAI = async (req, res) => {
   try {
-    const langdockService = require('../services/langdockService');
+    const azureOpenAIService = require('../services/azureOpenAIService');
 
     console.log('Testing Azure OpenAI connection...');
 
-    // Test the connection using the langdock service
-    const testResult = await langdockService.testConnection();
+    // Test the connection using the Azure OpenAI service
+    const testResult = await azureOpenAIService.testConnection();
 
     if (testResult.success) {
       res.json({

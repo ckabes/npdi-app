@@ -67,8 +67,8 @@ See `AI_CONTENT_FIELDS.md` for complete field mapping and configuration guide.
 
 ## 3. Azure OpenAI Integration  Yes
 
-### Migration from Langdock Proxy
-Transitioned from Langdock proxy service to direct Azure OpenAI integration using Merck's NLP API endpoint.
+### Azure OpenAI Direct Integration
+Uses direct Azure OpenAI integration via Merck's NLP API endpoint.
 
 ### Configuration
 - Environment: dev (confirmed working via diagnostics)
@@ -84,19 +84,14 @@ Transitioned from Langdock proxy service to direct Azure OpenAI integration usin
 ## 4. Documentation Cleanup 
 
 ### Removed Files
-Deleted obsolete Langdock troubleshooting documentation:
+Deleted obsolete troubleshooting documentation:
 -   API_TOKEN_NEEDED.md
--   LANGDOCK_TROUBLESHOOTING.md
--   MERCK_LANGDOCK_CONFIGURATION.md
 -   TOKEN_ACTIVATION_REQUIRED.md
 -   TOKEN_FORMAT_CONFIRMED.md
 -   TOKEN_VERIFICATION_CHECKLIST.md
 
 ### Removed Scripts
-Deleted obsolete test scripts:
--   server/scripts/configureLangdock.js
--   server/scripts/diagnoseLangdock.js
--   server/scripts/testLangdockAI.js
+Deleted obsolete test scripts
 
 ### Current Documentation
 -   AZURE_OPENAI_SETUP.md - Azure OpenAI setup guide
@@ -107,10 +102,9 @@ Deleted obsolete test scripts:
 
 ## Technical Details
 
-### Backend Service (`server/services/langdockService.js`)
-**Note:** File name retained for backward compatibility with existing database configurations.
+### Backend Service (`server/services/azureOpenAIService.js`)
 
-The service now:
+The service:
 - Connects directly to Azure OpenAI via Merck NLP API
 - Uses `api-key` header authentication (Azure format)
 - Supports environment-specific endpoints (dev/test/staging/prod)
@@ -191,14 +185,15 @@ cd /home/ckabes/npdi-app/diagnostics
 ## Migration Notes
 
 ### For Existing Users
-- **Database schema**: No changes required, uses existing `integrations.langdock` configuration
+- **Database schema**: No changes required, uses existing `integrations.langdock` configuration (field name retained for backward compatibility, contains Azure OpenAI settings)
 - **API endpoints**: Same endpoints, updated implementation
 - **UI**: Enhanced with loading indicators, no breaking changes
 - **Configuration**: Update environment to 'dev' if using default 'prod'
 
 ### For Developers
-- Service file name (`langdockService.js`) retained for compatibility
-- All external references updated to "Azure OpenAI"
+- Service file renamed to `azureOpenAIService.js` for accurate nomenclature
+- Database fields use `integrations.langdock` namespace for backward compatibility
+- All documentation and UI updated to use "Azure OpenAI" terminology
 - Test Azure OpenAI connection before using in production
 - See `diagnostics/` folder for troubleshooting tools
 
