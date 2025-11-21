@@ -86,7 +86,8 @@ const CreateTicket = () => {
         metaDescription: '',
         keyFeatures: '',
         applications: '',
-        targetIndustries: ''
+        targetIndustries: '',
+        unspscCode: ''
       },
       pricingData: {
         baseUnit: 'g',
