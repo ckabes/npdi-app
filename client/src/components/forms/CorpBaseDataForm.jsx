@@ -26,9 +26,14 @@ const CorpBaseDataForm = ({
   fieldsLoading = {}
 }) => {
   const [isUNSPSCSelectorOpen, setIsUNSPSCSelectorOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewField, setPreviewField] = useState(null);
 
-  // Watch the UNSPSC code value
+  // Watch the UNSPSC code value and all HTML fields
   const unspscCode = watch('corpbaseData.unspscCode');
+  const productDescription = watch('corpbaseData.productDescription');
+  const keyFeatures = watch('corpbaseData.keyFeatures');
+  const applications = watch('corpbaseData.applications');
   // Loading spinner component
   const LoadingSpinner = () => (
     <svg className="animate-spin h-4 w-4 text-blue-600 inline-block ml-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -43,6 +48,13 @@ const CorpBaseDataForm = ({
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   );
+
+  // Handle preview opening
+  const handlePreview = (field, content) => {
+    setPreviewField({ field, content });
+    setIsPreviewOpen(true);
+  };
+
   return (
     <div className="card">
       <div className="card-header">
@@ -84,15 +96,30 @@ const CorpBaseDataForm = ({
       </div>
       <div className="card-body space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Product Description {showGenerateButton && !readOnly && '(AI-Generated)'}
-            {fieldsLoading.productDescription && <LoadingSpinner />}
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Product Description {showGenerateButton && !readOnly && '(AI-Generated HTML)'}
+              {fieldsLoading.productDescription && <LoadingSpinner />}
+            </label>
+            {productDescription && (
+              <button
+                type="button"
+                onClick={() => handlePreview('Product Description', productDescription)}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+              >
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Preview HTML
+              </button>
+            )}
+          </div>
           <textarea
             {...register('corpbaseData.productDescription')}
             rows="4"
-            className={`form-input ${fieldsLoading.productDescription ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
-            placeholder={showGenerateButton && !readOnly ? "Click 'Generate with AI' to auto-generate based on product name and chemical properties..." : "Product description"}
+            className={`form-input font-mono text-sm ${fieldsLoading.productDescription ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+            placeholder={showGenerateButton && !readOnly ? "Click 'Generate with AI' to auto-generate HTML-formatted content..." : "HTML content"}
             readOnly={readOnly || isGenerating}
           />
         </div>
@@ -127,30 +154,60 @@ const CorpBaseDataForm = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Key Features & Benefits
-            {fieldsLoading.keyFeatures && <LoadingSpinner />}
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              Key Features & Benefits
+              {fieldsLoading.keyFeatures && <LoadingSpinner />}
+            </label>
+            {keyFeatures && (
+              <button
+                type="button"
+                onClick={() => handlePreview('Key Features & Benefits', keyFeatures)}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+              >
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                Preview HTML
+              </button>
+            )}
+          </div>
           <textarea
             {...register('corpbaseData.keyFeatures')}
             rows="3"
-            className={`form-input ${fieldsLoading.keyFeatures ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
-            placeholder="• High purity and quality&#10;• Suitable for research applications&#10;• Available in multiple sizes"
+            className={`form-input font-mono text-sm ${fieldsLoading.keyFeatures ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+            placeholder="<ul>&#10;<li>High purity and quality</li>&#10;<li>Suitable for research applications</li>&#10;</ul>"
             readOnly={readOnly}
           />
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Applications
-              {fieldsLoading.applications && <LoadingSpinner />}
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Applications
+                {fieldsLoading.applications && <LoadingSpinner />}
+              </label>
+              {applications && (
+                <button
+                  type="button"
+                  onClick={() => handlePreview('Applications', applications)}
+                  className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                >
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Preview HTML
+                </button>
+              )}
+            </div>
             <textarea
               {...register('corpbaseData.applications')}
               rows="3"
-              className={`form-input ${fieldsLoading.applications ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
-              placeholder="List key applications..."
+              className={`form-input font-mono text-sm ${fieldsLoading.applications ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+              placeholder="<ul>&#10;<li>Research and Development</li>&#10;<li>Laboratory Analysis</li>&#10;</ul>"
               readOnly={readOnly}
             />
           </div>
@@ -211,6 +268,81 @@ const CorpBaseDataForm = ({
         onSelect={(code) => setValue('corpbaseData.unspscCode', code, { shouldDirty: true })}
         currentValue={unspscCode}
       />
+
+      {/* HTML Preview Modal */}
+      {isPreviewOpen && previewField && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setIsPreviewOpen(false)}></div>
+
+            {/* Modal panel */}
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium text-white flex items-center">
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    HTML Preview: {previewField.field}
+                  </h3>
+                  <button
+                    onClick={() => setIsPreviewOpen(false)}
+                    className="text-white hover:text-gray-200 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="px-6 py-4">
+                {/* Preview Section */}
+                <div className="mb-6">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                    </svg>
+                    Rendered HTML Preview
+                  </h4>
+                  <div
+                    className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: previewField.content }}
+                  />
+                </div>
+
+                {/* HTML Source Section */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    HTML Source Code
+                  </h4>
+                  <pre className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono overflow-x-auto">
+                    <code className="text-gray-800">{previewField.content}</code>
+                  </pre>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="bg-gray-50 px-6 py-3 flex justify-end">
+                <button
+                  onClick={() => setIsPreviewOpen(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
