@@ -92,6 +92,7 @@ If you prefer to update the database directly using MongoDB:
    use npdi
 
 3. Update the configuration:
+   # Note: Field is named 'langdock' for backward compatibility, contains Azure OpenAI config
    db.systemsettings.updateOne(
      {},
      {

@@ -4,7 +4,7 @@ This document explains how to configure and test the Azure OpenAI integration us
 
 ## Overview
 
-The application has been updated to use Azure OpenAI via Merck's internal NLP API endpoint instead of the previous Langdock proxy. The implementation is based on the Python example provided in the Merck documentation.
+The application uses Azure OpenAI via Merck's internal NLP API endpoint. The implementation is based on the Python example provided in the Merck documentation.
 
 ## Configuration
 
@@ -92,26 +92,27 @@ The test script will:
 
 ### Backend Changes
 
-1. **langdockService.js** (`server/services/langdockService.js`):
-   - Updated to use Azure OpenAI endpoint format
-   - Changed authentication from Bearer token to `api-key` header
-   - Updated endpoint URL construction
-   - Added VPN-related error messages
-   - Removed Langdock-specific configuration (region → environment)
+1. **azureOpenAIService.js** (`server/services/azureOpenAIService.js`):
+   - Uses Azure OpenAI endpoint format
+   - Authentication via `api-key` header
+   - Environment-specific endpoint URL construction
+   - VPN-related error detection and messaging
+   - Supports dev, test, staging, and prod environments
 
 2. **SystemSettings.js** (`server/models/SystemSettings.js`):
-   - Replaced `region` field with `environment` (dev, test, staging, prod)
-   - Added `apiVersion` field (default: 2024-10-21)
-   - Removed `endpoints` array (no longer needed)
+   - Configuration stored in `integrations.langdock` (field name for backward compatibility)
+   - `environment` field: dev, test, staging, prod
+   - `apiVersion` field (default: 2024-10-21)
+   - `model` field: deployment name (e.g., gpt-4o-mini)
 
 ### Frontend Changes
 
 3. **SystemSettings.jsx** (`client/src/components/admin/SystemSettings.jsx`):
-   - Updated labels from "Langdock" to "Azure OpenAI"
-   - Changed Region dropdown to Environment dropdown
-   - Added API Version input field
-   - Changed Model dropdown to text input (for deployment names)
-   - Added VPN warning message
+   - Uses "Azure OpenAI" terminology
+   - Environment dropdown (dev, test, staging, prod)
+   - API Version configuration
+   - Deployment name/Model configuration
+   - VPN warning message for connectivity requirements
    - Removed "Available Endpoints" field
 
 ## API Key Management

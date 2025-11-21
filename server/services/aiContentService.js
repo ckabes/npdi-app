@@ -1,4 +1,4 @@
-const langdockService = require('./langdockService');
+const azureOpenAIService = require('./azureOpenAIService');
 const SystemSettings = require('../models/SystemSettings');
 
 /**
@@ -67,7 +67,7 @@ class AIContentService {
       maxWords: config.maxWords
     });
 
-    const content = await langdockService.generateCompletion(prompt, {
+    const content = await azureOpenAIService.generateCompletion(prompt, {
       temperature: config.temperature,
       maxTokens: Math.ceil(config.maxWords * 1.5) // Approximate tokens
     });
@@ -91,7 +91,7 @@ class AIContentService {
       maxChars: config.maxChars
     });
 
-    const content = await langdockService.generateCompletion(prompt, {
+    const content = await azureOpenAIService.generateCompletion(prompt, {
       temperature: config.temperature,
       maxTokens: 50
     });
@@ -116,7 +116,7 @@ class AIContentService {
       maxChars: config.maxChars
     });
 
-    const content = await langdockService.generateCompletion(prompt, {
+    const content = await azureOpenAIService.generateCompletion(prompt, {
       temperature: config.temperature,
       maxTokens: 100
     });
@@ -142,7 +142,7 @@ class AIContentService {
       wordsPerBullet: config.wordsPerBullet
     });
 
-    const content = await langdockService.generateCompletion(prompt, {
+    const content = await azureOpenAIService.generateCompletion(prompt, {
       temperature: config.temperature,
       maxTokens: config.bulletCount * config.wordsPerBullet * 2
     });
@@ -166,7 +166,7 @@ class AIContentService {
       itemCount: config.itemCount
     });
 
-    const content = await langdockService.generateCompletion(prompt, {
+    const content = await azureOpenAIService.generateCompletion(prompt, {
       temperature: config.temperature,
       maxTokens: config.itemCount * 20
     });
@@ -190,7 +190,7 @@ class AIContentService {
       itemCount: config.itemCount
     });
 
-    const content = await langdockService.generateCompletion(prompt, {
+    const content = await azureOpenAIService.generateCompletion(prompt, {
       temperature: config.temperature,
       maxTokens: config.itemCount * 10
     });
@@ -209,7 +209,7 @@ class AIContentService {
       // Check if Langdock is enabled and provide detailed diagnostics
       console.log('[AI Content] Checking AI configuration...');
       const settings = await this.loadSettings();
-      const enabled = await langdockService.isEnabled();
+      const enabled = await azureOpenAIService.isEnabled();
 
       if (!enabled) {
         const hasApiKey = settings?.integrations?.langdock?.apiKey?.length > 0;

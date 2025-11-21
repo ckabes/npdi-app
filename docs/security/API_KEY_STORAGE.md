@@ -79,7 +79,7 @@ The Azure OpenAI API key authenticates NPDI with Microsoft Azure's OpenAI servic
 ### Storage Location
 
 MongoDB collection: `systemsettings`
-Field path: `integrations.langdock.apiKey`
+Field path: `integrations.langdock.apiKey` (field name retained for backward compatibility)
 
 ### Security Model
 
@@ -90,7 +90,7 @@ Field path: `integrations.langdock.apiKey`
 **Files:**
 - `/server/utils/encryption.js` - Encryption utility
 - `/server/models/SystemSettings.js` - Database model with encryption hooks
-- `/server/services/langdockService.js` - Decrypts key for API calls
+- `/server/services/azureOpenAIService.js` - Decrypts key for API calls
 
 #### Encryption Algorithm
 
@@ -123,7 +123,7 @@ When an admin saves the Azure OpenAI API key in System Settings:
 
 When making an Azure OpenAI API call:
 
-1. **langdockService** loads settings from database
+1. **azureOpenAIService** loads settings from database
 2. Calls `settings.getDecryptedApiKey()` method
 3. Decryption method:
    - Splits encrypted string into IV, authTag, and encryptedData
@@ -330,7 +330,7 @@ Generates a new external API key with SHA-256 hash.
 {
   _id: ObjectId,
   integrations: {
-    langdock: {
+    langdock: {              // Field name retained for backward compatibility
       enabled: Boolean,
       apiKey: String,        // Encrypted (format: iv:authTag:data)
       environment: String,   // 'dev', 'test', 'staging', 'prod'
@@ -350,6 +350,8 @@ Generates a new external API key with SHA-256 hash.
   // ... other settings
 }
 ```
+
+**Note:** The field is named `langdock` for backward compatibility, but it contains Azure OpenAI configuration.
 
 ---
 

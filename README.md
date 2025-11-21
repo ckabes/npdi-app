@@ -95,7 +95,7 @@ npdi-app/
 │   ├── services/             # External service integrations
 │   │   ├── pubchemService.js
 │   │   ├── aiContentService.js
-│   │   ├── langdockService.js
+│   │   ├── azureOpenAIService.js
 │   │   ├── teamsNotificationService.js
 │   │   ├── pdpChecklistExportService.js
 │   │   └── dataExportService.js

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The NPDI application now includes AI-powered content generation for CorpBase website information using Langdock's OpenAI-compatible API. This feature automatically generates professional, SEO-optimized content for chemical products.
+The NPDI application includes AI-powered content generation for CorpBase website information using Azure OpenAI via Merck's NLP API. This feature automatically generates professional, SEO-optimized content for chemical products.
 
 ## Implementation Status
 
@@ -11,7 +11,7 @@ The NPDI application now includes AI-powered content generation for CorpBase web
 ### What's Been Implemented
 
 1. **Backend Services**
-   - `langdockService.js` - Langdock API integration with error handling
+   - `azureOpenAIService.js` - Azure OpenAI API integration with error handling
    - `aiContentService.js` - Content generation orchestration
    - `POST /api/products/generate-corpbase-content` - API endpoint
    - Quota tracking and management
@@ -25,7 +25,7 @@ The NPDI application now includes AI-powered content generation for CorpBase web
 
 3. **Admin Dashboard**
    - Complete AI Content Generation settings panel
-   - Langdock API configuration (key, region, model)
+   - Azure OpenAI API configuration (key, environment, model)
    - Quota tracking with visual progress bar
    - Editable AI prompts for each content type
    - Temperature and limit controls
@@ -86,12 +86,13 @@ Available placeholders in prompts:
 
 Navigate to: **Admin Dashboard → System Settings → AI Content Generation**
 
-#### Langdock API Configuration
+#### Azure OpenAI API Configuration
 
 - **Enable/Disable**: Toggle AI content generation
-- **API Key**: Secure input (stored in database)
-- **Region**: US or EU
-- **Model**: GPT-4o-mini (recommended), GPT-4o, GPT-4, GPT-3.5-turbo
+- **API Key**: Secure input (encrypted in database)
+- **Environment**: dev, test, staging, prod
+- **Model/Deployment**: gpt-4o-mini (recommended), gpt-4o, gpt-5-mini
+- **API Version**: 2024-10-21 (default)
 - **Timeout**: 10-120 seconds (default: 30)
 
 #### Quota Management
@@ -121,9 +122,9 @@ Each content type has:
 
 ### Required Setup
 
-1. **Obtain Langdock API Key**
-   - Sign up at [Langdock](https://langdock.com)
-   - Generate API key from dashboard
+1. **Obtain Azure OpenAI API Key**
+   - Request access from Merck IT
+   - Receive API key for Merck's NLP API endpoint
    - Note quota and expiry date
 
 2. **Configure in Admin Dashboard**
@@ -131,41 +132,18 @@ Each content type has:
    Admin Dashboard → System Settings → AI Content Generation
    ```
 
-3. **Set API Key**
+3. **Set API Key and Environment**
    - Paste key in "API Key" field
-   - Select region (US/EU)
-   - Choose model
+   - Select environment (dev, test, staging, prod)
+   - Choose model/deployment name (e.g., gpt-4o-mini)
    - Set quota and expiry date
    - Click "Save Settings"
 
 4. **Verify Configuration**
-   ```bash
-   node server/scripts/testLangdockAI.js
-   ```
+   - Use Test Connection button in Admin Dashboard
+   - Or run diagnostics: `./diagnostics/0-run-all-diagnostics.sh`
 
-### Manual Configuration (Alternative)
-
-Edit `/home/ckabes/npdi-app/server/scripts/configureLangdock.js`:
-
-```javascript
-settings.integrations.langdock = {
-  enabled: true,
-  apiKey: 'YOUR_API_KEY_HERE',
-  region: 'us',  // or 'eu'
-  model: 'gpt-4o-mini',
-  timeout: 30,
-  maxTokens: 2000,
-  quota: {
-    total: 2000,
-    used: 0,
-    remaining: 2000,
-    expiryDate: new Date('2030-11-07')
-  },
-  endpoints: ['/openai', '/openai_batch']
-};
-```
-
-Run: `node server/scripts/configureLangdock.js`
+5. **Important**: Ensure you are connected to Merck VPN for API access
 
 ## Usage
 
@@ -246,25 +224,27 @@ Run: `node server/scripts/configureLangdock.js`
 ### API Key Issues
 
 **Error:** "AI content generation is not enabled"
-- **Solution**: Enable Langdock in Admin Dashboard
+- **Solution**: Enable Azure OpenAI in Admin Dashboard
 - **Alternative**: Check API key is configured
 
-**Error:** "Langdock API authentication failed"
+**Error:** "Azure OpenAI API authentication failed"
 - **Solution**: Verify API key is correct
 - **Alternative**: Check key hasn't expired
+- **VPN**: Ensure you're connected to Merck VPN
 
 ### Quota Exceeded
 
-**Error:** "Langdock API rate limit exceeded"
+**Error:** "Azure OpenAI API rate limit exceeded"
 - **Solution**: Wait for quota reset
 - **Alternative**: Increase quota in settings
 - **Fallback**: System uses template generation
 
 ### Timeout
 
-**Error:** "Langdock API request timed out"
+**Error:** "Azure OpenAI API request timed out"
 - **Solution**: Increase timeout in settings
 - **Alternative**: Try again (temporary network issue)
+- **VPN**: Check VPN connection stability
 
 ## Fallback Behavior
 
@@ -280,14 +260,9 @@ If AI generation fails:
 ### Test Scripts
 
 1. **Test API Connection**
-   ```bash
-   node server/scripts/testLangdockAI.js
-   ```
-
-2. **Configure Langdock**
-   ```bash
-   node server/scripts/configureLangdock.js
-   ```
+   - Use Test Connection button in Admin Dashboard → System Settings → AI Content
+   - Or run diagnostics: `./diagnostics/0-run-all-diagnostics.sh`
+   - Or test Azure OpenAI: `node server/scripts/testAzureOpenAI.js`
 
 ### Manual Testing
 
@@ -363,10 +338,10 @@ All AI requests logged with:
    - Test with curl command
 
 2. **"No content generated"**
-   - Check internet connectivity
-   - Verify Langdock API status
+   - Check VPN connection
+   - Verify Azure OpenAI API status
    - Review error logs
-   - Test with testLangdockAI.js script
+   - Run diagnostics: `./diagnostics/0-run-all-diagnostics.sh`
 
 3. **"Quota exceeded"**
    - Check usage in dashboard
@@ -402,10 +377,10 @@ For issues or questions:
 
 ## References
 
-- [Langdock Documentation](https://docs.langdock.com)
-- [OpenAI API Reference](https://platform.openai.com/docs/api-reference)
-- [System Settings Guide](./SYSTEM_SETTINGS.md)
-- [API Documentation](../api/API_DOCUMENTATION.md)
+- [Azure OpenAI Setup Guide](./AZURE_OPENAI_SETUP.md)
+- [Azure OpenAI Models](./AZURE_OPENAI_MODELS.md)
+- [API Key Storage Documentation](../security/API_KEY_STORAGE.md)
+- [Diagnostics Guide](../../diagnostics/README.md)
 
 ---
 
