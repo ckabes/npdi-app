@@ -206,11 +206,28 @@ class AIContentService {
    */
   async generateCorpBaseContent(productData, fields = null) {
     try {
-      // Check if Langdock is enabled
+      // Check if Langdock is enabled and provide detailed diagnostics
+      console.log('[AI Content] Checking AI configuration...');
+      const settings = await this.loadSettings();
       const enabled = await langdockService.isEnabled();
+
       if (!enabled) {
-        throw new Error('AI content generation is not enabled. Please configure Langdock API in System Settings.');
+        const hasApiKey = settings?.integrations?.langdock?.apiKey?.length > 0;
+        const isEnabledFlag = settings?.integrations?.langdock?.enabled === true;
+
+        console.warn('[AI Content] AI generation not available:');
+        console.warn(`  - Enabled flag: ${isEnabledFlag}`);
+        console.warn(`  - API key configured: ${hasApiKey}`);
+        console.warn('  - Falling back to template-based generation');
+
+        const detailMessage = !isEnabledFlag
+          ? 'AI content generation is disabled in System Settings. Enable it in Admin Dashboard > System Settings > Integrations > Langdock.'
+          : 'Azure OpenAI API key is not configured. Add your API key in Admin Dashboard > System Settings > Integrations > Langdock.';
+
+        throw new Error(detailMessage);
       }
+
+      console.log('[AI Content] AI configuration verified. Generating content...');
 
       // Default: generate all fields
       const fieldsToGenerate = fields || [
@@ -226,12 +243,18 @@ class AIContentService {
         success: true,
         generatedAt: new Date(),
         aiGenerated: true,
-        content: {}
+        content: {},
+        diagnostics: {
+          configurationValid: true,
+          fieldsRequested: fieldsToGenerate.length,
+          fieldsGenerated: 0
+        }
       };
 
       // Generate each field
       for (const field of fieldsToGenerate) {
         try {
+          console.log(`[AI Content] Generating ${field}...`);
           switch (field) {
             case 'productDescription':
               results.content.productDescription = await this.generateProductDescription(productData);
@@ -252,10 +275,11 @@ class AIContentService {
               results.content.targetIndustries = await this.generateTargetIndustries(productData);
               break;
             default:
-              console.warn(`Unknown field: ${field}`);
+              console.warn(`[AI Content] Unknown field: ${field}`);
           }
+          results.diagnostics.fieldsGenerated++;
         } catch (fieldError) {
-          console.error(`Error generating ${field}:`, fieldError.message);
+          console.error(`[AI Content] Error generating ${field}:`, fieldError.message);
           results.content[field] = null;
           results.errors = results.errors || {};
           results.errors[field] = fieldError.message;
@@ -266,18 +290,25 @@ class AIContentService {
       const hasContent = Object.values(results.content).some(val => val !== null);
       if (!hasContent) {
         results.success = false;
-        results.message = 'Failed to generate any content';
+        results.message = 'Failed to generate any content. Check API connection and VPN status.';
+        console.error('[AI Content] No content was generated for any field');
+      } else {
+        console.log(`[AI Content] Successfully generated ${results.diagnostics.fieldsGenerated}/${fieldsToGenerate.length} fields`);
       }
 
       return results;
 
     } catch (error) {
-      console.error('CorpBase content generation error:', error.message);
+      console.error('[AI Content] Generation error:', error.message);
       return {
         success: false,
         message: error.message,
         error: error.message,
-        content: {}
+        content: {},
+        diagnostics: {
+          configurationValid: false,
+          errorType: error.code || 'UNKNOWN'
+        }
       };
     }
   }
@@ -288,21 +319,29 @@ class AIContentService {
    */
   async generateWithFallback(productData, fields = null) {
     try {
+      console.log('[AI Content] Attempting AI-powered content generation...');
       // Try AI generation first
       const aiResult = await this.generateCorpBaseContent(productData, fields);
 
       if (aiResult.success) {
+        console.log('[AI Content] AI generation successful, returning AI-generated content');
         return aiResult;
       }
 
       // If AI fails, fall back to template-based generation
-      console.warn('AI generation failed, falling back to template-based generation');
-      return this.generateTemplateBasedContent(productData);
+      console.warn('[AI Content] AI generation failed, using template-based fallback');
+      console.warn('[AI Content] Reason:', aiResult.message || aiResult.error);
+      const fallbackResult = this.generateTemplateBasedContent(productData);
+      fallbackResult.fallbackReason = aiResult.message || aiResult.error;
+      return fallbackResult;
 
     } catch (error) {
-      console.error('Content generation error:', error.message);
+      console.error('[AI Content] Exception during content generation:', error.message);
+      console.warn('[AI Content] Using template-based fallback due to exception');
       // Fall back to template-based generation
-      return this.generateTemplateBasedContent(productData);
+      const fallbackResult = this.generateTemplateBasedContent(productData);
+      fallbackResult.fallbackReason = error.message;
+      return fallbackResult;
     }
   }
 
@@ -311,6 +350,7 @@ class AIContentService {
    * Uses the same logic as the original CreateTicket.jsx
    */
   generateTemplateBasedContent(productData) {
+    console.log('[AI Content] Using template-based content generation (no AI)');
     const { productName, molecularFormula, casNumber, sbu } = productData;
 
     let description = `${productName} is a high-quality chemical compound`;
