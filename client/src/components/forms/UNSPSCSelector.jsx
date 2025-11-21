@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import unspscData from '../../data/unspsc-codes.json';
+import unspscDataFiltered from '../../data/unspsc-codes.json';
 
 /**
  * UNSPSC Code Selector Component
@@ -12,9 +12,13 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedCommodity, setSelectedCommodity] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [allCategoriesData, setAllCategoriesData] = useState(null);
+  const [loadingAll, setLoadingAll] = useState(false);
 
-  // Extract segments from data
-  const segments = Object.values(unspscData.segments || {});
+  // Get current data source based on toggle
+  const currentData = showAllCategories && allCategoriesData ? allCategoriesData : unspscDataFiltered;
+  const segments = Object.values(currentData.segments || {});
 
   // Reset selection when modal opens
   useEffect(() => {
@@ -26,6 +30,29 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
       }
     }
   }, [isOpen, currentValue]);
+
+  // Load all categories data when toggled
+  const handleToggleAllCategories = async () => {
+    if (!showAllCategories && !allCategoriesData) {
+      setLoadingAll(true);
+      try {
+        const allData = await import('../../data/unspsc-codes-all.json');
+        setAllCategoriesData(allData.default);
+        setShowAllCategories(true);
+      } catch (error) {
+        console.error('Failed to load all categories:', error);
+      } finally {
+        setLoadingAll(false);
+      }
+    } else {
+      setShowAllCategories(!showAllCategories);
+    }
+    // Reset selections when toggling
+    setSelectedSegment(null);
+    setSelectedFamily(null);
+    setSelectedClass(null);
+    setSelectedCommodity(null);
+  };
 
   // Parse a code and select the appropriate items
   const parseAndSelectCode = (code) => {
@@ -98,9 +125,36 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
           {/* Header */}
           <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-white">
-                UNSPSC Code Selector
-              </h3>
+              <div>
+                <h3 className="text-xl font-semibold text-white">
+                  UNSPSC Code Selector
+                  <span className="ml-2 text-sm font-normal text-blue-200">v260801</span>
+                </h3>
+                <div className="mt-2 flex items-center gap-4">
+                  <p className="text-sm text-blue-100">
+                    {showAllCategories ? 'Showing all categories' : 'Showing life science categories'}
+                  </p>
+                  <button
+                    onClick={handleToggleAllCategories}
+                    disabled={loadingAll}
+                    className="text-xs text-white hover:text-blue-100 underline transition-colors flex items-center gap-1"
+                  >
+                    {loadingAll ? (
+                      <>
+                        <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Loading...
+                      </>
+                    ) : showAllCategories ? (
+                      'Show life science categories only'
+                    ) : (
+                      'Show all UNSPSC categories'
+                    )}
+                  </button>
+                </div>
+              </div>
               <button
                 onClick={onClose}
                 className="text-white hover:text-gray-200 transition-colors"
@@ -110,9 +164,6 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
                 </svg>
               </button>
             </div>
-            <p className="mt-2 text-sm text-blue-100">
-              Navigate through categories to find the appropriate UNSPSC code for your product
-            </p>
           </div>
 
           {/* Search bar */}

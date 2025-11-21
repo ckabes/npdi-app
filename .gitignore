@@ -47,3 +47,4 @@ SECURITY_ANALYSIS.md
 
 # Dependency management (contains vulnerability details and update strategy)
 DEPENDENCY_MANAGEMENT.md
+unspsc.csv
