@@ -28,6 +28,8 @@ const CorpBaseDataForm = ({
   const [isUNSPSCSelectorOpen, setIsUNSPSCSelectorOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewField, setPreviewField] = useState(null);
+  const [editedHtml, setEditedHtml] = useState('');
+  const textareaRef = React.useRef(null);
 
   // Watch the UNSPSC code value and all HTML fields
   const unspscCode = watch('corpbaseData.unspscCode');
@@ -52,7 +54,71 @@ const CorpBaseDataForm = ({
   // Handle preview opening
   const handlePreview = (field, content) => {
     setPreviewField({ field, content });
+    setEditedHtml(content || '');
     setIsPreviewOpen(true);
+  };
+
+  // Handle saving edited HTML back to form
+  const handleSaveHtml = () => {
+    const fieldName = previewField.field;
+    let formFieldKey = '';
+
+    if (fieldName === 'Product Description') {
+      formFieldKey = 'corpbaseData.productDescription';
+    } else if (fieldName === 'Key Features & Benefits') {
+      formFieldKey = 'corpbaseData.keyFeatures';
+    } else if (fieldName === 'Applications') {
+      formFieldKey = 'corpbaseData.applications';
+    }
+
+    if (formFieldKey) {
+      setValue(formFieldKey, editedHtml, { shouldDirty: true });
+    }
+
+    setIsPreviewOpen(false);
+  };
+
+  // Apply HTML formatting to selected text
+  const applyFormatting = (tag) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = editedHtml.substring(start, end);
+
+    if (!selectedText) {
+      alert('Please select some text first');
+      return;
+    }
+
+    let wrappedText = '';
+    switch (tag) {
+      case 'bold':
+        wrappedText = `<strong>${selectedText}</strong>`;
+        break;
+      case 'italic':
+        wrappedText = `<em>${selectedText}</em>`;
+        break;
+      case 'sub':
+        wrappedText = `<sub>${selectedText}</sub>`;
+        break;
+      case 'sup':
+        wrappedText = `<sup>${selectedText}</sup>`;
+        break;
+      default:
+        return;
+    }
+
+    const newHtml = editedHtml.substring(0, start) + wrappedText + editedHtml.substring(end);
+    setEditedHtml(newHtml);
+
+    // Restore focus and update cursor position
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + wrappedText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
   };
 
   return (
@@ -311,32 +377,100 @@ const CorpBaseDataForm = ({
                     Rendered HTML Preview
                   </h4>
                   <div
-                    className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: previewField.content }}
+                    className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm prose prose-sm max-w-none min-h-[100px]"
+                    dangerouslySetInnerHTML={{ __html: editedHtml }}
                   />
                 </div>
 
-                {/* HTML Source Section */}
+                {/* HTML Editor Section */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    HTML Source Code
-                  </h4>
-                  <pre className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono overflow-x-auto">
-                    <code className="text-gray-800">{previewField.content}</code>
-                  </pre>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      HTML Source Code Editor
+                    </h4>
+                    <span className="text-xs text-gray-500">Select text and click a button to format</span>
+                  </div>
+
+                  {/* Formatting Toolbar */}
+                  <div className="flex gap-2 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
+                    <button
+                      type="button"
+                      onClick={() => applyFormatting('bold')}
+                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm font-semibold"
+                      title="Bold (wraps with <strong>)"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 3a1 1 0 011-1h5.5a4.5 4.5 0 013.5 7.28 5 5 0 01-1.5 9.72H5a1 1 0 01-1-1V3zm7.5 6a2.5 2.5 0 100-5H6v5h5.5zm.5 2H6v5h6a3 3 0 100-6z" clipRule="evenodd" />
+                      </svg>
+                      Bold
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyFormatting('italic')}
+                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm italic"
+                      title="Italic (wraps with <em>)"
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8 2a1 1 0 011 1v1h2V3a1 1 0 112 0v1h1a1 1 0 110 2h-.585l-2.83 10.5H13a1 1 0 110 2H9a1 1 0 110-2h1.415l2.83-10.5H11v1a1 1 0 11-2 0V5H8V3a1 1 0 011-1z" clipRule="evenodd" />
+                      </svg>
+                      Italic
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyFormatting('sub')}
+                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm"
+                      title="Subscript (wraps with <sub>)"
+                    >
+                      <span className="font-semibold">X<sub className="text-xs">2</sub></span>
+                      <span className="ml-1">Subscript</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => applyFormatting('sup')}
+                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm"
+                      title="Superscript (wraps with <sup>)"
+                    >
+                      <span className="font-semibold">X<sup className="text-xs">2</sup></span>
+                      <span className="ml-1">Superscript</span>
+                    </button>
+                  </div>
+
+                  {/* Editable HTML Textarea */}
+                  <textarea
+                    ref={textareaRef}
+                    value={editedHtml}
+                    onChange={(e) => setEditedHtml(e.target.value)}
+                    className="w-full p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono overflow-x-auto focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    rows="10"
+                    placeholder="Enter or edit HTML here..."
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tip: Highlight text in the editor above, then click a formatting button to wrap it with HTML tags
+                  </p>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="bg-gray-50 px-6 py-3 flex justify-end">
+              <div className="bg-gray-50 px-6 py-3 flex justify-between">
                 <button
+                  type="button"
                   onClick={() => setIsPreviewOpen(false)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
                 >
-                  Close
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveHtml}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Save Changes
                 </button>
               </div>
             </div>
