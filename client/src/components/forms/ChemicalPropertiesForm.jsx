@@ -42,7 +42,13 @@ const ChemicalPropertiesForm = ({
 
   // Helper function to check if field should have green background
   const isFieldAutoPopulated = (fieldName) => {
-    return autoPopulated && !editedFields.has(fieldName);
+    if (!autoPopulated || editedFields.has(fieldName)) {
+      return false;
+    }
+
+    // Check if the field actually has a value
+    const fieldValue = watch(`chemicalProperties.${fieldName}`);
+    return fieldValue !== null && fieldValue !== undefined && fieldValue !== '';
   };
 
   // Debug logging
