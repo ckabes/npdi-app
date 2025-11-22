@@ -407,6 +407,7 @@ const productTicketSchema = new mongoose.Schema({
     keyFeatures: [String],
     applications: [String],
     targetIndustries: String,
+    unspscCode: String,
     aiGenerated: {
       type: Boolean,
       default: false

@@ -1692,6 +1692,21 @@ const TicketDetails = () => {
                     />
                   </div>
                 </div>
+
+                {/* UNSPSC Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    UNSPSC Code
+                    <span className="text-xs text-gray-500 ml-2">(United Nations Standard Products and Services Code)</span>
+                  </label>
+                  <input
+                    {...registerEdit('corpbaseData.unspscCode')}
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g., 12141512 - Sodium hydroxide"
+                    defaultValue={ticket.corpbaseData?.unspscCode}
+                  />
+                </div>
               </div>
             </div>
 
@@ -2709,6 +2724,19 @@ const TicketDetails = () => {
                       {ticket.corpbaseData?.targetIndustries || 'Not provided'}
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* UNSPSC Code */}
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-2">
+                  UNSPSC Code
+                  <span className="text-xs text-gray-400 ml-2">(United Nations Standard Products and Services Code)</span>
+                </label>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-900 font-mono">
+                    {ticket.corpbaseData?.unspscCode || 'Not provided'}
+                  </p>
                 </div>
               </div>
             </div>
