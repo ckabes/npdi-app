@@ -121,6 +121,25 @@ const CorpBaseDataForm = ({
     }, 0);
   };
 
+  // Insert special character at cursor position
+  const insertSymbol = (symbol) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const newHtml = editedHtml.substring(0, start) + symbol + editedHtml.substring(end);
+    setEditedHtml(newHtml);
+
+    // Restore focus and update cursor position
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + symbol.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
   return (
     <div className="card">
       <div className="card-header">
@@ -395,47 +414,120 @@ const CorpBaseDataForm = ({
                   </div>
 
                   {/* Formatting Toolbar */}
-                  <div className="flex gap-2 mb-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
-                    <button
-                      type="button"
-                      onClick={() => applyFormatting('bold')}
-                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm font-semibold"
-                      title="Bold (wraps with <strong>)"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 3a1 1 0 011-1h5.5a4.5 4.5 0 013.5 7.28 5 5 0 01-1.5 9.72H5a1 1 0 01-1-1V3zm7.5 6a2.5 2.5 0 100-5H6v5h5.5zm.5 2H6v5h6a3 3 0 100-6z" clipRule="evenodd" />
-                      </svg>
-                      Bold
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormatting('italic')}
-                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm italic"
-                      title="Italic (wraps with <em>)"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8 2a1 1 0 011 1v1h2V3a1 1 0 112 0v1h1a1 1 0 110 2h-.585l-2.83 10.5H13a1 1 0 110 2H9a1 1 0 110-2h1.415l2.83-10.5H11v1a1 1 0 11-2 0V5H8V3a1 1 0 011-1z" clipRule="evenodd" />
-                      </svg>
-                      Italic
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormatting('sub')}
-                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm"
-                      title="Subscript (wraps with <sub>)"
-                    >
-                      <span className="font-semibold">X<sub className="text-xs">2</sub></span>
-                      <span className="ml-1">Subscript</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyFormatting('sup')}
-                      className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1 text-sm"
-                      title="Superscript (wraps with <sup>)"
-                    >
-                      <span className="font-semibold">X<sup className="text-xs">2</sup></span>
-                      <span className="ml-1">Superscript</span>
-                    </button>
+                  <div className="space-y-2 mb-3">
+                    {/* Text Formatting Row */}
+                    <div className="flex gap-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
+                      <span className="text-xs text-gray-600 font-medium self-center mr-2">Format:</span>
+                      <button
+                        type="button"
+                        onClick={() => applyFormatting('bold')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm"
+                        title="Bold (wraps with <strong>)"
+                      >
+                        <span className="font-bold text-base">B</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyFormatting('italic')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm"
+                        title="Italic (wraps with <em>)"
+                      >
+                        <span className="italic text-base font-serif">I</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyFormatting('sub')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm"
+                        title="Subscript (wraps with <sub>)"
+                      >
+                        <span className="font-medium">X<sub className="text-xs">2</sub></span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => applyFormatting('sup')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm"
+                        title="Superscript (wraps with <sup>)"
+                      >
+                        <span className="font-medium">X<sup className="text-xs">2</sup></span>
+                      </button>
+                    </div>
+
+                    {/* Special Characters Row */}
+                    <div className="flex gap-2 p-2 bg-gray-100 rounded-lg border border-gray-300">
+                      <span className="text-xs text-gray-600 font-medium self-center mr-2">Symbols:</span>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('°')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
+                        title="Degree symbol (°)"
+                      >
+                        °
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('±')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
+                        title="Plus-minus symbol (±)"
+                      >
+                        ±
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('≥')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
+                        title="Greater than or equal to (≥)"
+                      >
+                        ≥
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('≤')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
+                        title="Less than or equal to (≤)"
+                      >
+                        ≤
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('™')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
+                        title="Trademark symbol (™)"
+                      >
+                        ™
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('®')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
+                        title="Registered trademark (®)"
+                      >
+                        ®
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('α')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium italic"
+                        title="Greek letter alpha (α)"
+                      >
+                        α
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('β')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium italic"
+                        title="Greek letter beta (β)"
+                      >
+                        β
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertSymbol('μ')}
+                        className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium italic"
+                        title="Greek letter mu / micro (μ)"
+                      >
+                        μ
+                      </button>
+                    </div>
                   </div>
 
                   {/* Editable HTML Textarea */}
@@ -448,7 +540,7 @@ const CorpBaseDataForm = ({
                     placeholder="Enter or edit HTML here..."
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Tip: Highlight text in the editor above, then click a formatting button to wrap it with HTML tags
+                    <strong>Format:</strong> Select text and click a button to wrap with tags. <strong>Symbols:</strong> Click to insert at cursor position.
                   </p>
                 </div>
               </div>
