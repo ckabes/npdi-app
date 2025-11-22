@@ -123,7 +123,12 @@ class LangdockService {
 
       // Extract generated content
       if (response.data?.choices?.[0]?.message?.content) {
-        const content = response.data.choices[0].message.content.trim();
+        let content = response.data.choices[0].message.content.trim();
+
+        // Strip markdown code fences if present (AI sometimes adds them despite instructions)
+        // Handles: ```html\n<content>\n``` or ```\n<content>\n```
+        content = content.replace(/^```html?\n?/i, '').replace(/\n?```$/, '');
+
         console.log('[Azure OpenAI]   Content length:', content.length, 'characters');
         return content;
       } else {
