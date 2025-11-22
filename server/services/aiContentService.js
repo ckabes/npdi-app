@@ -351,36 +351,31 @@ class AIContentService {
    */
   generateTemplateBasedContent(productData) {
     console.log('[AI Content] Using template-based content generation (no AI)');
-    const { productName, molecularFormula, casNumber, sbu } = productData;
+    const { productName, sbu } = productData;
 
-    // Build HTML-formatted description
+    // Build marketing-focused HTML description
     let descriptionParts = [];
 
-    let intro = `<strong>${productName}</strong> is a high-quality chemical compound`;
-    if (molecularFormula) {
-      intro += ` with the molecular formula <strong>${molecularFormula}</strong>`;
-    }
-    if (casNumber) {
-      intro += ` (CAS: ${casNumber})`;
-    }
-    intro += ` offered by MilliporeSigma for research and development applications.`;
-    descriptionParts.push(`<p>${intro}</p>`);
+    // Lead with application/benefit, not technical specs
+    let intro = `<p><strong>${productName}</strong> delivers the high purity and consistent performance researchers depend on for critical experiments and analytical procedures.`;
+    descriptionParts.push(intro);
 
-    // Add business unit specific context
-    let context = '';
+    // Add SBU-specific application context (marketing focused)
+    let applicationContext = '';
     switch (sbu) {
       case 'Life Science':
-        context = `This product is particularly suited for life science research, including cell biology, molecular biology, and biochemical studies.`;
+        applicationContext = `<p>Ideal for life science research applications including cell culture, molecular biology, protein analysis, and biochemical assays. Trusted by researchers worldwide for reproducible results in demanding laboratory environments.</p>`;
         break;
       case 'Process Solutions':
-        context = `Designed for process development and manufacturing applications, this product meets stringent quality requirements for industrial use.`;
+        applicationContext = `<p>Engineered for process development and manufacturing applications where quality and consistency are critical. Meets stringent specifications for industrial and production-scale use.</p>`;
         break;
       default:
-        context = `This versatile compound serves multiple research and industrial applications.`;
+        applicationContext = `<p>Versatile reagent suitable for a wide range of research and analytical applications across pharmaceutical, biotechnology, and academic laboratories.</p>`;
     }
-    descriptionParts.push(`<p>${context}</p>`);
+    descriptionParts.push(applicationContext);
 
-    descriptionParts.push(`<p>Available in multiple package sizes to meet diverse research needs, each lot is carefully tested to ensure consistent quality and purity.</p>`);
+    // Availability and convenience messaging
+    descriptionParts.push(`<p>Available in multiple convenient package sizes to match your research needs. Every lot undergoes rigorous quality control testing to ensure you receive a product that meets MilliporeSigma's high standards for purity and performance. Ready to ship with reliable, fast delivery to keep your research moving forward.</p>`);
 
     const description = descriptionParts.join('\n');
 
@@ -390,10 +385,10 @@ class AIContentService {
       generatedAt: new Date(),
       content: {
         productDescription: description,
-        websiteTitle: `${productName} | High-Quality Chemical | MilliporeSigma`,
-        metaDescription: `Buy ${productName}${molecularFormula ? ` (${molecularFormula})` : ''} from MilliporeSigma. High purity, reliable quality for research applications.`.substring(0, 160),
-        keyFeatures: `<ul>\n<li>High purity and consistent quality</li>\n<li>Rigorous quality control testing</li>\n<li>Available in multiple package sizes</li>\n<li>Suitable for research applications</li>\n<li>Reliable supply chain and fast delivery</li>\n</ul>`,
-        applications: '<ul>\n<li>Research and Development</li>\n<li>Laboratory Analysis</li>\n<li>Chemical Synthesis</li>\n<li>Quality Control</li>\n</ul>',
+        websiteTitle: `${productName} | High-Quality Research Grade | MilliporeSigma`,
+        metaDescription: `${productName} from MilliporeSigma. High purity, rigorous testing, multiple sizes available. Trusted by researchers worldwide for reliable results.`.substring(0, 160),
+        keyFeatures: `<ul>\n<li>High purity with rigorous quality control testing</li>\n<li>Consistent lot-to-lot performance for reproducible results</li>\n<li>Multiple package sizes available to fit your needs</li>\n<li>Fast, reliable delivery to keep research on track</li>\n<li>Backed by MilliporeSigma's quality guarantee</li>\n</ul>`,
+        applications: '<ul>\n<li>Research and Development</li>\n<li>Analytical Testing</li>\n<li>Quality Control</li>\n<li>Process Development</li>\n</ul>',
         targetIndustries: 'Pharmaceutical R&D, Biotechnology, Academic Research, Chemical Manufacturing'
       }
     };
