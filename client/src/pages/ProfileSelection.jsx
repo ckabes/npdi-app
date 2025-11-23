@@ -29,6 +29,12 @@ const ProfileSelection = () => {
 
       {/* Content wrapper with higher z-index */}
       <div className="relative" style={{ zIndex: 1 }}>
+        {/* Logo and title in top right */}
+        <div className="absolute top-8 right-8 flex items-center space-x-3 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg">
+          <img src="/M.png" alt="MilliporeSigma" className="h-8 w-auto" />
+          <span className="text-xl font-bold text-gray-800">NPDI PORTAL</span>
+        </div>
+
         {/* Main content box with white background */}
         <div className="sm:mx-auto sm:w-full sm:max-w-lg bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
           <div className="text-center">
