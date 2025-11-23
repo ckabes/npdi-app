@@ -49,7 +49,32 @@ const Layout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white relative">
+      {/* Hexagonal background pattern */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <svg className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hexagons" x="0" y="0" width="100" height="87" patternUnits="userSpaceOnUse">
+              <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
+                       fill="none"
+                       stroke="#3b82f6"
+                       strokeWidth="0.5"
+                       opacity="0.3"/>
+              <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
+                       fill="none"
+                       stroke="#60a5fa"
+                       strokeWidth="0.3"
+                       opacity="0.2"
+                       transform="scale(0.7) translate(21, 18)"/>
+              <circle cx="50" cy="43.5" r="2" fill="#3b82f6" opacity="0.2"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hexagons)"/>
+        </svg>
+      </div>
+
+      {/* Content wrapper with higher z-index */}
+      <div className="relative" style={{ zIndex: 1 }}>
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-40 md:hidden ${sidebarOpen ? '' : 'pointer-events-none'}`}>
         <div className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`} 
@@ -172,6 +197,7 @@ const Layout = () => {
             </div>
           </div>
         </main>
+      </div>
       </div>
     </div>
   );
