@@ -9,15 +9,13 @@ const getSystemSettings = async (req, res) => {
 
     // Don't send sensitive data to frontend - mask encrypted values
     const sanitizedSettings = settings.toObject();
-    if (sanitizedSettings.email?.smtpPassword) {
-      sanitizedSettings.email.smtpPassword = '********';
-    }
-    if (sanitizedSettings.integrations?.webhook?.secret) {
-      sanitizedSettings.integrations.webhook.secret = '********';
-    }
     // Mask Azure OpenAI API key (encrypted in database)
     if (sanitizedSettings.integrations?.langdock?.apiKey) {
       sanitizedSettings.integrations.langdock.apiKey = '********';
+    }
+    // Mask Palantir token (encrypted in database)
+    if (sanitizedSettings.integrations?.palantir?.token) {
+      sanitizedSettings.integrations.palantir.token = '********';
     }
 
     res.json(sanitizedSettings);
@@ -36,28 +34,22 @@ const updateSystemSettings = async (req, res) => {
     const updates = req.body;
 
     // Don't allow updating secrets if they're masked (user didn't change them)
-    if (updates.email?.smtpPassword === '********') {
-      delete updates.email.smtpPassword;
-    }
-    if (updates.integrations?.webhook?.secret === '********') {
-      delete updates.integrations.webhook.secret;
-    }
     if (updates.integrations?.langdock?.apiKey === '********') {
       delete updates.integrations.langdock.apiKey;
+    }
+    if (updates.integrations?.palantir?.token === '********') {
+      delete updates.integrations.palantir.token;
     }
 
     const settings = await SystemSettings.updateSettings(updates, userId);
 
     // Sanitize response - mask all sensitive values
     const sanitizedSettings = settings.toObject();
-    if (sanitizedSettings.email?.smtpPassword) {
-      sanitizedSettings.email.smtpPassword = '********';
-    }
-    if (sanitizedSettings.integrations?.webhook?.secret) {
-      sanitizedSettings.integrations.webhook.secret = '********';
-    }
     if (sanitizedSettings.integrations?.langdock?.apiKey) {
       sanitizedSettings.integrations.langdock.apiKey = '********';
+    }
+    if (sanitizedSettings.integrations?.palantir?.token) {
+      sanitizedSettings.integrations.palantir.token = '********';
     }
 
     res.json({
@@ -183,12 +175,14 @@ const getSettingsSection = async (req, res) => {
 
     const sectionData = settings[section];
 
-    // Sanitize sensitive data
-    if (section === 'email' && sectionData.smtpPassword) {
-      sectionData.smtpPassword = '********';
-    }
-    if (section === 'integrations' && sectionData.webhook?.secret) {
-      sectionData.webhook.secret = '********';
+    // Sanitize sensitive data in integrations
+    if (section === 'integrations') {
+      if (sectionData.langdock?.apiKey) {
+        sectionData.langdock.apiKey = '********';
+      }
+      if (sectionData.palantir?.token) {
+        sectionData.palantir.token = '********';
+      }
     }
 
     res.json(sectionData);
