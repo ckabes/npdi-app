@@ -17,19 +17,15 @@ const ProfileSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
-      {/* Subtle honeycomb pattern background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0, opacity: 0.4 }}>
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="honeycomb-profile" x="0" y="0" width="56" height="100" patternUnits="userSpaceOnUse">
-              <path d="M28 0l14 8v16l-14 8-14-8V8l14-8z" fill="none" stroke="#3b82f6" strokeWidth="0.5" opacity="0.2"/>
-              <path d="M28 50l14 8v16l-14 8-14-8V58l14-8z" fill="none" stroke="#3b82f6" strokeWidth="0.5" opacity="0.2"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#honeycomb-profile)"/>
-        </svg>
-      </div>
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+      {/* Molecular background image */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/background2.png)',
+          zIndex: 0
+        }}
+      />
 
       {/* Content wrapper with higher z-index */}
       <div className="relative" style={{ zIndex: 1 }}>
