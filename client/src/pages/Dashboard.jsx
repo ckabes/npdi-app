@@ -42,9 +42,6 @@ const Dashboard = () => {
       fetchRecentlySubmittedTickets();
     }
     fetchDraftTickets();
-
-    // Trigger animation on mount
-    setTimeout(() => setIsAnimating(false), 50);
   }, []);
 
   const fetchStats = async () => {
@@ -56,6 +53,8 @@ const Dashboard = () => {
       toast.error('Failed to load dashboard statistics');
     } finally {
       setLoading(false);
+      // Trigger slide-up animation after content is loaded
+      setTimeout(() => setIsAnimating(false), 100);
     }
   };
 
