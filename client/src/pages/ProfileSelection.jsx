@@ -8,6 +8,14 @@ const ProfileSelection = () => {
     selectProfile(profileId);
   };
 
+  const formatRoleName = (role) => {
+    if (!role) return '';
+    // Convert PRODUCT_MANAGER to Product Manager
+    return role.split('_').map(word =>
+      word.charAt(0) + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -43,8 +51,7 @@ const ProfileSelection = () => {
                     <div className="text-lg font-medium text-gray-900">
                       {profile.firstName} {profile.lastName}
                     </div>
-                    <div className="text-sm text-gray-500">{profile.name}</div>
-                    <div className="text-xs text-gray-400">{profile.sbu}</div>
+                    <div className="text-sm text-gray-500">{formatRoleName(profile.role)}</div>
                   </div>
                 </div>
                 <div className="flex-shrink-0">
