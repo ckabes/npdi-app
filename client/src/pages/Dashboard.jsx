@@ -955,13 +955,13 @@ const Dashboard = () => {
           </div>
         </Link>
 
-        <Link to="/tickets?status=IN_PROCESS" className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-shadow">
+        <Link to="/tickets?status=IN_PROCESS,NPDI_INITIATED" className="card bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-shadow">
           <div className="card-body">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-blue-600 uppercase">In Process</p>
-                <p className="text-3xl font-bold text-blue-900 mt-1">{statusCounts.inProcess}</p>
-                <p className="text-xs text-blue-600 mt-1">Being processed</p>
+                <p className="text-3xl font-bold text-blue-900 mt-1">{statusCounts.inProcess + statusCounts.npdiInitiated}</p>
+                <p className="text-xs text-blue-600 mt-1">In Process + NPDI Initiated</p>
               </div>
               <div className="p-3 bg-blue-200 rounded-full">
                 <ChartBarIcon className="h-8 w-8 text-blue-700" />
