@@ -35,7 +35,19 @@ const createTicket = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      // Format validation errors into user-friendly messages
+      const errorMessages = errors.array().map(err => {
+        if (err.path) {
+          return `${err.msg} (Field: ${err.path})`;
+        }
+        return err.msg;
+      });
+
+      return res.status(400).json({
+        message: 'Validation failed: ' + errorMessages.join(', '),
+        errors: errors.array(),
+        validationErrors: errorMessages
+      });
     }
 
     let ticketData = {
@@ -112,14 +124,40 @@ const createTicket = async (req, res) => {
     console.error('Create ticket error:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
-    if (error.errors) {
+
+    // Handle different types of errors with specific messages
+    if (error.name === 'ValidationError') {
+      // Mongoose validation error
+      const validationErrors = Object.values(error.errors).map(err => err.message);
       console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
+
+      return res.status(400).json({
+        message: 'Validation failed: ' + validationErrors.join(', '),
+        error: 'Validation Error',
+        validationErrors: validationErrors
+      });
+    } else if (error.code === 11000) {
+      // Duplicate key error
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(400).json({
+        message: `A ticket with this ${field} already exists`,
+        error: 'Duplicate Entry',
+        field: field
+      });
+    } else if (error.name === 'CastError') {
+      // Invalid data type error
+      return res.status(400).json({
+        message: `Invalid value for ${error.path}: ${error.value}`,
+        error: 'Invalid Data Type'
+      });
+    } else {
+      // Generic server error
+      res.status(500).json({
+        message: 'Server error during ticket creation. Please try again or contact support if the problem persists.',
+        error: error.message,
+        validationErrors: error.errors || null
+      });
     }
-    res.status(500).json({ 
-      message: 'Server error during ticket creation',
-      error: error.message,
-      validationErrors: error.errors || null
-    });
   }
 };
 

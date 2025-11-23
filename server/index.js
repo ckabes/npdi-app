@@ -15,6 +15,7 @@ const userPreferencesRoutes = require('./routes/userPreferences');
 const templateRoutes = require('./routes/templates');
 const adminRoutes = require('./routes/admin');
 const ticketApiRoutes = require('./routes/ticketApi');
+const weightMatrixRoutes = require('./routes/weightMatrix');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -133,6 +134,7 @@ app.use('/api/system-settings', systemSettingsRoutes);
 app.use('/api/user-preferences', userPreferencesRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/weight-matrix', weightMatrixRoutes);
 
 // Public API v1 for external applications
 app.use('/api/v1/tickets', ticketApiRoutes);

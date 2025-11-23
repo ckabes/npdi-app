@@ -170,7 +170,17 @@ export const templatesAPI = {
 };
 
 export const adminAPI = {
-  getStats: () => apiClient.get('/admin/stats')
+  getStats: () => apiClient.get('/admin/stats'),
+  testPalantir: () => apiClient.post('/admin/palantir/test-connection')
+};
+
+export const weightMatrixAPI = {
+  getAll: (page = 1, limit = 50) => apiClient.get('/weight-matrix', { params: { page, limit } }),
+  search: (query) => apiClient.get('/weight-matrix/search', { params: { q: query } }),
+  lookup: (packageSize) => apiClient.get(`/weight-matrix/lookup/${encodeURIComponent(packageSize)}`),
+  create: (data) => apiClient.post('/weight-matrix', data),
+  update: (id, data) => apiClient.put(`/weight-matrix/${id}`, data),
+  delete: (id) => apiClient.delete(`/weight-matrix/${id}`)
 };
 
 // Default export for convenience

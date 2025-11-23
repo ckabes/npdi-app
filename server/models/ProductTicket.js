@@ -22,7 +22,40 @@ const skuVariantSchema = new mongoose.Schema({
     unit: {
       type: String,
       required: true,
-      enum: ['mg', 'g', 'kg', 'mL', 'L', 'units', 'vials', 'plates', 'bulk']
+      enum: ['mg', 'g', 'kg', 'mL', 'L', 'EA', 'units', 'vials', 'plates', 'bulk']
+    }
+  },
+  grossWeight: {
+    value: {
+      type: Number,
+      required: false
+    },
+    unit: {
+      type: String,
+      enum: ['mg', 'g', 'kg', 'lb', 'oz'],
+      default: 'g'
+    }
+  },
+  netWeight: {
+    value: {
+      type: Number,
+      required: false
+    },
+    unit: {
+      type: String,
+      enum: ['mg', 'g', 'kg', 'lb', 'oz'],
+      default: 'g'
+    }
+  },
+  volume: {
+    value: {
+      type: Number,
+      required: false
+    },
+    unit: {
+      type: String,
+      enum: ['mL', 'L', 'µL', 'gal', 'fl oz'],
+      default: 'mL'
     }
   },
   pricing: {
@@ -105,7 +138,7 @@ const hazardClassificationSchema = new mongoose.Schema({
 const chemicalPropertiesSchema = new mongoose.Schema({
   casNumber: {
     type: String,
-    required: true,
+    required: false,
     match: /^\d{1,7}-\d{2}-\d$/
   },
   molecularFormula: String,
@@ -297,22 +330,61 @@ const productTicketSchema = new mongoose.Schema({
   productScope: {
     scope: {
       type: String,
-      enum: ['Worldwide', 'North America', 'South America', 'Europe', 'Asia', 'Africa', 'Oceania', 'Other']
+      enum: ['Worldwide', 'US only', 'Europe only', 'EEA Restricted', 'Other']
     },
     otherSpecification: {
       type: String
     }
   },
   distributionType: {
-    type: String,
-    enum: ['Standard', 'Purchase on Demand', 'Dock-to-Stock']
-  },
-  retestOrExpiration: {
     type: {
       type: String,
-      enum: ['None', 'Retest', 'Expiration']
+      enum: ['Standard', 'Purchase on Demand', 'Dock to Stock']
     },
-    shelfLife: {
+    coaCreator: {
+      type: String,
+      enum: ['Internal', 'Vendor']
+    },
+    labelingType: {
+      type: String,
+      enum: ['SIAL Label', 'Vendor Label']
+    },
+    labelingResponsibility: {
+      type: String,
+      enum: ['Internal', 'Vendor']
+    },
+    vendorLabelSource: {
+      type: String  // Free text for "How vendor obtains labels"
+    }
+  },
+  retestOrExpiration: {
+    hasExpirationDate: {
+      type: Boolean,
+      default: false
+    },
+    expirationPeriod: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['days', 'months', 'years']
+      }
+    },
+    hasRetestDate: {
+      type: Boolean,
+      default: false
+    },
+    retestPeriod: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['days', 'months', 'years']
+      }
+    },
+    hasShelfLife: {
+      type: Boolean,
+      default: false
+    },
+    shelfLifePeriod: {
       value: Number,
       unit: {
         type: String,
@@ -333,11 +405,43 @@ const productTicketSchema = new mongoose.Schema({
     type: String,
     enum: ['Sigma-Aldrich', 'SAFC', 'Supelco', 'Milli-Q', 'Millipore', 'BioReliance', 'Calbiochem', 'Merck']
   },
+  businessLine: {
+    line: {
+      type: String,
+      enum: ['Biochemistry', 'Chemical Synthesis', 'Discovery Chemistry', 'Lab Classics', 'Material Science', 'BRM Applied Lab Essentials', 'Advanced Genomics', 'Beads & Fusion', 'Applied Biology', 'Production Materials', 'Other']
+    },
+    otherSpecification: {
+      type: String
+    }
+  },
   vendorInformation: {
     vendorName: String,
     vendorProductName: String,
     vendorSAPNumber: String,
-    vendorProductNumber: String
+    vendorProductNumber: String,
+    vendorCostPerUOM: {
+      value: Number,
+      unit: String
+    },
+    amountToBePurchased: {
+      value: Number,
+      unit: String
+    },
+    vendorLeadTimeWeeks: Number,
+    purchaseUOM: String,
+    purchaseCurrency: {
+      type: String,
+      default: 'USD'
+    },
+    countryOfOrigin: String
+  },
+  intellectualProperty: {
+    hasIP: {
+      type: Boolean,
+      default: false
+    },
+    patentNumber: String,
+    licenseNumber: String
   },
   status: {
     type: String,
@@ -421,7 +525,7 @@ const productTicketSchema = new mongoose.Schema({
   pricingData: {
     baseUnit: {
       type: String,
-      enum: ['mg', 'g', 'kg', 'mL', 'L', 'units', 'vials', 'plates', 'bulk'],
+      enum: ['mg', 'g', 'kg', 'mL', 'L', 'EA', 'units', 'vials', 'plates', 'bulk'],
       default: 'g'
     },
     standardCosts: {

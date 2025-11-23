@@ -21,36 +21,39 @@ router.post('/generate-corpbase-content', [
 ], productController.generateCorpBaseContent);
 
 router.post('/', [
-  body('productName').notEmpty().trim(),
+  body('productName').notEmpty().withMessage('Product name is required').trim(),
   body('sbu').optional().custom(value => {
     if (value === '') return true; // Allow empty strings, will be cleaned up in controller
     return ['775', 'P90', '440', 'P87', 'P89', 'P85'].includes(value);
-  }),
-  body('chemicalProperties.casNumber').matches(/^\d{1,7}-\d{2}-\d$/),
-  body('skuVariants').optional().isArray({ min: 1 }),
+  }).withMessage('SBU must be one of: 775, P90, 440, P87, P89, P85'),
+  body('chemicalProperties.casNumber').optional().custom(value => {
+    if (!value || value === '') return true; // Allow empty/missing CAS numbers
+    return /^\d{1,7}-\d{2}-\d$/.test(value);
+  }).withMessage('CAS Number must be in format: 123-45-6 (or leave blank if not applicable)'),
+  body('skuVariants').isArray({ min: 1 }).withMessage('At least one SKU variant is required'),
   body('skuVariants.*.type').optional().custom(value => {
     if (value === '') return true; // Allow empty strings, will be cleaned up in controller
-    return ['PREPACK', 'CONF', 'SPEC', 'VAR'].includes(value);
-  }),
+    return ['BULK', 'CONF', 'SPEC', 'VAR', 'PREPACK'].includes(value);
+  }).withMessage('SKU type must be one of: BULK, CONF, SPEC, VAR, PREPACK'),
   body('skuVariants.*.sku').optional().trim(),
-  body('skuVariants.*.packageSize.value').optional().isNumeric(),
+  body('skuVariants.*.packageSize.value').optional().isNumeric().withMessage('Package size value must be a number'),
   body('skuVariants.*.packageSize.unit').optional().custom(value => {
     if (value === '') return true; // Allow empty strings, will be cleaned up in controller
     return ['mg', 'g', 'kg', 'mL', 'L', 'units', 'vials', 'plates', 'bulk'].includes(value);
-  }),
-  body('skuVariants.*.pricing.listPrice').optional().isNumeric(),
+  }).withMessage('Package size unit must be one of: mg, g, kg, mL, L, units, vials, plates, bulk'),
+  body('skuVariants.*.pricing.listPrice').optional().isNumeric().withMessage('List price must be a number'),
   body('hazardClassification.ghsClass').optional().custom(value => {
     if (value === '') return true; // Allow empty strings, will be cleaned up in controller
     return ['H200-H299', 'H300-H399', 'H400-H499'].includes(value);
-  }),
+  }).withMessage('GHS class must be one of: H200-H299, H300-H399, H400-H499'),
   body('hazardClassification.signalWord').optional().custom(value => {
-    if (value === '') return true; // Allow empty strings, will be cleaned up in controller
+    if (value === '') return true; // Allow empty strings, will be confirmed up in controller
     return ['WARNING', 'DANGER', 'Danger', 'Warning'].includes(value);
-  }),
+  }).withMessage('Signal word must be one of: WARNING, DANGER, Danger, Warning'),
   body('chemicalProperties.physicalState').optional().custom(value => {
     if (value === '') return true; // Allow empty strings, will be cleaned up in controller
     return ['Solid', 'Liquid', 'Gas', 'Powder', 'Crystal'].includes(value);
-  })
+  }).withMessage('Physical state must be one of: Solid, Liquid, Gas, Powder, Crystal')
 ], productController.createTicket);
 
 router.post('/draft', [
@@ -59,7 +62,10 @@ router.post('/draft', [
     if (value === '') return true;
     return ['775', 'P90', '440', 'P87', 'P89', 'P85'].includes(value);
   }),
-  body('chemicalProperties.casNumber').optional().matches(/^\d{1,7}-\d{2}-\d$/),
+  body('chemicalProperties.casNumber').optional().custom(value => {
+    if (!value || value === '') return true; // Allow empty/missing CAS numbers
+    return /^\d{1,7}-\d{2}-\d$/.test(value);
+  }),
 ], productController.saveDraft);
 
 router.get('/', productController.getTickets);
@@ -69,9 +75,12 @@ router.get('/archived', productController.getArchivedTickets);
 router.get('/:id', productController.getTicketById);
 
 router.put('/:id', [
-  body('productName').optional().notEmpty().trim(),
-  body('chemicalProperties.casNumber').optional().matches(/^\d{1,7}-\d{2}-\d$/),
-  body('skuVariants').optional().isArray({ min: 1 })
+  body('productName').optional().notEmpty().withMessage('Product name cannot be empty').trim(),
+  body('chemicalProperties.casNumber').optional().custom(value => {
+    if (!value || value === '') return true; // Allow empty/missing CAS numbers
+    return /^\d{1,7}-\d{2}-\d$/.test(value);
+  }).withMessage('CAS Number must be in format: 123-45-6 (or leave blank if not applicable)'),
+  body('skuVariants').optional().isArray().withMessage('SKU variants must be an array')
 ], productController.updateTicket);
 
 router.patch('/:id/status', [

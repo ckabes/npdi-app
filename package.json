@@ -23,6 +23,7 @@
   "author": "MilliporeSigma",
   "license": "ISC",
   "dependencies": {
+    "apache-arrow": "^21.1.0",
     "axios": "^1.11.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -32,7 +33,8 @@
     "express-rate-limit": "^6.10.0",
     "express-validator": "^7.0.1",
     "helmet": "^7.0.0",
-    "mongoose": "^7.5.0"
+    "mongoose": "^7.5.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

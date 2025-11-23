@@ -57,7 +57,8 @@ const formFieldSchema = new mongoose.Schema({
   },
   visibleWhen: {
     fieldKey: String,
-    value: mongoose.Schema.Types.Mixed
+    value: mongoose.Schema.Types.Mixed,
+    values: [String]  // Array of values for OR conditions
   },
   gridColumn: {
     type: String,

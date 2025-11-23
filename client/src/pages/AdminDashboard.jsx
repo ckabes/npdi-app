@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import {
   UserGroupIcon,
@@ -13,7 +13,8 @@ import {
   ArrowTrendingUpIcon,
   BoltIcon,
   ArrowPathIcon,
-  KeyIcon
+  KeyIcon,
+  ScaleIcon
 } from '@heroicons/react/24/outline';
 import UserManagement from '../components/admin/UserManagement';
 import PermissionsManagement from '../components/admin/PermissionsManagement';
@@ -21,6 +22,9 @@ import SystemSettings from '../components/admin/SystemSettings';
 import ApiKeyManagement from '../components/admin/ApiKeyManagement';
 import { adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
+
+// Lazy load Weight Matrix Management to avoid loading until needed
+const WeightMatrixManagement = lazy(() => import('../components/admin/WeightMatrixManagement'));
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -51,6 +55,7 @@ const AdminDashboard = () => {
     { id: 'users', name: 'User Management', icon: UserGroupIcon },
     { id: 'permissions', name: 'Permissions', icon: ShieldCheckIcon },
     { id: 'api-keys', name: 'API Keys', icon: KeyIcon },
+    { id: 'weight-matrix', name: 'Weight Matrix', icon: ScaleIcon },
     { id: 'system', name: 'System Settings', icon: CogIcon }
   ];
 
@@ -417,6 +422,19 @@ const AdminDashboard = () => {
         return <PermissionsManagement />;
       case 'api-keys':
         return <ApiKeyManagement />;
+      case 'weight-matrix':
+        return (
+          <Suspense fallback={
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                <p className="text-gray-500">Loading Weight Matrix...</p>
+              </div>
+            </div>
+          }>
+            <WeightMatrixManagement />
+          </Suspense>
+        );
       case 'system':
         return <SystemSettings />;
       default:

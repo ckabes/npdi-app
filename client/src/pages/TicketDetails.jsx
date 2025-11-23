@@ -21,6 +21,7 @@ import {
 import toast from 'react-hot-toast';
 import { StatusBadge, PriorityBadge } from '../components/badges';
 import { DynamicCustomSections } from '../components/forms';
+import UNSPSCSelector from '../components/forms/UNSPSCSelector';
 // Shared form components - ready for future refactoring
 // import {
 //   ChemicalPropertiesForm,
@@ -39,6 +40,7 @@ const TicketDetails = () => {
   const [commentLoading, setCommentLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [isUNSPSCSelectorOpen, setIsUNSPSCSelectorOpen] = useState(false);
   const formInitializedRef = useRef(false);
   const [expandedSections, setExpandedSections] = useState({
     chemical: true,
@@ -157,67 +159,6 @@ const TicketDetails = () => {
     }
   };
 
-  const handleExportPDPChecklist = async () => {
-    try {
-      toast.loading('Generating PDP Checklist...');
-      const response = await productAPI.exportPDPChecklist(id);
-
-      // Create a blob from the response
-      const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      });
-
-      // Create a download link and trigger it
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `PDP_Checklist_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.dismiss();
-      toast.success('PDP Checklist downloaded successfully');
-    } catch (error) {
-      console.error('Failed to export PDP Checklist:', error);
-      toast.dismiss();
-      toast.error('Failed to export PDP Checklist');
-    }
-  };
-
-  const handleExportPIF = async () => {
-    try {
-      toast.loading('Generating PIF...');
-      const response = await productAPI.exportPIF(id);
-
-      // Create a blob from the response
-      const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      });
-
-      // Create a download link and trigger it
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `PIF_${ticket.ticketNumber || id}_${Date.now()}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      toast.dismiss();
-      toast.success('PIF downloaded successfully');
-    } catch (error) {
-      console.error('Failed to export PIF:', error);
-      toast.dismiss();
-      toast.error('Failed to export PIF');
-    }
-  };
 
   const handleExportDataExcel = async () => {
     try {
@@ -259,7 +200,22 @@ const TicketDetails = () => {
       fetchTicket();
     } catch (error) {
       console.error('Failed to update ticket:', error);
-      toast.error('Failed to update ticket');
+
+      // Enhanced error handling with validation details
+      const errorData = error.response?.data;
+
+      if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
+        // Show each validation error
+        errorData.validationErrors.forEach((msg, index) => {
+          setTimeout(() => {
+            toast.error(msg, { duration: 5000 });
+          }, index * 100); // Stagger toasts slightly
+        });
+      } else if (errorData?.message) {
+        toast.error(errorData.message, { duration: 5000 });
+      } else {
+        toast.error('Failed to update ticket. Please check your input and try again.');
+      }
     } finally {
       setUpdateLoading(false);
     }
@@ -398,24 +354,6 @@ const TicketDetails = () => {
               {/* Export Buttons - PMOps Only */}
               {isPMOPS && !editMode && (
                 <>
-                  <button
-                    onClick={handleExportPDPChecklist}
-                    className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-green-500/30"
-                    title="Download PDP Checklist"
-                  >
-                    <ArrowDownTrayIcon className="w-4 h-4" />
-                    <span>PDP Checklist</span>
-                  </button>
-
-                  <button
-                    onClick={handleExportPIF}
-                    className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-green-500/30"
-                    title="Download PIF"
-                  >
-                    <ArrowDownTrayIcon className="w-4 h-4" />
-                    <span>PIF</span>
-                  </button>
-
                   <button
                     onClick={handleExportDataExcel}
                     className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-green-500/30"
@@ -1429,6 +1367,95 @@ const TicketDetails = () => {
                             </div>
                           </div>
 
+                          {/* Physical Dimensions - Only for PREPACK */}
+                          {field.type === 'PREPACK' && (
+                            <>
+                              {/* Gross Weight */}
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Gross Weight
+                                </label>
+                                <div className="flex space-x-2">
+                                  <input
+                                    {...registerEdit(`skuVariants.${index}.grossWeight.value`)}
+                                    type="number"
+                                    step="0.001"
+                                    className="form-input flex-1"
+                                    placeholder="0.0"
+                                    defaultValue={field.grossWeight?.value}
+                                  />
+                                  <select
+                                    {...registerEdit(`skuVariants.${index}.grossWeight.unit`)}
+                                    className="form-select w-20"
+                                    defaultValue={field.grossWeight?.unit || 'g'}
+                                  >
+                                    <option value="mg">mg</option>
+                                    <option value="g">g</option>
+                                    <option value="kg">kg</option>
+                                    <option value="lb">lb</option>
+                                    <option value="oz">oz</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* Net Weight */}
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Net Weight
+                                </label>
+                                <div className="flex space-x-2">
+                                  <input
+                                    {...registerEdit(`skuVariants.${index}.netWeight.value`)}
+                                    type="number"
+                                    step="0.001"
+                                    className="form-input flex-1"
+                                    placeholder="0.0"
+                                    defaultValue={field.netWeight?.value}
+                                  />
+                                  <select
+                                    {...registerEdit(`skuVariants.${index}.netWeight.unit`)}
+                                    className="form-select w-20"
+                                    defaultValue={field.netWeight?.unit || 'g'}
+                                  >
+                                    <option value="mg">mg</option>
+                                    <option value="g">g</option>
+                                    <option value="kg">kg</option>
+                                    <option value="lb">lb</option>
+                                    <option value="oz">oz</option>
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* Volume */}
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                  Volume
+                                </label>
+                                <div className="flex space-x-2">
+                                  <input
+                                    {...registerEdit(`skuVariants.${index}.volume.value`)}
+                                    type="number"
+                                    step="0.001"
+                                    className="form-input flex-1"
+                                    placeholder="0.0"
+                                    defaultValue={field.volume?.value}
+                                  />
+                                  <select
+                                    {...registerEdit(`skuVariants.${index}.volume.unit`)}
+                                    className="form-select w-20"
+                                    defaultValue={field.volume?.unit || 'mL'}
+                                  >
+                                    <option value="µL">µL</option>
+                                    <option value="mL">mL</option>
+                                    <option value="L">L</option>
+                                    <option value="gal">gal</option>
+                                    <option value="fl oz">fl oz</option>
+                                  </select>
+                                </div>
+                              </div>
+                            </>
+                          )}
+
                           {/* Only show pricing for non-VAR/SPEC/CONF types */}
                           {!['VAR', 'SPEC', 'CONF'].includes(field.type) && (
                             <div>
@@ -1699,13 +1726,31 @@ const TicketDetails = () => {
                     UNSPSC Code
                     <span className="text-xs text-gray-500 ml-2">(United Nations Standard Products and Services Code)</span>
                   </label>
-                  <input
-                    {...registerEdit('corpbaseData.unspscCode')}
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g., 12141512 - Sodium hydroxide"
-                    defaultValue={ticket.corpbaseData?.unspscCode}
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      {...registerEdit('corpbaseData.unspscCode')}
+                      type="text"
+                      className="form-input flex-1"
+                      placeholder="e.g., 12141512 - Sodium hydroxide"
+                      defaultValue={ticket.corpbaseData?.unspscCode}
+                      readOnly
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsUNSPSCSelectorOpen(true)}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      Browse
+                    </button>
+                  </div>
+                  {watchEdit('corpbaseData.unspscCode') && (
+                    <p className="mt-1 text-sm text-gray-600">
+                      Selected: <span className="font-medium">{watchEdit('corpbaseData.unspscCode')}</span>
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -1919,24 +1964,35 @@ const TicketDetails = () => {
                   </div>
                 )}
 
-                {ticket.distributionType && (
+                {ticket.distributionType?.type && (
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Distribution Type</label>
-                    <p className="mt-1 text-sm text-gray-900">{ticket.distributionType}</p>
+                    <p className="mt-1 text-sm text-gray-900">{ticket.distributionType.type}</p>
+                    {(ticket.distributionType.type === 'Purchase on Demand' || ticket.distributionType.type === 'Dock to Stock') && (
+                      <div className="mt-2 text-xs text-gray-600 space-y-1">
+                        {ticket.distributionType.coaCreator && <p>COA Creator: {ticket.distributionType.coaCreator}</p>}
+                        {ticket.distributionType.labelingType && <p>Labeling: {ticket.distributionType.labelingType}</p>}
+                        {ticket.distributionType.labelingResponsibility && <p>Labeling Responsibility: {ticket.distributionType.labelingResponsibility}</p>}
+                        {ticket.distributionType.vendorLabelSource && <p>Vendor Label Source: {ticket.distributionType.vendorLabelSource}</p>}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {ticket.retestOrExpiration?.type && ticket.retestOrExpiration.type !== 'None' && (
+                {ticket.retestOrExpiration && (ticket.retestOrExpiration.hasExpirationDate || ticket.retestOrExpiration.hasRetestDate || ticket.retestOrExpiration.hasShelfLife) && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Retest/Expiration</label>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {ticket.retestOrExpiration.type}
-                      {ticket.retestOrExpiration.shelfLife?.value && (
-                        <span className="text-gray-600">
-                          {' - '}{ticket.retestOrExpiration.shelfLife.value} {ticket.retestOrExpiration.shelfLife.unit}
-                        </span>
+                    <label className="block text-sm font-medium text-gray-500">Product Dating</label>
+                    <div className="mt-1 text-sm text-gray-900 space-y-1">
+                      {ticket.retestOrExpiration.hasExpirationDate && ticket.retestOrExpiration.expirationPeriod?.value && (
+                        <p>Expiration: {ticket.retestOrExpiration.expirationPeriod.value} {ticket.retestOrExpiration.expirationPeriod.unit}</p>
                       )}
-                    </p>
+                      {ticket.retestOrExpiration.hasRetestDate && ticket.retestOrExpiration.retestPeriod?.value && (
+                        <p>Retest: {ticket.retestOrExpiration.retestPeriod.value} {ticket.retestOrExpiration.retestPeriod.unit}</p>
+                      )}
+                      {ticket.retestOrExpiration.hasShelfLife && ticket.retestOrExpiration.shelfLifePeriod?.value && (
+                        <p>Shelf Life: {ticket.retestOrExpiration.shelfLifePeriod.value} {ticket.retestOrExpiration.shelfLifePeriod.unit}</p>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1971,7 +2027,40 @@ const TicketDetails = () => {
                     </p>
                   </div>
                 )}
+
+                {ticket.businessLine?.line && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Business Line</label>
+                    <p className="mt-1 text-sm text-gray-900">
+                      {ticket.businessLine.line}
+                      {ticket.businessLine.line === 'Other' && ticket.businessLine.otherSpecification && (
+                        <span className="text-gray-600"> - {ticket.businessLine.otherSpecification}</span>
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Intellectual Property */}
+              {ticket.intellectualProperty?.hasIP && (
+                <div className="border-t border-gray-200 pt-6 mt-6">
+                  <h4 className="text-md font-medium text-gray-900 mb-4">Intellectual Property</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {ticket.intellectualProperty.patentNumber && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">Patent Number</label>
+                        <p className="mt-1 text-sm text-gray-900 font-mono">{ticket.intellectualProperty.patentNumber}</p>
+                      </div>
+                    )}
+                    {ticket.intellectualProperty.licenseNumber && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500">License Number</label>
+                        <p className="mt-1 text-sm text-gray-900 font-mono">{ticket.intellectualProperty.licenseNumber}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Vendor Information - Only shown if Procured */}
               {ticket.productionType === 'Procured' && ticket.vendorInformation && (
@@ -2001,6 +2090,46 @@ const TicketDetails = () => {
                         <div>
                           <label className="block text-sm font-medium text-gray-500">Vendor Product #</label>
                           <p className="mt-1 text-sm text-gray-900 font-mono">{ticket.vendorInformation.vendorProductNumber}</p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.vendorCostPerUOM?.value && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Vendor Cost</label>
+                          <p className="mt-1 text-sm text-gray-900">
+                            ${ticket.vendorInformation.vendorCostPerUOM.value} / {ticket.vendorInformation.vendorCostPerUOM.unit}
+                          </p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.amountToBePurchased?.value && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Amount to Purchase</label>
+                          <p className="mt-1 text-sm text-gray-900">
+                            {ticket.vendorInformation.amountToBePurchased.value} {ticket.vendorInformation.amountToBePurchased.unit}
+                          </p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.vendorLeadTimeWeeks && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Lead Time</label>
+                          <p className="mt-1 text-sm text-gray-900">{ticket.vendorInformation.vendorLeadTimeWeeks} weeks</p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.purchaseUOM && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Purchase UOM</label>
+                          <p className="mt-1 text-sm text-gray-900">{ticket.vendorInformation.purchaseUOM}</p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.purchaseCurrency && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Purchase Currency</label>
+                          <p className="mt-1 text-sm text-gray-900">{ticket.vendorInformation.purchaseCurrency}</p>
+                        </div>
+                      )}
+                      {ticket.vendorInformation.countryOfOrigin && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">Country of Origin</label>
+                          <p className="mt-1 text-sm text-gray-900">{ticket.vendorInformation.countryOfOrigin}</p>
                         </div>
                       )}
                     </div>
@@ -2438,6 +2567,33 @@ const TicketDetails = () => {
                       </div>
 
                       <p className="text-sm text-gray-700">{sku.description}</p>
+
+                      {/* Physical Dimensions - Only for PREPACK */}
+                      {!editMode && sku.type === 'PREPACK' && (sku.grossWeight?.value || sku.netWeight?.value || sku.volume?.value) && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                          <h5 className="text-xs font-medium text-gray-700 mb-2">Physical Dimensions</h5>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                            {sku.grossWeight?.value && (
+                              <div>
+                                <span className="text-gray-600">Gross Weight:</span>
+                                <p className="font-medium text-gray-900">{sku.grossWeight.value} {sku.grossWeight.unit}</p>
+                              </div>
+                            )}
+                            {sku.netWeight?.value && (
+                              <div>
+                                <span className="text-gray-600">Net Weight:</span>
+                                <p className="font-medium text-gray-900">{sku.netWeight.value} {sku.netWeight.unit}</p>
+                              </div>
+                            )}
+                            {sku.volume?.value && (
+                              <div>
+                                <span className="text-gray-600">Volume:</span>
+                                <p className="font-medium text-gray-900">{sku.volume.value} {sku.volume.unit}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Pricing Details - Only for non-VAR/SPEC/CONF types */}
                       {!editMode && !['VAR', 'SPEC', 'CONF'].includes(sku.type) && sku.pricing && (
@@ -3269,6 +3425,19 @@ const TicketDetails = () => {
           </div>
           </div>
         </div>
+      )}
+
+      {/* UNSPSC Selector Modal */}
+      {isEditMode && (
+        <UNSPSCSelector
+          isOpen={isUNSPSCSelectorOpen}
+          onClose={() => setIsUNSPSCSelectorOpen(false)}
+          onSelect={(code) => {
+            setValueEdit('corpbaseData.unspscCode', code, { shouldDirty: true });
+            setIsUNSPSCSelectorOpen(false);
+          }}
+          currentValue={watchEdit('corpbaseData.unspscCode')}
+        />
       )}
     </div>
   );
