@@ -230,15 +230,23 @@ const TicketDetails = () => {
     if (ticket.status === 'NPDI_INITIATED') {
       return false;
     }
-    return (isPMOPS || isAdmin) || (ticket.status === 'DRAFT' && isProductManager);
+    // PMOps and Admin can edit tickets in any status (except NPDI_INITIATED)
+    if (isPMOPS || isAdmin) {
+      return true;
+    }
+    // Product Managers can edit tickets in DRAFT or SUBMITTED status
+    if (isProductManager && (ticket.status === 'DRAFT' || ticket.status === 'SUBMITTED')) {
+      return true;
+    }
+    return false;
   };
 
   const canEditPricing = () => {
     // Pricing can only be edited when:
-    // 1. Product Manager editing DRAFT tickets (original creation/editing)
+    // 1. Product Manager editing DRAFT or SUBMITTED tickets (original creation/editing)
     // 2. PMOps/Admin explicitly editing tickets AFTER they reach IN_PROCESS status
-    if (isProductManager && ticket.status === 'DRAFT') {
-      return true; // Product Manager can set pricing during draft creation/editing
+    if (isProductManager && (ticket.status === 'DRAFT' || ticket.status === 'SUBMITTED')) {
+      return true; // Product Manager can set pricing during draft creation/editing and submitted status
     }
     if ((isPMOPS || isAdmin) && ticket.status === 'IN_PROCESS' && editMode) {
       return true; // PMOps can edit pricing only when explicitly editing IN_PROCESS tickets
@@ -368,6 +376,28 @@ const TicketDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Product Manager - Ticket Cannot Be Edited Info Banner */}
+      {isProductManager && !isPMOPS && !isAdmin && (ticket.status === 'IN_PROCESS' || ticket.status === 'COMPLETED' || ticket.status === 'CANCELED') && (
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6">
+          <div className="flex items-center space-x-4">
+            <div className="bg-white/20 p-3 rounded-lg">
+              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="text-white flex-1">
+              <h3 className="text-xl font-bold">Ticket Editing Not Available</h3>
+              <p className="text-blue-100 mt-1">
+                This ticket is currently in <strong>{ticket.status.replace(/_/g, ' ')}</strong> status and cannot be edited by Product Managers.
+              </p>
+              <p className="text-blue-100 text-sm mt-2">
+                ℹ️ If you need to make changes to this ticket, please contact PMOps to change the status back to <strong>SUBMITTED</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* NPDI Initiated Banner */}
       {ticket.status === 'NPDI_INITIATED' && (
@@ -1142,6 +1172,201 @@ const TicketDetails = () => {
                 )}
               </div>
             </div>
+
+            {/* Business Information */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="text-lg font-medium text-gray-900">Business Information</h3>
+              </div>
+              <div className="card-body space-y-6">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Primary Plant
+                    </label>
+                    <input
+                      {...registerEdit('primaryPlant')}
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g., Milwaukee, St. Louis"
+                      defaultValue={ticket.primaryPlant}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Material Group
+                    </label>
+                    <input
+                      {...registerEdit('materialGroup')}
+                      type="text"
+                      className="form-input"
+                      placeholder="SAP Material Group"
+                      defaultValue={ticket.materialGroup}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Country of Origin
+                    </label>
+                    <input
+                      {...registerEdit('countryOfOrigin')}
+                      type="text"
+                      className="form-input"
+                      placeholder="e.g., USA, Germany"
+                      defaultValue={ticket.countryOfOrigin}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Brand
+                    </label>
+                    <select {...registerEdit('brand')} className="form-select" defaultValue={ticket.brand || ''}>
+                      <option value="">Select Brand...</option>
+                      <option value="Sigma-Aldrich">Sigma-Aldrich</option>
+                      <option value="Supelco">Supelco</option>
+                      <option value="Millipore">Millipore</option>
+                      <option value="SAFC">SAFC</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SIAL Product Hierarchy
+                    </label>
+                    <input
+                      {...registerEdit('sialProductHierarchy')}
+                      type="text"
+                      className="form-input"
+                      placeholder="Product hierarchy code"
+                      defaultValue={ticket.sialProductHierarchy}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Product Scope
+                    </label>
+                    <select {...registerEdit('productScope.scope')} className="form-select" defaultValue={ticket.productScope?.scope || ''}>
+                      <option value="">Select Scope...</option>
+                      <option value="Worldwide">Worldwide</option>
+                      <option value="Regional">Regional</option>
+                      <option value="Country-Specific">Country-Specific</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Business Line
+                    </label>
+                    <select {...registerEdit('businessLine.line')} className="form-select" defaultValue={ticket.businessLine?.line || ''}>
+                      <option value="">Select Business Line...</option>
+                      <option value="Research">Research</option>
+                      <option value="Applied">Applied</option>
+                      <option value="Production">Production</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Distribution Type
+                    </label>
+                    <select {...registerEdit('distributionType')} className="form-select" defaultValue={ticket.distributionType || ''}>
+                      <option value="">Select Distribution Type...</option>
+                      <option value="Standard">Standard</option>
+                      <option value="Purchase on Demand">Purchase on Demand</option>
+                      <option value="Dock to Stock">Dock to Stock</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Similar Products
+                    <span className="text-xs text-gray-500 ml-2">(Comma-separated material numbers)</span>
+                  </label>
+                  <input
+                    {...registerEdit('similarProducts')}
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g., 176036, 185647, 192849"
+                    defaultValue={ticket.similarProducts}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    List of similar products with the same CAS number
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Vendor Information (for Procured products) */}
+            {watchEdit('productionType') === 'Procured' && (
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="text-lg font-medium text-gray-900">Vendor Information</h3>
+                  <p className="text-sm text-gray-500 mt-1">External supplier details for procured products</p>
+                </div>
+                <div className="card-body space-y-6">
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vendor Name
+                      </label>
+                      <input
+                        {...registerEdit('vendorInformation.vendorName')}
+                        type="text"
+                        className="form-input"
+                        placeholder="Supplier company name"
+                        defaultValue={ticket.vendorInformation?.vendorName}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vendor Product Name
+                      </label>
+                      <input
+                        {...registerEdit('vendorInformation.vendorProductName')}
+                        type="text"
+                        className="form-input"
+                        placeholder="Product name from vendor"
+                        defaultValue={ticket.vendorInformation?.vendorProductName}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vendor SAP Number
+                      </label>
+                      <input
+                        {...registerEdit('vendorInformation.vendorSAPNumber')}
+                        type="text"
+                        className="form-input"
+                        placeholder="SAP vendor number"
+                        defaultValue={ticket.vendorInformation?.vendorSAPNumber}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Vendor Product Number
+                      </label>
+                      <input
+                        {...registerEdit('vendorInformation.vendorProductNumber')}
+                        type="text"
+                        className="form-input"
+                        placeholder="Vendor's product/catalog number"
+                        defaultValue={ticket.vendorInformation?.vendorProductNumber}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Margin & Pricing Calculation */}
             <div className="card">
@@ -2036,6 +2261,15 @@ const TicketDetails = () => {
                       {ticket.businessLine.line === 'Other' && ticket.businessLine.otherSpecification && (
                         <span className="text-gray-600"> - {ticket.businessLine.otherSpecification}</span>
                       )}
+                    </p>
+                  </div>
+                )}
+
+                {ticket.similarProducts && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Similar Products</label>
+                    <p className="mt-1 text-sm text-gray-900 font-mono">
+                      {ticket.similarProducts}
                     </p>
                   </div>
                 )}
@@ -3428,7 +3662,7 @@ const TicketDetails = () => {
       )}
 
       {/* UNSPSC Selector Modal */}
-      {isEditMode && (
+      {editMode && (
         <UNSPSCSelector
           isOpen={isUNSPSCSelectorOpen}
           onClose={() => setIsUNSPSCSelectorOpen(false)}

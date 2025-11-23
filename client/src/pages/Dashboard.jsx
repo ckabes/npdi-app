@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [allRecentTickets, setAllRecentTickets] = useState([]);
   const [draftTickets, setDraftTickets] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [recentlySubmitted, setRecentlySubmitted] = useState([]);
   const [showMonthlyRateModal, setShowMonthlyRateModal] = useState(false);
   const [showThisWeekModal, setShowThisWeekModal] = useState(false);
 
@@ -37,6 +38,7 @@ const Dashboard = () => {
     fetchMyTickets();
     if (isPMOPS) {
       fetchAllRecentTickets();
+      fetchRecentlySubmittedTickets();
     }
     fetchDraftTickets();
   }, []);
@@ -55,12 +57,12 @@ const Dashboard = () => {
 
   const fetchMyTickets = async () => {
     try {
-      // Fetch ALL tickets created by the current user (excluding drafts)
+      // Fetch 5 most recent tickets (excluding drafts)
       const params = {
         page: 1,
-        limit: 1000, // Large limit to get all tickets
+        limit: 5, // Show only 5 most recent tickets
         status: 'SUBMITTED,IN_PROCESS,NPDI_INITIATED,COMPLETED',
-        createdBy: user?.email, // Filter by user's email
+        // No createdBy filter - show all tickets
         sortBy: 'updatedAt', // Sort by last updated
         sortOrder: 'desc' // Most recent first
       };
@@ -88,6 +90,24 @@ const Dashboard = () => {
       setAllRecentTickets(response.data.tickets || []);
     } catch (error) {
       console.error('Failed to fetch all recent tickets:', error);
+    }
+  };
+
+  const fetchRecentlySubmittedTickets = async () => {
+    try {
+      // For PMOps: fetch the 5 most recently submitted tickets
+      const params = {
+        page: 1,
+        limit: 5,
+        status: 'SUBMITTED',
+        sortBy: 'createdAt', // Sort by creation date
+        sortOrder: 'desc' // Most recent first
+      };
+
+      const response = await productAPI.getTickets(params);
+      setRecentlySubmitted(response.data.tickets || []);
+    } catch (error) {
+      console.error('Failed to fetch recently submitted tickets:', error);
     }
   };
 
@@ -454,6 +474,94 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
+        {/* Recently Submitted Tickets */}
+        <div className="card">
+          <div className="card-header">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <ClockIcon className="h-6 w-6 text-millipore-blue mr-2" />
+                <h3 className="text-lg font-medium text-gray-900">Recently Submitted Tickets</h3>
+              </div>
+              <Link
+                to="/tickets?status=SUBMITTED"
+                className="text-sm text-millipore-blue hover:text-millipore-blue-dark font-medium"
+              >
+                View All Submitted Tickets →
+              </Link>
+            </div>
+            <p className="text-sm text-gray-500 mt-1">5 most recently submitted tickets</p>
+          </div>
+          <div className="card-body p-0">
+            {recentlySubmitted && recentlySubmitted.length > 0 ? (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted By</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {recentlySubmitted.map((ticket) => {
+                    const submitterName = ticket.createdByUser
+                      ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
+                      : ticket.createdBy || 'Unknown';
+
+                    return (
+                      <tr key={ticket._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {ticket.ticketNumber || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          <div className="max-w-xs truncate" title={ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}>
+                            {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <PriorityBadge priority={ticket.priority} />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {ticket.sbu}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {submitterName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <span className="text-sm text-gray-900">
+                              {formatTimeAgo(ticket.createdAt)}
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              {new Date(ticket.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                          <Link
+                            to={`/tickets/${ticket._id}`}
+                            className="text-millipore-blue hover:text-millipore-blue-dark font-medium"
+                          >
+                            View →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <ClockIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <p>No recently submitted tickets</p>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Two Column Layout for Charts and Tables */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
