@@ -39,7 +39,7 @@ const CreateTicket = () => {
   const [showSimilarProductsPopup, setShowSimilarProductsPopup] = useState(false);
   const { user, isProductManager, isPMOPS } = useAuth();
   const navigate = useNavigate();
-  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, setValue, watch, formState: { errors, isDirty } } = useForm({
     defaultValues: {
       productName: '',
       priority: 'MEDIUM',
@@ -132,6 +132,7 @@ const CreateTicket = () => {
   const casNumber = watch('chemicalProperties.casNumber');
   const productName = watch('productName');
   const molecularFormula = watch('chemicalProperties.molecularFormula');
+  const iupacName = watch('chemicalProperties.iupacName');
   const sbu = watch('sbu');
   const baseUnit = watch('pricingData.baseUnit');
   const productScope = watch('productScope.scope');
@@ -174,6 +175,60 @@ const CreateTicket = () => {
       window.removeEventListener('focus', handleFocus);
     };
   }, [user, isPMOPS]);
+
+  // Warn user before leaving page with unsaved changes (browser navigation)
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for Chrome
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
+
+  // Warn user before navigating away from page with unsaved changes (internal navigation)
+  useEffect(() => {
+    const handleClick = (e) => {
+      // Only intercept if form has unsaved changes
+      if (!isDirty) return;
+
+      // Check if the clicked element or its parent is a navigation link
+      const link = e.target.closest('a[href]');
+      if (!link) return;
+
+      const href = link.getAttribute('href');
+
+      // Check if it's an internal navigation link (not external)
+      if (href && href.startsWith('/') && href !== '/tickets/new') {
+        // Prevent default navigation
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Show confirmation dialog
+        const confirmLeave = window.confirm(
+          'You have unsaved changes. Are you sure you want to leave this page? Your changes will be lost.'
+        );
+
+        if (confirmLeave) {
+          // User confirmed - navigate away
+          navigate(href);
+        }
+      }
+    };
+
+    // Attach click listener to document to intercept all link clicks
+    document.addEventListener('click', handleClick, true);
+
+    return () => {
+      document.removeEventListener('click', handleClick, true);
+    };
+  }, [isDirty, navigate]);
 
   const handleCASLookup = async () => {
     // Get fresh value from form state
@@ -721,15 +776,15 @@ const CreateTicket = () => {
       const response = await productAPI.lookupCAS(casValue);
       const data = response.data.data;
 
-      // Populate component name and formula
-      if (data.productName) {
-        setValue(`composition.components.${index}.componentName`, data.productName, { shouldDirty: true });
+      // Populate component name and formula using IUPAC name
+      if (data.chemicalProperties?.iupacName) {
+        setValue(`composition.components.${index}.componentName`, data.chemicalProperties.iupacName, { shouldDirty: true });
       }
       if (data.chemicalProperties?.molecularFormula) {
         setValue(`composition.components.${index}.componentFormula`, data.chemicalProperties.molecularFormula, { shouldDirty: true });
       }
 
-      toast.success(`Component data loaded for ${data.productName || casValue}`);
+      toast.success(`Component data loaded for ${data.chemicalProperties?.iupacName || casValue}`);
     } catch (error) {
       console.error('Component CAS lookup error:', error);
       toast.error(`Could not find data for CAS ${casValue}`);
@@ -785,8 +840,12 @@ const CreateTicket = () => {
     setLoading(true);
     try {
       const response = await productAPI.createTicket(data);
-      toast.success('Product ticket created successfully!');
-      navigate(`/tickets/${response.data.ticket._id}`);
+      toast.success('Product ticket created successfully!', { duration: 4000 });
+
+      // Navigate to tickets list (dashboard) after successful creation
+      setTimeout(() => {
+        navigate('/tickets');
+      }, 500); // Small delay to let user see the success message
     } catch (error) {
       console.error('Create ticket error:', error);
 
@@ -940,6 +999,15 @@ const CreateTicket = () => {
 
     console.log('[SAP Import] 🏁 forEach loop completed');
 
+    // SPECIAL DEBUG: Check materialGroup field specifically
+    console.log('='.repeat(80));
+    console.log('[SAP Import] 🔍 SPECIAL DEBUG: Checking materialGroup field');
+    console.log('[SAP Import] Was materialGroup in mappedFields?', 'materialGroup' in mappedFields);
+    console.log('[SAP Import] materialGroup value from mappedFields:', mappedFields.materialGroup);
+    console.log('[SAP Import] materialGroup value from watch:', watch('materialGroup'));
+    console.log('[SAP Import] Is materialGroup in importedFieldPaths?', importedFieldPaths.has('materialGroup'));
+    console.log('='.repeat(80));
+
     // Second pass: handle SKU variants separately and wait for completion
     if (mappedFields.skuVariants) {
       // Clear existing SKUs first
@@ -1052,7 +1120,23 @@ const CreateTicket = () => {
       }
     }
 
-    // Step 3: Scroll back to top
+    // Step 3: Final verification of all fields
+    console.log('='.repeat(80));
+    console.log('[SAP Import] 🔍 FINAL VERIFICATION: Checking all imported fields');
+    Object.keys(mappedFields).forEach(fieldPath => {
+      if (fieldPath !== 'skuVariants') {
+        const currentValue = watch(fieldPath);
+        const originalValue = mappedFields[fieldPath];
+        const matches = currentValue === originalValue;
+        console.log(`[SAP Import] Field: ${fieldPath}`);
+        console.log(`  - Expected: ${JSON.stringify(originalValue)}`);
+        console.log(`  - Current:  ${JSON.stringify(currentValue)}`);
+        console.log(`  - Match: ${matches ? '✅' : '❌'}`);
+      }
+    });
+    console.log('='.repeat(80));
+
+    // Step 4: Scroll back to top
     console.log('[SAP Import] Automation complete, scrolling to top...');
     toast.success('✨ SAP import automation complete!', { id: progressToastId, duration: 3000 });
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -1171,6 +1255,7 @@ const CreateTicket = () => {
                           showAutoPopulateButton={true}
                           sapImportedFields={sapImportedFields}
                           getSAPImportedClass={getSAPImportedClass}
+                          onFieldEdit={handleFieldEdit}
                         />
                       </div>
                     );
@@ -1209,7 +1294,7 @@ const CreateTicket = () => {
                             {compositionFields.length === 0 ? (
                               <div className="text-center py-8 text-gray-500">
                                 <p>No components added yet.</p>
-                                {casNumber && productName && molecularFormula && (
+                                {casNumber && iupacName && molecularFormula && (
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -1218,10 +1303,10 @@ const CreateTicket = () => {
                                         proprietary: false,
                                         componentCAS: casNumber,
                                         weightPercent: 100,
-                                        componentName: productName,
+                                        componentName: iupacName,
                                         componentFormula: molecularFormula
                                       });
-                                      toast.success(`Added ${productName} at 100%`);
+                                      toast.success(`Added ${iupacName} at 100%`);
                                     }}
                                     className="mt-3 btn btn-sm btn-primary"
                                   >
@@ -1393,6 +1478,9 @@ const CreateTicket = () => {
                         removeQuality={removeQuality}
                         readOnly={false}
                         editMode={false}
+                        sapImportedFields={sapImportedFields}
+                        getSAPImportedClass={getSAPImportedClass}
+                        onFieldEdit={handleFieldEdit}
                       />
                     );
 
@@ -1456,6 +1544,7 @@ const CreateTicket = () => {
                         getSAPImportedClass={getSAPImportedClass}
                         sapMetadata={sapMetadata}
                         onOpenSimilarProducts={handleOpenSimilarProducts}
+                        onFieldEdit={handleFieldEdit}
                       />
                     );
                 }
@@ -1477,7 +1566,18 @@ const CreateTicket = () => {
         <div className="flex justify-end space-x-4">
           <button
             type="button"
-            onClick={() => navigate('/tickets')}
+            onClick={() => {
+              if (isDirty) {
+                const confirmLeave = window.confirm(
+                  'You have unsaved changes. Are you sure you want to cancel? Your changes will be lost.'
+                );
+                if (confirmLeave) {
+                  navigate('/tickets');
+                }
+              } else {
+                navigate('/tickets');
+              }
+            }}
             className="btn btn-secondary"
           >
             Cancel

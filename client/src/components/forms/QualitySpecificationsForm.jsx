@@ -14,6 +14,9 @@ import toast from 'react-hot-toast';
  * @param {Function} props.removeQuality - useFieldArray remove function
  * @param {boolean} props.readOnly - whether form should be read-only
  * @param {boolean} props.editMode - whether in edit mode (affects attribute editing)
+ * @param {Set} props.sapImportedFields - set of field paths that were imported from SAP
+ * @param {Function} props.getSAPImportedClass - function to get CSS class for SAP-imported fields
+ * @param {Function} props.onFieldEdit - handler for when a field is edited (removes green highlight)
  */
 const QualitySpecificationsForm = ({
   register,
@@ -22,7 +25,10 @@ const QualitySpecificationsForm = ({
   appendQuality,
   removeQuality,
   readOnly = false,
-  editMode = false
+  editMode = false,
+  sapImportedFields = new Set(),
+  getSAPImportedClass = () => '',
+  onFieldEdit = null
 }) => {
   const [showQualityModal, setShowQualityModal] = useState(false);
   const [qualityFormData, setQualityFormData] = useState({
@@ -81,7 +87,16 @@ const QualitySpecificationsForm = ({
           </label>
           <select
             {...register('quality.mqQualityLevel')}
-            className="form-select max-w-xs"
+            onChange={(e) => {
+              // Call the original onChange from register
+              const event = { target: { name: 'quality.mqQualityLevel', value: e.target.value } };
+              register('quality.mqQualityLevel').onChange(event);
+              // Call onFieldEdit to remove green highlight
+              if (onFieldEdit) {
+                onFieldEdit('quality.mqQualityLevel');
+              }
+            }}
+            className={`form-select max-w-xs ${getSAPImportedClass('quality.mqQualityLevel')}`}
             disabled={readOnly}
           >
             <option value="N/A">N/A</option>

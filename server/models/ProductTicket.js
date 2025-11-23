@@ -459,6 +459,10 @@ const productTicketSchema = new mongoose.Schema({
     type: String,  // Email address from profile
     required: false
   },
+  createdByUser: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'  // Reference to the User model for populated queries
+  },
   assignedTo: {
     type: String,  // Email address from profile
     required: false
@@ -602,9 +606,71 @@ const productTicketSchema = new mongoose.Schema({
   }
 });
 
+// Pre-save hook to clean up and normalize data before validation
+productTicketSchema.pre('validate', function(next) {
+  // Clean up enum fields - convert empty strings to undefined to avoid enum validation errors
+  if (this.productScope && this.productScope.scope === '') {
+    this.productScope.scope = undefined;
+  }
+
+  if (this.distributionType) {
+    if (this.distributionType.type === '') {
+      this.distributionType.type = undefined;
+    }
+    if (this.distributionType.coaCreator === '') {
+      this.distributionType.coaCreator = undefined;
+    }
+    if (this.distributionType.labelingType === '') {
+      this.distributionType.labelingType = undefined;
+    }
+    if (this.distributionType.labelingResponsibility === '') {
+      this.distributionType.labelingResponsibility = undefined;
+    }
+  }
+
+  // Normalize weight and volume units to lowercase (g, kg, mg, mL, L, etc.)
+  if (this.skuVariants && Array.isArray(this.skuVariants)) {
+    this.skuVariants.forEach(variant => {
+      // Normalize packageSize unit
+      if (variant.packageSize && variant.packageSize.unit) {
+        variant.packageSize.unit = variant.packageSize.unit.toLowerCase();
+      }
+      // Normalize grossWeight unit
+      if (variant.grossWeight && variant.grossWeight.unit) {
+        variant.grossWeight.unit = variant.grossWeight.unit.toLowerCase();
+      }
+      // Normalize netWeight unit
+      if (variant.netWeight && variant.netWeight.unit) {
+        variant.netWeight.unit = variant.netWeight.unit.toLowerCase();
+      }
+      // Normalize volume unit (special case: mL, L, µL need capital L)
+      if (variant.volume && variant.volume.unit) {
+        const volumeUnit = variant.volume.unit;
+        const lowerUnit = volumeUnit.toLowerCase();
+
+        // Map common variations to correct enum values
+        if (lowerUnit === 'ml') {
+          variant.volume.unit = 'mL';
+        } else if (lowerUnit === 'l') {
+          variant.volume.unit = 'L';
+        } else if (lowerUnit === 'µl') {
+          variant.volume.unit = 'µL';
+        } else if (lowerUnit === 'gal') {
+          variant.volume.unit = 'gal';
+        } else if (lowerUnit === 'fl oz') {
+          variant.volume.unit = 'fl oz';
+        }
+        // Otherwise keep the original value
+      }
+    });
+  }
+
+  next();
+});
+
 productTicketSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
-  
+
   if (this.isNew) {
     this.statusHistory.push({
       status: this.status,
@@ -613,7 +679,7 @@ productTicketSchema.pre('save', function(next) {
       action: 'TICKET_CREATED'
     });
   }
-  
+
   next();
 });
 

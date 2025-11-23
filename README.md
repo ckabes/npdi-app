@@ -145,7 +145,9 @@ npdi-app/
 - [Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
 - [AI Content Generation](docs/features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration
 - [Palantir SQL Query API Integration](docs/Palantir-SQL-Query-API-Integration-Guide.md) - SAP MARA data access
-- [SAP MARA Field Mapping](docs/SAP-MARA-to-ProductTicket-Mapping.md) - MARA to ProductTicket schema mapping
+- [SAP MARA Field Mapping](docs/features/SAP-MARA-to-ProductTicket-Mapping.md) - MARA to ProductTicket schema mapping
+- [Similar Products Search](docs/features/SIMILAR_PRODUCTS_SEARCH.md) - Find related products by CAS number
+- [Recent Improvements](docs/features/RECENT_IMPROVEMENTS_2025_11.md) - Latest enhancements and bug fixes
 
 ## Getting Started
 

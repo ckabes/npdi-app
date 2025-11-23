@@ -16,6 +16,7 @@ import React, { useState } from 'react';
  * @param {boolean} props.showAutoPopulateButton - whether to show auto-populate button
  * @param {Set} props.sapImportedFields - set of field paths that were imported from SAP
  * @param {Function} props.getSAPImportedClass - function to get CSS class for SAP-imported fields
+ * @param {Function} props.onFieldEdit - handler for when a field is edited (removes green highlight)
  */
 const ChemicalPropertiesForm = ({
   register,
@@ -28,7 +29,8 @@ const ChemicalPropertiesForm = ({
   readOnly = false,
   showAutoPopulateButton = true,
   sapImportedFields = new Set(),
-  getSAPImportedClass = () => ''
+  getSAPImportedClass = () => '',
+  onFieldEdit = null
 }) => {
   const casNumber = watch('chemicalProperties.casNumber');
   const visibleProperties = watch('chemicalProperties.additionalProperties.visibleProperties') || [];
@@ -404,7 +406,16 @@ const ChemicalPropertiesForm = ({
             </label>
             <select
               {...register('chemicalProperties.storageTemperature')}
-              className="form-select"
+              onChange={(e) => {
+                // Call the original onChange from register
+                const event = { target: { name: 'chemicalProperties.storageTemperature', value: e.target.value } };
+                register('chemicalProperties.storageTemperature').onChange(event);
+                // Call onFieldEdit to remove green highlight
+                if (onFieldEdit) {
+                  onFieldEdit('chemicalProperties.storageTemperature');
+                }
+              }}
+              className={`form-select ${getSAPImportedClass('chemicalProperties.storageTemperature')}`}
               disabled={readOnly}
             >
               <option value="">Select storage temperature...</option>

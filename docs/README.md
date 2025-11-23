@@ -23,6 +23,8 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - [AI Generation Improvements](features/AI_GENERATION_IMPROVEMENTS.md) - Recent enhancements to AI features
 - [Azure OpenAI Setup](features/AZURE_OPENAI_SETUP.md) - Configuration guide for Azure OpenAI
 - [Azure OpenAI Models](features/AZURE_OPENAI_MODELS.md) - Available models and recommendations
+- [Similar Products Search](features/SIMILAR_PRODUCTS_SEARCH.md) - Find related products by CAS number from SAP MARA
+- [Recent Improvements (Nov 2025)](features/RECENT_IMPROVEMENTS_2025_11.md) - Latest enhancements and bug fixes
 
 ### Integrations
 - [Microsoft Teams Integration](integrations/TEAMS_INTEGRATION.md) - Teams webhook notifications setup
@@ -32,7 +34,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md) - How to customize forms
 
 ### Data Mapping & Reference
-- [SAP MARA to ProductTicket Mapping](SAP-MARA-to-ProductTicket-Mapping.md) - Complete field mapping from SAP MARA to ProductTicket schema
+- [SAP MARA to ProductTicket Mapping](features/SAP-MARA-to-ProductTicket-Mapping.md) - Complete field mapping from SAP MARA to ProductTicket schema
 
 ### Security
 - [API Key Storage](security/API_KEY_STORAGE.md) - How API keys are encrypted and stored
@@ -67,6 +69,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - REST API with API key authentication for external integrations
 - PubChem integration for automatic chemical data population
 - **Palantir Foundry SQL Query API v2 integration for SAP MARA data access**
+- **Similar Products Search - Find related products by CAS number with progressive loading**
 - **Weight Matrix Management for package size to weight conversions**
 - Dynamic form configuration with live preview editor
 - Profile-based access control (Product Manager, PM-OPS, Admin)
@@ -75,6 +78,8 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - AI content generation via Azure OpenAI (product descriptions, marketing content)
 - Data export services for reporting and analysis
 - **UNSPSC code tracking for product classification**
+- **Enhanced user attribution with full name display**
+- **Automatic data normalization (units, enums) for data quality**
 
 ---
 
@@ -96,11 +101,13 @@ docs/
 │   ├── AI_GENERATION_IMPROVEMENTS.md # Recent AI improvements
 │   ├── AZURE_OPENAI_SETUP.md    # Azure OpenAI configuration
 │   ├── AZURE_OPENAI_MODELS.md   # Available AI models
-│   └── NPDI_WORKFLOW.md         # Workflow documentation
+│   ├── NPDI_WORKFLOW.md         # Workflow documentation
+│   ├── SIMILAR_PRODUCTS_SEARCH.md # Similar products feature
+│   ├── RECENT_IMPROVEMENTS_2025_11.md # Recent updates
+│   └── SAP-MARA-to-ProductTicket-Mapping.md # SAP field mapping
 ├── integrations/                 # Third-party integrations
 │   └── TEAMS_INTEGRATION.md      # Microsoft Teams webhooks
 ├── Palantir-SQL-Query-API-Integration-Guide.md # Palantir Foundry integration
-├── SAP-MARA-to-ProductTicket-Mapping.md # SAP field mapping
 ├── guides/                       # How-to guides
 │   ├── SETUP_GUIDE.md            # Installation guide
 │   └── FORM_CONFIGURATION_GUIDE.md
@@ -146,7 +153,13 @@ A: Check [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMEN
 A: See [Palantir SQL Query API Integration](Palantir-SQL-Query-API-Integration-Guide.md)
 
 **Q: How are SAP fields mapped to the ticket schema?**
-A: Reference [SAP MARA to ProductTicket Mapping](SAP-MARA-to-ProductTicket-Mapping.md)
+A: Reference [SAP MARA to ProductTicket Mapping](features/SAP-MARA-to-ProductTicket-Mapping.md)
+
+**Q: How does the Similar Products search work?**
+A: See [Similar Products Search](features/SIMILAR_PRODUCTS_SEARCH.md)
+
+**Q: What are the latest improvements?**
+A: Check [Recent Improvements](features/RECENT_IMPROVEMENTS_2025_11.md)
 
 ---
 

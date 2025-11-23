@@ -67,7 +67,10 @@
       "Bash(git rm:*)",
       "Bash(git filter-branch:*)",
       "WebFetch(domain:www.sigmaaldrich.com)",
-      "WebFetch(domain:www.palantir.com)"
+      "WebFetch(domain:www.palantir.com)",
+      "Bash(npm run lint:*)",
+      "Read(///**)",
+      "Read(//tmp/**)"
     ],
     "deny": []
   }
