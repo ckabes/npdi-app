@@ -1015,8 +1015,9 @@ const exportDataExcel = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Fetch the ticket with all related data
-    const ticket = await ProductTicket.findById(id);
+    // Fetch the ticket with all related data including createdByUser
+    const ticket = await ProductTicket.findById(id)
+      .populate('createdByUser', 'firstName lastName email');
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found' });
