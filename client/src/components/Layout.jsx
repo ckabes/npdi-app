@@ -49,120 +49,17 @@ const Layout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-gray-100 to-white relative">
-      {/* Hexagonal molecular network background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 relative">
+      {/* Subtle honeycomb pattern background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0, opacity: 0.4 }}>
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            {/* Hexagon grid pattern */}
-            <pattern id="hexGrid" x="0" y="0" width="80" height="69.3" patternUnits="userSpaceOnUse">
-              <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                       fill="none"
-                       stroke="#1e3a8a"
-                       strokeWidth="1"
-                       opacity="0.15"/>
+            <pattern id="honeycomb" x="0" y="0" width="56" height="100" patternUnits="userSpaceOnUse">
+              <path d="M28 0l14 8v16l-14 8-14-8V8l14-8z" fill="none" stroke="#3b82f6" strokeWidth="0.5" opacity="0.2"/>
+              <path d="M28 50l14 8v16l-14 8-14-8V58l14-8z" fill="none" stroke="#3b82f6" strokeWidth="0.5" opacity="0.2"/>
             </pattern>
           </defs>
-
-          {/* Background grid */}
-          <rect width="100%" height="100%" fill="url(#hexGrid)"/>
-
-          {/* Filled hexagons - scattered on left side */}
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(60, 50)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(60, 190)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(60, 330)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(60, 470)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(60, 610)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(220, 120)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(220, 400)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(220, 680)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(380, 260)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(540, 120)"/>
-          <polygon points="40,0 74.6,20 74.6,49.3 40,69.3 5.4,49.3 5.4,20"
-                   fill="#1e40af"
-                   opacity="0.8"
-                   transform="translate(700, 190)"/>
-
-          {/* Connection lines and nodes - molecular network */}
-          {/* Left side - denser network */}
-          <line x1="95" y1="85" x2="180" y2="140" stroke="#1e40af" strokeWidth="1.5" opacity="0.4"/>
-          <circle cx="95" cy="85" r="4" fill="#1e40af" opacity="0.7"/>
-          <circle cx="180" cy="140" r="4" fill="#1e40af" opacity="0.7"/>
-
-          <line x1="100" y1="220" x2="220" y2="160" stroke="#1e40af" strokeWidth="1.5" opacity="0.4"/>
-          <circle cx="100" cy="220" r="4" fill="#1e40af" opacity="0.7"/>
-
-          <line x1="95" y1="365" x2="180" y2="420" stroke="#1e40af" strokeWidth="1.5" opacity="0.4"/>
-          <circle cx="95" cy="365" r="4" fill="#1e40af" opacity="0.7"/>
-          <circle cx="180" cy="420" r="4" fill="#1e40af" opacity="0.7"/>
-
-          <line x1="100" y1="505" x2="195" y2="460" stroke="#1e40af" strokeWidth="1.5" opacity="0.4"/>
-          <circle cx="100" cy="505" r="4" fill="#1e40af" opacity="0.7"/>
-
-          <line x1="140" y1="540" x2="220" y2="490" stroke="#1e40af" strokeWidth="1.5" opacity="0.4"/>
-          <circle cx="140" cy="540" r="4" fill="#1e40af" opacity="0.7"/>
-          <circle cx="220" cy="490" r="4" fill="#1e40af" opacity="0.7"/>
-
-          {/* Middle area - medium density */}
-          <line x1="260" y1="155" x2="380" y2="220" stroke="#1e40af" strokeWidth="1.5" opacity="0.3"/>
-          <circle cx="260" cy="155" r="4" fill="#1e40af" opacity="0.5"/>
-
-          <line x1="300" y1="280" x2="420" y2="330" stroke="#1e40af" strokeWidth="1.5" opacity="0.3"/>
-          <circle cx="300" cy="280" r="3" fill="#cbd5e1" opacity="0.6"/>
-          <circle cx="420" cy="330" r="4" fill="#1e40af" opacity="0.5"/>
-
-          <line x1="420" y1="295" x2="520" y2="350" stroke="#1e40af" strokeWidth="1.5" opacity="0.3"/>
-          <circle cx="420" cy="295" r="4" fill="#1e40af" opacity="0.5"/>
-          <circle cx="520" cy="350" r="3" fill="#cbd5e1" opacity="0.6"/>
-
-          <line x1="500" y1="430" x2="600" y2="380" stroke="#1e40af" strokeWidth="1.5" opacity="0.3"/>
-          <circle cx="500" cy="430" r="3" fill="#cbd5e1" opacity="0.6"/>
-          <circle cx="600" cy="380" r="4" fill="#1e40af" opacity="0.5"/>
-
-          {/* Right side - sparse network with light dots */}
-          <line x1="575" y1="155" x2="680" y2="200" stroke="#1e40af" strokeWidth="1.5" opacity="0.2"/>
-          <circle cx="575" cy="155" r="4" fill="#1e40af" opacity="0.4"/>
-          <circle cx="680" cy="200" r="3" fill="#cbd5e1" opacity="0.5"/>
-
-          <line x1="700" y1="330" x2="820" y2="280" stroke="#1e40af" strokeWidth="1.5" opacity="0.2"/>
-          <circle cx="700" cy="330" r="3" fill="#cbd5e1" opacity="0.5"/>
-          <circle cx="820" cy="280" r="3" fill="#cbd5e1" opacity="0.5"/>
-
-          <circle cx="900" cy="150" r="3" fill="#cbd5e1" opacity="0.4"/>
-          <circle cx="950" cy="320" r="3" fill="#cbd5e1" opacity="0.4"/>
-          <circle cx="1000" y="220" r="3" fill="#cbd5e1" opacity="0.4"/>
-          <circle cx="850" cy="450" r="3" fill="#cbd5e1" opacity="0.4"/>
-          <circle cx="1050" cy="500" r="3" fill="#cbd5e1" opacity="0.4"/>
+          <rect width="100%" height="100%" fill="url(#honeycomb)"/>
         </svg>
       </div>
 
