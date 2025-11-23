@@ -26,6 +26,14 @@ const Layout = () => {
     navigate('/select-profile');
   };
 
+  const formatRoleName = (role) => {
+    if (!role) return '';
+    // Convert PRODUCT_MANAGER to Product Manager
+    return role.split('_').map(word =>
+      word.charAt(0) + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
   const navigation = [
     { name: isPMOPS || isAdmin ? 'PMOps Dashboard' : 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { name: 'Tickets', href: '/tickets', icon: DocumentIcon },
@@ -143,7 +151,7 @@ const Layout = () => {
                     {user?.firstName} {user?.lastName}
                   </span>
                   <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                    {user?.sbu || user?.role}
+                    {formatRoleName(user?.role)}
                   </span>
                   <button
                     onClick={handleLogout}
