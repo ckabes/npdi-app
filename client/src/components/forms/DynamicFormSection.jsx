@@ -8,7 +8,9 @@ const DynamicFormSection = ({
   setValue,
   readOnly = false,
   data = {},
-  previewMode = false  // New prop: when true, show all fields regardless of visibility conditions
+  previewMode = false,  // New prop: when true, show all fields regardless of visibility conditions
+  sapImportedFields = new Set(),  // Set of field paths that were imported from SAP
+  getSAPImportedClass = () => ''  // Function to get CSS class for SAP-imported fields
 }) => {
   if (!section || !section.visible) return null;
 
@@ -129,9 +131,11 @@ const DynamicFormSection = ({
       quarter: 'sm:col-span-1 lg:col-span-1'
     }[field.gridColumn || 'full'] || 'col-span-full';
 
+    // Add green highlight for SAP-imported fields
+    const sapHighlight = getSAPImportedClass(fieldPath);
     const baseInputClass = isReadOnly
-      ? 'form-input bg-gray-50 cursor-not-allowed'
-      : 'form-input';
+      ? `form-input bg-gray-50 cursor-not-allowed ${sapHighlight}`
+      : `form-input ${sapHighlight}`;
 
     const renderInput = () => {
       switch (field.type) {

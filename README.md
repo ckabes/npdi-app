@@ -19,6 +19,9 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **Storage Conditions**: Temperature, humidity, light, and atmosphere requirements
 - **Regulatory Information**: FDA, EPA, REACH, TSCA compliance tracking
 - **PubChem Integration**: Automatic chemical data population from CAS numbers
+- **SAP Data Integration**: Palantir SQL Query API v2 for MARA dataset queries with material number lookup
+- **Weight Matrix Management**: Package size to weight conversion for SKU variants
+- **UNSPSC Classification**: United Nations Standard Products and Services Code tracking
 
 ### Additional Features
 - **Commenting System**: Collaborative discussions on tickets with user attribution
@@ -37,8 +40,10 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **MongoDB** with Mongoose ODM
 - **Express Validator** for input validation
 - **Helmet** and rate limiting for security
-- **Axios** for external API integration (PubChem)
+- **Axios** for external API integration (PubChem, Palantir)
+- **Apache Arrow** for binary data parsing from Palantir queries
 - **Compression** for response optimization
+- **Azure OpenAI** for AI-powered content generation
 
 ### Frontend
 - **React 18** with modern hooks
@@ -75,7 +80,8 @@ npdi-app/
 │   │   ├── SystemSettings.js
 │   │   ├── TicketTemplate.js
 │   │   ├── User.js
-│   │   └── UserPreferences.js
+│   │   ├── UserPreferences.js
+│   │   └── WeightMatrix.js
 │   ├── routes/               # API endpoint definitions
 │   │   ├── admin.js          # Admin panel routes
 │   │   ├── formConfig.js     # Form configuration routes
@@ -85,7 +91,8 @@ npdi-app/
 │   │   ├── templates.js      # Template management routes
 │   │   ├── ticketApi.js      # External API routes
 │   │   ├── userPreferences.js # User preferences routes
-│   │   └── users.js          # User/profile management routes
+│   │   ├── users.js          # User/profile management routes
+│   │   └── weightMatrix.js   # Weight matrix management routes
 │   ├── scripts/              # Utility scripts
 │   │   ├── generateApiKey.js
 │   │   ├── seedApiKey.js
@@ -94,6 +101,7 @@ npdi-app/
 │   │   └── testSAPConnectivity.js
 │   ├── services/             # External service integrations
 │   │   ├── pubchemService.js
+│   │   ├── palantirService.js
 │   │   ├── aiContentService.js
 │   │   ├── azureOpenAIService.js
 │   │   ├── teamsNotificationService.js
@@ -135,6 +143,8 @@ npdi-app/
 - [Architecture](docs/architecture/ARCHITECTURE.md) - System design
 - [Microsoft Teams Integration](docs/integrations/TEAMS_INTEGRATION.md) - Teams webhooks
 - [AI Content Generation](docs/features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration
+- [Palantir SQL Query API Integration](docs/Palantir-SQL-Query-API-Integration-Guide.md) - SAP MARA data access
+- [SAP MARA Field Mapping](docs/SAP-MARA-to-ProductTicket-Mapping.md) - MARA to ProductTicket schema mapping
 
 ## Getting Started
 
@@ -249,6 +259,12 @@ The application uses a profile-based authentication system:
 - `PATCH /api/products/:id/status` - Update ticket status
 - `POST /api/products/:id/comments` - Add comment
 - `GET /api/products/dashboard/stats` - Dashboard statistics
+- `GET /api/products/cas-lookup/:casNumber` - PubChem CAS number lookup
+- `GET /api/products/sap-search/:partNumber` - SAP MARA data search via Palantir
+- `POST /api/products/generate-corpbase-content` - AI content generation
+- `GET /api/products/:id/export-pdp` - Export PDP Checklist (Excel)
+- `GET /api/products/:id/export-pif` - Export Product Information Form (Excel)
+- `GET /api/products/:id/export-data` - Export ticket data (Excel)
 
 ### External API (API Key Authentication)
 - `POST /api/v1/tickets` - Create ticket via API
@@ -275,6 +291,15 @@ The application uses a profile-based authentication system:
 - `GET /api/system-settings` - Get system settings
 - `PUT /api/system-settings` - Update system settings
 - `POST /api/system-settings/test-pubchem` - Test PubChem connection
+- `POST /api/system-settings/test-azure-openai` - Test Azure OpenAI connection
+
+### Weight Matrix
+- `GET /api/weight-matrix` - Get all weight matrix entries (paginated)
+- `GET /api/weight-matrix/search` - Search weight matrix entries
+- `GET /api/weight-matrix/lookup/:packageSize` - Lookup weight by package size
+- `POST /api/weight-matrix` - Create weight matrix entry
+- `PUT /api/weight-matrix/:id` - Update weight matrix entry
+- `DELETE /api/weight-matrix/:id` - Delete weight matrix entry
 
 For detailed API documentation including request/response examples, see [docs/api/API_DOCUMENTATION.md](docs/api/API_DOCUMENTATION.md).
 

@@ -14,6 +14,7 @@ import {
   CorpBaseDataForm,
   DynamicCustomSections
 } from '../components/forms';
+import MARASearchPopup from '../components/admin/MARASearchPopup';
 
 const CreateTicket = () => {
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,8 @@ const CreateTicket = () => {
     applications: false,
     targetIndustries: false
   });
+  const [showSAPPopup, setShowSAPPopup] = useState(false);
+  const [sapImportedFields, setSapImportedFields] = useState(new Set());
   const { user, isProductManager, isPMOPS } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm({
@@ -809,6 +812,128 @@ const CreateTicket = () => {
     }
   };
 
+  /**
+   * Smooth scroll to a specific section by ID or element
+   * Adds a brief highlight animation to draw attention
+   */
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Add temporary highlight effect
+      element.style.transition = 'box-shadow 0.3s ease-in-out';
+      element.style.boxShadow = '0 0 20px 5px rgba(59, 130, 246, 0.5)';
+
+      // Remove highlight after animation
+      setTimeout(() => {
+        element.style.boxShadow = '';
+      }, 2000);
+    }
+  };
+
+  /**
+   * Handle SAP data import approval
+   * Populates form fields with mapped SAP data and tracks which fields were imported
+   * Then automatically triggers CAS lookup and AI generation if applicable
+   */
+  const handleSAPImport = async (mappedFields) => {
+    console.log('[SAP Import] Importing mapped fields:', mappedFields);
+
+    const importedFieldPaths = new Set();
+
+    Object.entries(mappedFields).forEach(([fieldPath, value]) => {
+      // Track this field as imported
+      importedFieldPaths.add(fieldPath);
+
+      // Handle nested paths (e.g., 'corpbaseData.productDescription')
+      if (fieldPath.includes('.')) {
+        setValue(fieldPath, value, { shouldDirty: true });
+      } else if (fieldPath === 'skuVariants') {
+        // Special handling for SKU variants array
+        // Clear existing SKUs first
+        const currentLength = fields.length;
+        for (let i = currentLength - 1; i >= 0; i--) {
+          remove(i);
+        }
+        // Add imported SKUs
+        setTimeout(() => {
+          value.forEach(sku => append(sku));
+        }, 100);
+      } else {
+        setValue(fieldPath, value, { shouldDirty: true });
+      }
+    });
+
+    // Store which fields were imported for green highlighting
+    setSapImportedFields(importedFieldPaths);
+
+    toast.success(`Imported ${Object.keys(mappedFields).length} fields from SAP!`);
+
+    // Wait a moment for state to update
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Create a progress toast that we'll update
+    const progressToastId = toast.loading('Starting automated enrichment...', { duration: Infinity });
+
+    // Step 1: If CAS number is populated, trigger CAS lookup
+    const importedCAS = mappedFields['chemicalProperties.casNumber'];
+    if (importedCAS) {
+      console.log('[SAP Import] CAS number found, triggering automatic lookup...');
+
+      toast.loading('Step 1/2: Populating chemical data from PubChem...', { id: progressToastId });
+
+      // Scroll to chemical properties section
+      scrollToSection('chemical-properties-section');
+
+      try {
+        await handleCASLookup();
+        console.log('[SAP Import] CAS lookup completed successfully');
+        toast.success('✓ Chemical data populated from PubChem!', { id: progressToastId });
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } catch (error) {
+        console.warn('[SAP Import] CAS lookup failed:', error);
+        toast.error('Could not auto-populate chemical data', { id: progressToastId });
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+    }
+
+    // Step 2: Trigger AI generation for CorpBase data
+    const importedProductName = mappedFields.productName;
+    if (importedProductName) {
+      console.log('[SAP Import] Product name found, triggering AI generation...');
+
+      toast.loading('Step 2/2: Generating marketing content with AI...', { id: progressToastId });
+
+      // Scroll to CorpBase section
+      scrollToSection('corpbase-section');
+
+      try {
+        await generateProductDescription();
+        console.log('[SAP Import] AI generation completed successfully');
+        toast.success('✓ Marketing content generated!', { id: progressToastId });
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } catch (error) {
+        console.warn('[SAP Import] AI generation failed:', error);
+        toast.error('Could not generate marketing content', { id: progressToastId });
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+    }
+
+    // Step 3: Scroll back to top
+    console.log('[SAP Import] Automation complete, scrolling to top...');
+    toast.success('✨ SAP import automation complete!', { id: progressToastId, duration: 3000 });
+    await new Promise(resolve => setTimeout(resolve, 500));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /**
+   * Get CSS class for SAP-imported fields (green highlight)
+   */
+  const getSAPImportedClass = (fieldPath) => {
+    return sapImportedFields.has(fieldPath) ? 'border-2 border-green-500 bg-green-50' : '';
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       {/* MilliporeSigma Branding Header */}
@@ -830,10 +955,20 @@ const CreateTicket = () => {
 
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <h2 className="text-xl font-bold text-gray-900">Create New Product Ticket</h2>
-            <p className="text-gray-600">Enter a CAS number to automatically populate chemical properties, hazard data, and generate SKU variants.</p>
+            <p className="text-gray-600">Enter a CAS number to automatically populate chemical properties, or import data from SAP.</p>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowSAPPopup(true)}
+            className="btn btn-primary flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            <span>Import from SAP</span>
+          </button>
         </div>
       </div>
 
@@ -850,18 +985,19 @@ const CreateTicket = () => {
                 switch (section.sectionKey) {
                   case 'chemical':
                     return (
-                      <ChemicalPropertiesForm
-                        key={section.sectionKey}
-                        register={register}
-                        watch={watch}
-                        setValue={setValue}
-                        errors={errors}
-                        autoPopulated={autoPopulated}
-                        casLookupLoading={casLookupLoading}
-                        onCASLookup={handleCASLookup}
-                        readOnly={false}
-                        showAutoPopulateButton={true}
-                      />
+                      <div key={section.sectionKey} id="chemical-properties-section">
+                        <ChemicalPropertiesForm
+                          register={register}
+                          watch={watch}
+                          setValue={setValue}
+                          errors={errors}
+                          autoPopulated={autoPopulated}
+                          casLookupLoading={casLookupLoading}
+                          onCASLookup={handleCASLookup}
+                          readOnly={false}
+                          showAutoPopulateButton={true}
+                        />
+                      </div>
                     );
 
                   case 'composition':
@@ -1116,17 +1252,18 @@ const CreateTicket = () => {
 
                   case 'corpbase':
                     return (
-                      <CorpBaseDataForm
-                        key={section.sectionKey}
-                        register={register}
-                        setValue={setValue}
-                        watch={watch}
-                        onGenerateDescription={generateProductDescription}
-                        readOnly={false}
-                        showGenerateButton={true}
-                        isGenerating={generatingAIContent}
-                        fieldsLoading={aiFieldsLoading}
-                      />
+                      <div key={section.sectionKey} id="corpbase-section">
+                        <CorpBaseDataForm
+                          register={register}
+                          setValue={setValue}
+                          watch={watch}
+                          onGenerateDescription={generateProductDescription}
+                          readOnly={false}
+                          showGenerateButton={true}
+                          isGenerating={generatingAIContent}
+                          fieldsLoading={aiFieldsLoading}
+                        />
+                      </div>
                     );
 
                   // For all other sections (productionType, basic, vendor, custom sections), use DynamicFormSection
@@ -1140,6 +1277,8 @@ const CreateTicket = () => {
                         watch={watch}
                         setValue={setValue}
                         readOnly={false}
+                        sapImportedFields={sapImportedFields}
+                        getSAPImportedClass={getSAPImportedClass}
                       />
                     );
                 }
@@ -1183,6 +1322,14 @@ const CreateTicket = () => {
           </button>
         </div>
       </form>
+
+      {/* SAP Search Popup */}
+      {showSAPPopup && (
+        <MARASearchPopup
+          onClose={() => setShowSAPPopup(false)}
+          onApprove={handleSAPImport}
+        />
+      )}
     </div>
   );
 };
