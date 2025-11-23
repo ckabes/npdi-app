@@ -11,7 +11,8 @@ const DynamicFormSection = ({
   previewMode = false,  // New prop: when true, show all fields regardless of visibility conditions
   sapImportedFields = new Set(),  // Set of field paths that were imported from SAP
   getSAPImportedClass = () => '',  // Function to get CSS class for SAP-imported fields
-  sapMetadata = {}  // Metadata from SAP import (e.g., descriptions)
+  sapMetadata = {},  // Metadata from SAP import (e.g., descriptions)
+  onOpenSimilarProducts = null  // Handler for similar products search button
 }) => {
   if (!section || !section.visible) return null;
 
@@ -365,6 +366,32 @@ const DynamicFormSection = ({
                 className={baseInputClass}
                 placeholder={field.placeholder}
               />
+            );
+          }
+
+          // Special handling for similarProducts - show input with search button
+          if (fieldPath === 'similarProducts' && onOpenSimilarProducts) {
+            return (
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  {...register(fieldPath)}
+                  className={`${baseInputClass} flex-1`}
+                  placeholder="Comma-separated material numbers (search by CAS)"
+                  readOnly={false}
+                />
+                <button
+                  type="button"
+                  onClick={onOpenSimilarProducts}
+                  className="btn btn-sm btn-secondary flex items-center space-x-2 whitespace-nowrap"
+                  title="Search for products with the same CAS number"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>Search</span>
+                </button>
+              </div>
             );
           }
 

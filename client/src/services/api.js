@@ -81,6 +81,20 @@ export const productAPI = {
       throw error;
     });
   },
+  searchSimilarProducts: (casNumber, options = {}) => {
+    console.log('API: Starting similar products search for CAS', casNumber);
+    const { maxResults = 3, maxSearchTime = 20000 } = options;
+    return apiClient.get(`/products/similar-products/${casNumber}`, {
+      params: { maxResults, maxSearchTime },
+      timeout: maxSearchTime + 5000 // Add 5 seconds buffer to API timeout
+    }).then(response => {
+      console.log('API: Similar products search successful', response.data);
+      return response;
+    }).catch(error => {
+      console.error('API: Similar products search failed', error);
+      throw error;
+    });
+  },
   generateCorpBaseContent: (productData, fields = null) => {
     console.log('API: Starting AI content generation for', productData.productName);
 

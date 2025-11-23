@@ -15,6 +15,7 @@ import {
   DynamicCustomSections
 } from '../components/forms';
 import MARASearchPopup from '../components/admin/MARASearchPopup';
+import SimilarProductsPopup from '../components/admin/SimilarProductsPopup';
 
 const CreateTicket = () => {
   const [loading, setLoading] = useState(false);
@@ -35,6 +36,7 @@ const CreateTicket = () => {
   const [showSAPPopup, setShowSAPPopup] = useState(false);
   const [sapImportedFields, setSapImportedFields] = useState(new Set());
   const [sapMetadata, setSapMetadata] = useState({});
+  const [showSimilarProductsPopup, setShowSimilarProductsPopup] = useState(false);
   const { user, isProductManager, isPMOPS } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm({
@@ -61,6 +63,7 @@ const CreateTicket = () => {
       materialGroup: '',
       countryOfOrigin: '',
       brand: '',
+      similarProducts: '',
       vendorInformation: {
         vendorName: '',
         vendorProductName: '',
@@ -531,7 +534,13 @@ const CreateTicket = () => {
   };
 
   const generateProductDescription = async () => {
-    if (!productName) {
+    // Get current form values instead of relying on watched values from closure
+    const currentProductName = watch('productName');
+    const currentCasNumber = watch('chemicalProperties.casNumber');
+    const currentMolecularFormula = watch('chemicalProperties.molecularFormula');
+    const currentSbu = watch('sbu');
+
+    if (!currentProductName) {
       const errorMsg = 'Please enter a product name first';
       toast.error(errorMsg);
       throw new Error(errorMsg);
@@ -552,12 +561,12 @@ const CreateTicket = () => {
     try {
       // Prepare product data for AI generation
       const productData = {
-        productName: productName.trim(),
-        casNumber: casNumber || '',
-        molecularFormula: molecularFormula || '',
+        productName: currentProductName.trim(),
+        casNumber: currentCasNumber || '',
+        molecularFormula: currentMolecularFormula || '',
         molecularWeight: watch('chemicalProperties.molecularWeight') || '',
         iupacName: watch('chemicalProperties.iupacName') || '',
-        sbu: sbu || 'Life Science'
+        sbu: currentSbu || 'Life Science'
       };
 
       console.log('Generating AI content for:', productData);
@@ -634,12 +643,12 @@ const CreateTicket = () => {
         // Try to generate with templates anyway
         try {
           const response = await productAPI.generateCorpBaseContent({
-            productName: productName.trim(),
-            casNumber: casNumber || '',
-            molecularFormula: molecularFormula || '',
+            productName: currentProductName.trim(),
+            casNumber: currentCasNumber || '',
+            molecularFormula: currentMolecularFormula || '',
             molecularWeight: watch('chemicalProperties.molecularWeight') || '',
             iupacName: watch('chemicalProperties.iupacName') || '',
-            sbu: sbu || 'Life Science',
+            sbu: currentSbu || 'Life Science',
             forceTemplate: true // Flag to force template-based generation
           });
 
@@ -963,6 +972,28 @@ const CreateTicket = () => {
     toast.success('✨ SAP import automation complete!', { id: progressToastId, duration: 3000 });
     await new Promise(resolve => setTimeout(resolve, 500));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /**
+   * Open Similar Products search popup
+   * Requires CAS number to be populated
+   */
+  const handleOpenSimilarProducts = () => {
+    if (!casNumber || !/^\d{1,7}-\d{2}-\d$/.test(casNumber)) {
+      toast.error('Please enter a valid CAS number first to search for similar products');
+      return;
+    }
+    setShowSimilarProductsPopup(true);
+  };
+
+  /**
+   * Handle Similar Products approval
+   * Populates the similarProducts field with comma-separated material numbers
+   */
+  const handleSimilarProductsApprove = (selectedMATNRs) => {
+    console.log('[Similar Products] Selected material numbers:', selectedMATNRs);
+    setValue('similarProducts', selectedMATNRs, { shouldDirty: true });
+    toast.success('Similar products added to the form!');
   };
 
   /**
@@ -1318,6 +1349,7 @@ const CreateTicket = () => {
                         sapImportedFields={sapImportedFields}
                         getSAPImportedClass={getSAPImportedClass}
                         sapMetadata={sapMetadata}
+                        onOpenSimilarProducts={handleOpenSimilarProducts}
                       />
                     );
                 }
@@ -1367,6 +1399,15 @@ const CreateTicket = () => {
         <MARASearchPopup
           onClose={() => setShowSAPPopup(false)}
           onApprove={handleSAPImport}
+        />
+      )}
+
+      {/* Similar Products Search Popup */}
+      {showSimilarProductsPopup && (
+        <SimilarProductsPopup
+          casNumber={casNumber}
+          onClose={() => setShowSimilarProductsPopup(false)}
+          onApprove={handleSimilarProductsApprove}
         />
       )}
     </div>
