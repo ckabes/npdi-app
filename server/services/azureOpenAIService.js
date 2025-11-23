@@ -61,7 +61,10 @@ class LangdockService {
       const langdockConfig = settings.integrations.langdock;
 
       // Decrypt the API key for use (encrypted at rest in database)
-      const apiKey = settings.getDecryptedApiKey();
+      // Need to fetch fresh instance from DB to get Mongoose methods
+      const SystemSettings = require('../models/SystemSettings');
+      const settingsDoc = await SystemSettings.getSettings();
+      const apiKey = settingsDoc.getDecryptedApiKey();
       if (!apiKey || apiKey === '') {
         throw new Error('Azure OpenAI API key is not configured or could not be decrypted');
       }

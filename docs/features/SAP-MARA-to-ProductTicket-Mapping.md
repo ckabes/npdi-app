@@ -489,6 +489,96 @@ Implement validation on import:
 
 ---
 
+## Similar Products Search Feature
+
+### Overview
+
+The Similar Products Search feature allows users to discover related products that share the same CAS number. This is particularly useful for:
+- Finding existing SKUs before creating new products
+- Identifying product families and variants
+- Cross-referencing material numbers across different brands or divisions
+
+### Field Mapping
+
+| ProductTicket Field | Description | Data Source |
+|---------------------|-------------|-------------|
+| `similarProducts` | Comma-separated list of material numbers | Palantir MARA query by CAS |
+
+### Implementation Details
+
+**Search Endpoint:**
+```
+GET /api/products/similar-products/:casNumber
+```
+
+**Query Parameters:**
+- `maxResults` (default: 3) - Maximum number of results to return
+- `maxSearchTime` (default: 20000ms) - Maximum search time before timeout
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "message": "Found 3 similar products",
+  "products": [
+    {
+      "MATNR": "176036-BULK",
+      "TEXT_SHORT": "IODOMETHANE-D3, >=99.5 ATOM % D, >=99%"
+    },
+    {
+      "MATNR": "176036-1G",
+      "TEXT_SHORT": "IODOMETHANE-D3, >=99.5 ATOM % D, >=99%"
+    },
+    {
+      "MATNR": "176036-5G",
+      "TEXT_SHORT": "IODOMETHANE-D3, >=99.5 ATOM % D, >=99%"
+    }
+  ],
+  "searchTime": 2,
+  "casNumber": "865-50-9"
+}
+```
+
+### SQL Query
+
+The feature uses Palantir's SQL Query API v2 to search the MARA dataset:
+
+```sql
+SELECT DISTINCT MATNR, TEXT_SHORT
+FROM `{datasetRID}`
+WHERE YYD_CASNR = '{casNumber}'
+  AND MATNR IS NOT NULL
+  AND MATNR != ''
+ORDER BY MATNR
+LIMIT {maxResults * 10}
+```
+
+### User Interface Integration
+
+1. **Location:** Basic Information section of the product ticket form
+2. **Field Type:** Text input with search button
+3. **Behavior:**
+   - User must enter a valid CAS number first
+   - Click "Search" button to open Similar Products popup
+   - Select material numbers from search results
+   - Selected material numbers populate as comma-separated values
+
+### Use Cases
+
+1. **SKU Discovery:** Before creating a new product, check if similar SKUs already exist
+2. **Product Family:** Identify all package sizes for a given chemical compound
+3. **Cross-Brand:** Find equivalent products across different brands (Sigma, Merck, etc.)
+4. **Data Validation:** Verify CAS numbers match expected product families
+
+### Performance Characteristics
+
+- **Search timeout:** 20 seconds maximum
+- **Result limit:** 3 products (configurable)
+- **Deduplication:** Automatic removal of duplicate material numbers
+- **Early termination:** Stops searching once target number of results found
+
+---
+
 ## APPENDIX A: Sample Data Mapping (Part 176036-BULK)
 
 ```

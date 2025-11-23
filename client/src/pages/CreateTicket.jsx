@@ -64,6 +64,11 @@ const CreateTicket = () => {
       countryOfOrigin: '',
       brand: '',
       similarProducts: '',
+      businessLine: {
+        line: '',
+        mainGroupGPH: '',  // SAP GPH Product Line (YYD_GPHPL)
+        otherSpecification: ''
+      },
       vendorInformation: {
         vendorName: '',
         vendorProductName: '',
@@ -75,6 +80,7 @@ const CreateTicket = () => {
         physicalState: 'Solid',
         materialSource: '',
         animalComponent: '',
+        storageTemperature: '',
         storageConditions: { temperature: { unit: '°C' } },
         additionalProperties: {
           visibleProperties: []
@@ -170,11 +176,18 @@ const CreateTicket = () => {
   }, [user, isPMOPS]);
 
   const handleCASLookup = async () => {
-    if (!casNumber || !/^\d{1,7}-\d{2}-\d$/.test(casNumber)) {
-      const errorMsg = 'Please enter a valid CAS number (e.g., 64-17-5)';
+    // Get fresh value from form state
+    const currentCAS = watch('chemicalProperties.casNumber');
+    console.log('[CAS Lookup] Current CAS from watch:', currentCAS);
+
+    if (!currentCAS || !/^\d+-\d{2}-\d$/.test(currentCAS)) {
+      const errorMsg = `Please enter a valid CAS number (e.g., 64-17-5). Current value: "${currentCAS || 'empty'}"`;
+      console.error('[CAS Lookup] Validation failed:', errorMsg);
       toast.error(errorMsg);
       throw new Error(errorMsg);
     }
+
+    console.log('[CAS Lookup] Validation passed, proceeding with lookup for:', currentCAS);
 
     setCasLookupLoading(true);
     setAutoPopulated(false); // Reset state
@@ -221,8 +234,8 @@ const CreateTicket = () => {
     }
 
     try {
-      console.log('Starting CAS lookup for:', casNumber);
-      const response = await productAPI.lookupCAS(casNumber);
+      console.log('[CAS Lookup] Starting CAS lookup for:', currentCAS);
+      const response = await productAPI.lookupCAS(currentCAS);
       const data = response.data.data;
       
       console.log('Received data:', data);
@@ -317,7 +330,7 @@ const CreateTicket = () => {
       }
       
       setAutoPopulated(true);
-      toast.success(`Chemical data loaded for ${data.productName || casNumber}!`);
+      toast.success(`Chemical data loaded for ${data.productName || currentCAS}!`);
       
     } catch (error) {
       console.error('CAS lookup error:', error);
@@ -834,9 +847,10 @@ const CreateTicket = () => {
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Scroll to put the section header at the top of the page
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-      // Add temporary highlight effect
+      // Add temporary blue glow highlight effect
       element.style.transition = 'box-shadow 0.3s ease-in-out';
       element.style.boxShadow = '0 0 20px 5px rgba(59, 130, 246, 0.5)';
 
@@ -853,28 +867,78 @@ const CreateTicket = () => {
    * Then automatically triggers CAS lookup and AI generation if applicable
    */
   const handleSAPImport = async (mappedFields, metadata = {}) => {
-    console.log('[SAP Import] Importing mapped fields:', mappedFields);
+    console.log('='.repeat(80));
+    console.log('[SAP Import] ===== STARTING SAP IMPORT =====');
+    console.log('[SAP Import] Type of mappedFields:', typeof mappedFields);
+    console.log('[SAP Import] mappedFields is null?', mappedFields === null);
+    console.log('[SAP Import] mappedFields is undefined?', mappedFields === undefined);
+    console.log('[SAP Import] Importing mapped fields:', JSON.stringify(mappedFields, null, 2));
+    console.log('[SAP Import] Number of fields to import:', Object.keys(mappedFields || {}).length);
+    console.log('[SAP Import] Field keys:', Object.keys(mappedFields || {}));
+    console.log('[SAP Import] Field entries:', Object.entries(mappedFields || {}));
     console.log('[SAP Import] Metadata:', metadata);
+    console.log('='.repeat(80));
+
+    // Validate mappedFields
+    if (!mappedFields || typeof mappedFields !== 'object' || Object.keys(mappedFields).length === 0) {
+      console.error('[SAP Import] ❌ ERROR: mappedFields is invalid or empty!');
+      toast.error('No fields to import from SAP');
+      return;
+    }
 
     // Store metadata for later use (e.g., plant descriptions)
     setSapMetadata(metadata);
 
     const importedFieldPaths = new Set();
 
+    console.log('[SAP Import] 🔄 Starting forEach loop over', Object.entries(mappedFields).length, 'entries');
+
     // First pass: populate all non-SKU fields
-    Object.entries(mappedFields).forEach(([fieldPath, value]) => {
+    Object.entries(mappedFields).forEach(([fieldPath, value], index) => {
+      console.log(`[SAP Import] 🔄 forEach iteration ${index + 1}: fieldPath="${fieldPath}", value=`, value);
       // Track this field as imported
       importedFieldPaths.add(fieldPath);
 
-      // Handle nested paths (e.g., 'corpbaseData.productDescription')
-      if (fieldPath.includes('.')) {
-        setValue(fieldPath, value, { shouldDirty: true });
-      } else if (fieldPath === 'skuVariants') {
-        // Skip SKU variants for now - will handle separately
-      } else {
-        setValue(fieldPath, value, { shouldDirty: true });
+      // Skip SKU variants for now - will handle separately
+      if (fieldPath === 'skuVariants') {
+        console.log(`[SAP Import] ⏭️  Skipping SKU variants (will handle separately)`);
+        return;
+      }
+
+      // Skip null or undefined values
+      if (value === null || value === undefined) {
+        console.log(`[SAP Import] ⏭️  Skipping field "${fieldPath}" - value is null/undefined`);
+        return;
+      }
+
+      // Set the value using React Hook Form's setValue
+      console.log(`[SAP Import] 🔵 About to set field "${fieldPath}" to:`, value);
+      console.log(`[SAP Import] 🔵 setValue function exists?`, typeof setValue === 'function');
+      console.log(`[SAP Import] 🔵 watch function exists?`, typeof watch === 'function');
+
+      try {
+        // Call setValue
+        console.log(`[SAP Import] 🔵 CALLING setValue("${fieldPath}", ${JSON.stringify(value)})`);
+        setValue(fieldPath, value, { shouldDirty: true, shouldValidate: false });
+        console.log(`[SAP Import] ✅ setValue called successfully for "${fieldPath}"`);
+
+        // Immediately check the value
+        const immediateValue = watch(fieldPath);
+        console.log(`[SAP Import] 📊 Immediate check: watch("${fieldPath}") = `, immediateValue);
+
+        // Verify the value was set (give React a tick to update)
+        setTimeout(() => {
+          const verifyValue = watch(fieldPath);
+          console.log(`[SAP Import] ⏰ Delayed verify (10ms): watch("${fieldPath}") = `, verifyValue);
+        }, 10);
+      } catch (error) {
+        console.error(`[SAP Import] ❌ Error setting field "${fieldPath}":`, error);
+        console.error(`[SAP Import] ❌ Error message:`, error.message);
+        console.error(`[SAP Import] ❌ Error stack:`, error.stack);
       }
     });
+
+    console.log('[SAP Import] 🏁 forEach loop completed');
 
     // Second pass: handle SKU variants separately and wait for completion
     if (mappedFields.skuVariants) {
@@ -896,6 +960,10 @@ const CreateTicket = () => {
     // Store which fields were imported for green highlighting
     setSapImportedFields(importedFieldPaths);
 
+    console.log('[SAP Import] ===== FIELD IMPORT COMPLETE =====');
+    console.log('[SAP Import] Imported field paths:', Array.from(importedFieldPaths));
+    console.log('='.repeat(80));
+
     toast.success(`Imported ${Object.keys(mappedFields).length} fields from SAP!`);
 
     // Wait longer for React Hook Form state to fully update
@@ -908,7 +976,7 @@ const CreateTicket = () => {
     // Step 1: If CAS number is populated, trigger CAS lookup
     const importedCAS = mappedFields['chemicalProperties.casNumber'];
     if (importedCAS) {
-      console.log('[SAP Import] CAS number found, triggering automatic lookup...');
+      console.log('[SAP Import] CAS number found in mappedFields:', importedCAS);
       console.log('[SAP Import] Waiting for form state to update...');
 
       toast.loading('Step 1/2: Populating chemical data from PubChem...', { id: progressToastId });
@@ -916,8 +984,25 @@ const CreateTicket = () => {
       // Scroll to chemical properties section
       scrollToSection('chemical-properties-section');
 
-      // Additional delay to ensure form state has updated
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait for CAS to be available in form state with polling
+      let attempts = 0;
+      const maxAttempts = 20; // 20 attempts * 250ms = 5 seconds max
+      while (attempts < maxAttempts) {
+        const currentCAS = watch('chemicalProperties.casNumber');
+        console.log(`[SAP Import] Attempt ${attempts + 1}: watch('chemicalProperties.casNumber') = "${currentCAS}"`);
+
+        if (currentCAS && currentCAS === importedCAS) {
+          console.log('[SAP Import] ✓ CAS value confirmed in form state!');
+          break;
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 250));
+        attempts++;
+      }
+
+      if (attempts >= maxAttempts) {
+        console.warn('[SAP Import] ⚠️ CAS value not confirmed in form state after 5 seconds, proceeding anyway...');
+      }
 
       try {
         console.log('[SAP Import] Calling handleCASLookup...');
@@ -979,7 +1064,7 @@ const CreateTicket = () => {
    * Requires CAS number to be populated
    */
   const handleOpenSimilarProducts = () => {
-    if (!casNumber || !/^\d{1,7}-\d{2}-\d$/.test(casNumber)) {
+    if (!casNumber || !/^\d+-\d{2}-\d$/.test(casNumber)) {
       toast.error('Please enter a valid CAS number first to search for similar products');
       return;
     }
@@ -1000,7 +1085,26 @@ const CreateTicket = () => {
    * Get CSS class for SAP-imported fields (green highlight)
    */
   const getSAPImportedClass = (fieldPath) => {
-    return sapImportedFields.has(fieldPath) ? 'border-2 border-green-500 bg-green-50' : '';
+    const hasField = sapImportedFields.has(fieldPath);
+    if (hasField) {
+      console.log(`[SAP Highlight] Field "${fieldPath}" IS in sapImportedFields - applying green highlight`);
+    }
+    return hasField ? 'border-2 border-green-500 bg-green-50' : '';
+  };
+
+  /**
+   * Remove field from SAP imported fields when user edits it
+   * This removes the green highlight to indicate the field has been manually modified
+   */
+  const handleFieldEdit = (fieldPath) => {
+    if (sapImportedFields.has(fieldPath)) {
+      console.log(`[SAP Highlight] Field "${fieldPath}" edited by user - removing green highlight`);
+      setSapImportedFields(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(fieldPath);
+        return newSet;
+      });
+    }
   };
 
   return (
@@ -1065,6 +1169,8 @@ const CreateTicket = () => {
                           onCASLookup={handleCASLookup}
                           readOnly={false}
                           showAutoPopulateButton={true}
+                          sapImportedFields={sapImportedFields}
+                          getSAPImportedClass={getSAPImportedClass}
                         />
                       </div>
                     );

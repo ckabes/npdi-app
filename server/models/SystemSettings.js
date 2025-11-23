@@ -302,18 +302,41 @@ systemSettingsSchema.statics.updateSettings = async function(updates, userId) {
   if (!settings) {
     settings = new this(updates);
   } else {
-    // Deep merge updates
-    Object.keys(updates).forEach(key => {
-      if (typeof updates[key] === 'object' && !Array.isArray(updates[key])) {
-        settings[key] = { ...settings[key], ...updates[key] };
-      } else {
-        settings[key] = updates[key];
-      }
-    });
+    // Deep merge function to properly merge nested objects
+    const deepMerge = (target, source) => {
+      Object.keys(source).forEach(key => {
+        if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+          // If target doesn't have this key, create it
+          if (!target[key]) {
+            target[key] = {};
+          }
+          // Recursively merge nested objects
+          deepMerge(target[key], source[key]);
+        } else {
+          // For primitives, arrays, and null values, directly assign
+          target[key] = source[key];
+        }
+      });
+    };
+
+    // Deep merge updates into existing settings
+    deepMerge(settings, updates);
   }
 
   settings.lastUpdatedBy = userId;
   settings.version += 1;
+
+  // Mark nested paths as modified to trigger pre-save hooks
+  if (updates.integrations?.langdock?.apiKey) {
+    settings.markModified('integrations.langdock.apiKey');
+  }
+  if (updates.integrations?.webhook?.secret) {
+    settings.markModified('integrations.webhook.secret');
+  }
+  if (updates.integrations?.palantir?.token) {
+    settings.markModified('integrations.palantir.token');
+  }
+
   await settings.save();
 
   return settings;

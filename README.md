@@ -20,6 +20,7 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **Regulatory Information**: FDA, EPA, REACH, TSCA compliance tracking
 - **PubChem Integration**: Automatic chemical data population from CAS numbers
 - **SAP Data Integration**: Palantir SQL Query API v2 for MARA dataset queries with material number lookup
+- **Similar Products Search**: Find related products with the same CAS number from SAP MARA data
 - **Weight Matrix Management**: Package size to weight conversion for SKU variants
 - **UNSPSC Classification**: United Nations Standard Products and Services Code tracking
 
@@ -261,6 +262,7 @@ The application uses a profile-based authentication system:
 - `GET /api/products/dashboard/stats` - Dashboard statistics
 - `GET /api/products/cas-lookup/:casNumber` - PubChem CAS number lookup
 - `GET /api/products/sap-search/:partNumber` - SAP MARA data search via Palantir
+- `GET /api/products/similar-products/:casNumber` - Search for similar products by CAS number
 - `POST /api/products/generate-corpbase-content` - AI content generation
 - `GET /api/products/:id/export-pdp` - Export PDP Checklist (Excel)
 - `GET /api/products/:id/export-pif` - Export Product Information Form (Excel)

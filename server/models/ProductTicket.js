@@ -139,7 +139,7 @@ const chemicalPropertiesSchema = new mongoose.Schema({
   casNumber: {
     type: String,
     required: false,
-    match: /^\d{1,7}-\d{2}-\d$/
+    match: /^\d+-\d{2}-\d$/  // More lenient: allows any number of digits in first part
   },
   molecularFormula: String,
   molecularWeight: Number,
@@ -321,7 +321,6 @@ const productTicketSchema = new mongoose.Schema({
   },
   sbu: {
     type: String,
-    enum: ['775', 'P90', '440', 'P87', 'P89', 'P85'],
     required: true
   },
   primaryPlant: {
@@ -407,8 +406,11 @@ const productTicketSchema = new mongoose.Schema({
   },
   businessLine: {
     line: {
-      type: String,
-      enum: ['Biochemistry', 'Chemical Synthesis', 'Discovery Chemistry', 'Lab Classics', 'Material Science', 'BRM Applied Lab Essentials', 'Advanced Genomics', 'Beads & Fusion', 'Applied Biology', 'Production Materials', 'Other']
+      type: String
+      // Removed enum to allow free text from SAP and manual entry
+    },
+    mainGroupGPH: {
+      type: String  // SAP GPH Product Line (YYD_GPHPL)
     },
     otherSpecification: {
       type: String

@@ -1,6 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { productAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+
+// Silly chemistry/science loading messages
+const LOADING_MESSAGES = [
+  'Distilling SAP data...',
+  'Precipitating product information...',
+  'Centrifuging chemical properties...',
+  'Titrating material numbers...',
+  'Filtering through molecular formulas...',
+  'Crystallizing CAS numbers...',
+  'Evaporating excess metadata...',
+  'Balancing the chemical equation...',
+  'Measuring pH of data quality...',
+  'Extracting active ingredients...',
+  'Catalyzing the search reaction...',
+  'Conducting chromatography on results...',
+  'Pipetting precise measurements...',
+  'Incubating material records...',
+  'Sterilizing dirty data...',
+  'Mixing reagents and SKUs...',
+  'Analyzing spectral signatures...',
+  'Neutralizing bad records...',
+  'Sublimating solid state data...',
+  'Polymerizing product chains...',
+  // Round 2: More chemistry fun!
+  'Oxidizing outdated information...',
+  'Reducing data complexity...',
+  'Hydrolyzing legacy systems...',
+  'Dehydrating redundant fields...',
+  'Calculating molecular weights...',
+  'Buffering against errors...',
+  'Performing gravimetric analysis...',
+  'Synthesizing perfect results...',
+  'Recrystallizing data purity...',
+  'Running gel electrophoresis...',
+  'Adjusting molarity levels...',
+  'Checking orbital configurations...',
+  'Quantifying significant figures...',
+  'Dissolving data silos...',
+  'Calibrating the mass spectrometer...',
+  'Reaching critical mass...',
+  'Achieving equilibrium state...',
+  'Detecting Van der Waals forces...',
+  'Ionizing information streams...',
+  'Bonding covalently with databases...'
+];
 
 /**
  * SAP Data Search Popup Component
@@ -12,6 +57,23 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
   const [sapData, setSapData] = useState(null);
   const [mappedFields, setMappedFields] = useState(null);
   const [metadata, setMetadata] = useState(null);
+  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
+
+  // Randomly display funny loading messages while searching
+  useEffect(() => {
+    if (!searching) return;
+
+    // Set initial random message
+    setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)]);
+
+    const interval = setInterval(() => {
+      // Pick a random message each time
+      const randomIndex = Math.floor(Math.random() * LOADING_MESSAGES.length);
+      setLoadingMessage(LOADING_MESSAGES[randomIndex]);
+    }, 1500); // Change message every 1.5 seconds
+
+    return () => clearInterval(interval);
+  }, [searching]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -159,7 +221,10 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <p className="mt-4 text-gray-600">Searching Palantir Foundry...</p>
+              <p className="mt-4 text-gray-600 font-medium">Searching Palantir Foundry...</p>
+              <p className="mt-2 text-millipore-blue text-sm italic animate-pulse">
+                {loadingMessage}
+              </p>
             </div>
           )}
 
