@@ -162,7 +162,6 @@ export const systemSettingsAPI = {
   getSettings: () => apiClient.get('/system-settings'),
   updateSettings: (settings) => apiClient.put('/system-settings', settings),
   getSection: (section) => apiClient.get(`/system-settings/${section}`),
-  testSmtp: (config) => apiClient.post('/system-settings/test-smtp', config),
   testPubChem: () => apiClient.post('/system-settings/test-pubchem'),
   testAzureOpenAI: () => apiClient.post('/system-settings/test-azure-openai')
 };

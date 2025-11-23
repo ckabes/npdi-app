@@ -14,12 +14,14 @@ import {
   BoltIcon,
   ArrowPathIcon,
   KeyIcon,
-  ScaleIcon
+  ScaleIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
 import UserManagement from '../components/admin/UserManagement';
 import PermissionsManagement from '../components/admin/PermissionsManagement';
 import SystemSettings from '../components/admin/SystemSettings';
 import ApiKeyManagement from '../components/admin/ApiKeyManagement';
+import HelpDocumentation from '../components/admin/HelpDocumentation';
 import { adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -56,7 +58,8 @@ const AdminDashboard = () => {
     { id: 'permissions', name: 'Permissions', icon: ShieldCheckIcon },
     { id: 'api-keys', name: 'API Keys', icon: KeyIcon },
     { id: 'weight-matrix', name: 'Weight Matrix', icon: ScaleIcon },
-    { id: 'system', name: 'System Settings', icon: CogIcon }
+    { id: 'system', name: 'System Settings', icon: CogIcon },
+    { id: 'help', name: 'Help', icon: QuestionMarkCircleIcon }
   ];
 
   const StatCard = ({ title, value, subtitle, icon: Icon, color = 'blue', trend, onClick }) => (
@@ -437,6 +440,8 @@ const AdminDashboard = () => {
         );
       case 'system':
         return <SystemSettings />;
+      case 'help':
+        return <HelpDocumentation />;
       default:
         return renderOverview();
     }
