@@ -168,8 +168,9 @@ const CreateTicket = () => {
 
   const handleCASLookup = async () => {
     if (!casNumber || !/^\d{1,7}-\d{2}-\d$/.test(casNumber)) {
-      toast.error('Please enter a valid CAS number (e.g., 64-17-5)');
-      return;
+      const errorMsg = 'Please enter a valid CAS number (e.g., 64-17-5)';
+      toast.error(errorMsg);
+      throw new Error(errorMsg);
     }
 
     setCasLookupLoading(true);
@@ -531,8 +532,9 @@ const CreateTicket = () => {
 
   const generateProductDescription = async () => {
     if (!productName) {
-      toast.error('Please enter a product name first');
-      return;
+      const errorMsg = 'Please enter a product name first';
+      toast.error(errorMsg);
+      throw new Error(errorMsg);
     }
 
     setGeneratingAIContent(true);
@@ -887,8 +889,9 @@ const CreateTicket = () => {
 
     toast.success(`Imported ${Object.keys(mappedFields).length} fields from SAP!`);
 
-    // Wait a moment for state to update
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Wait longer for React Hook Form state to fully update
+    // This ensures watched values (casNumber, productName, etc.) reflect the new values
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Create a progress toast that we'll update
     const progressToastId = toast.loading('Starting automated enrichment...', { duration: Infinity });
@@ -897,20 +900,29 @@ const CreateTicket = () => {
     const importedCAS = mappedFields['chemicalProperties.casNumber'];
     if (importedCAS) {
       console.log('[SAP Import] CAS number found, triggering automatic lookup...');
+      console.log('[SAP Import] Waiting for form state to update...');
 
       toast.loading('Step 1/2: Populating chemical data from PubChem...', { id: progressToastId });
 
       // Scroll to chemical properties section
       scrollToSection('chemical-properties-section');
 
+      // Additional delay to ensure form state has updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       try {
+        console.log('[SAP Import] Calling handleCASLookup...');
         await handleCASLookup();
         console.log('[SAP Import] CAS lookup completed successfully');
+
+        // Wait for all PubChem data to be populated
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         toast.success('✓ Chemical data populated from PubChem!', { id: progressToastId });
         await new Promise(resolve => setTimeout(resolve, 800));
       } catch (error) {
-        console.warn('[SAP Import] CAS lookup failed:', error);
-        toast.error('Could not auto-populate chemical data', { id: progressToastId });
+        console.error('[SAP Import] CAS lookup failed with error:', error);
+        toast.error(`Could not auto-populate chemical data: ${error.message || 'Unknown error'}`, { id: progressToastId });
         await new Promise(resolve => setTimeout(resolve, 800));
       }
     }
@@ -919,20 +931,29 @@ const CreateTicket = () => {
     const importedProductName = mappedFields.productName;
     if (importedProductName) {
       console.log('[SAP Import] Product name found, triggering AI generation...');
+      console.log('[SAP Import] Waiting for form state to update...');
 
       toast.loading('Step 2/2: Generating marketing content with AI...', { id: progressToastId });
 
       // Scroll to CorpBase section
       scrollToSection('corpbase-section');
 
+      // Additional delay to ensure form state has updated
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       try {
+        console.log('[SAP Import] Calling generateProductDescription...');
         await generateProductDescription();
         console.log('[SAP Import] AI generation completed successfully');
+
+        // Wait for all AI fields to be populated
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         toast.success('✓ Marketing content generated!', { id: progressToastId });
         await new Promise(resolve => setTimeout(resolve, 800));
       } catch (error) {
-        console.warn('[SAP Import] AI generation failed:', error);
-        toast.error('Could not generate marketing content', { id: progressToastId });
+        console.error('[SAP Import] AI generation failed with error:', error);
+        toast.error(`Could not generate marketing content: ${error.message || 'Unknown error'}`, { id: progressToastId });
         await new Promise(resolve => setTimeout(resolve, 800));
       }
     }
