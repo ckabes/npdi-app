@@ -55,6 +55,7 @@ const Layout = () => {
         <svg className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="hexagons" x="0" y="0" width="100" height="87" patternUnits="userSpaceOnUse">
+              {/* Regular hexagons */}
               <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
                        fill="none"
                        stroke="#3b82f6"
@@ -67,6 +68,30 @@ const Layout = () => {
                        opacity="0.2"
                        transform="scale(0.7) translate(21, 18)"/>
               <circle cx="50" cy="43.5" r="2" fill="#3b82f6" opacity="0.2"/>
+
+              {/* Accent hexagons - offset and different colors */}
+              <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
+                       fill="none"
+                       stroke="#8b5cf6"
+                       strokeWidth="0.7"
+                       opacity="0.25"
+                       transform="translate(120, 45) scale(0.8)"/>
+              <circle cx="170" cy="88.5" r="2.5" fill="#8b5cf6" opacity="0.3"/>
+
+              <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
+                       fill="none"
+                       stroke="#06b6d4"
+                       strokeWidth="0.6"
+                       opacity="0.3"
+                       transform="translate(-75, 60) scale(0.9)"/>
+              <circle cx="-25" cy="103.5" r="2" fill="#06b6d4" opacity="0.25"/>
+
+              <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
+                       fill="none"
+                       stroke="#a78bfa"
+                       strokeWidth="0.5"
+                       opacity="0.2"
+                       transform="translate(30, -30) scale(1.1)"/>
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#hexagons)"/>
