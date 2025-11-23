@@ -34,6 +34,7 @@ const CreateTicket = () => {
   });
   const [showSAPPopup, setShowSAPPopup] = useState(false);
   const [sapImportedFields, setSapImportedFields] = useState(new Set());
+  const [sapMetadata, setSapMetadata] = useState({});
   const { user, isProductManager, isPMOPS } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm({
@@ -288,21 +289,24 @@ const CreateTicket = () => {
           for (let i = currentLength - 1; i >= 0; i--) {
             remove(i);
           }
-          
-          // Add new SKUs with timeout to prevent blocking
-          setTimeout(() => {
-            data.skuVariants.forEach(sku => {
-              if (sku && sku.type && sku.sku) {
-                append({
-                  type: sku.type,
-                  sku: sku.sku,
-                  description: sku.description || '',
-                  packageSize: sku.packageSize || { value: 100, unit: 'g' },
-                  pricing: sku.pricing || { listPrice: 0, currency: 'USD' }
-                });
-              }
-            });
-          }, 100);
+
+          // Add new SKUs and wait for completion
+          await new Promise(resolve => {
+            setTimeout(() => {
+              data.skuVariants.forEach(sku => {
+                if (sku && sku.type && sku.sku) {
+                  append({
+                    type: sku.type,
+                    sku: sku.sku,
+                    description: sku.description || '',
+                    packageSize: sku.packageSize || { value: 100, unit: 'g' },
+                    pricing: sku.pricing || { listPrice: 0, currency: 'USD' }
+                  });
+                }
+              });
+              resolve();
+            }, 100);
+          });
         } catch (skuError) {
           console.warn('SKU replacement failed:', skuError);
         }
@@ -837,11 +841,16 @@ const CreateTicket = () => {
    * Populates form fields with mapped SAP data and tracks which fields were imported
    * Then automatically triggers CAS lookup and AI generation if applicable
    */
-  const handleSAPImport = async (mappedFields) => {
+  const handleSAPImport = async (mappedFields, metadata = {}) => {
     console.log('[SAP Import] Importing mapped fields:', mappedFields);
+    console.log('[SAP Import] Metadata:', metadata);
+
+    // Store metadata for later use (e.g., plant descriptions)
+    setSapMetadata(metadata);
 
     const importedFieldPaths = new Set();
 
+    // First pass: populate all non-SKU fields
     Object.entries(mappedFields).forEach(([fieldPath, value]) => {
       // Track this field as imported
       importedFieldPaths.add(fieldPath);
@@ -850,20 +859,28 @@ const CreateTicket = () => {
       if (fieldPath.includes('.')) {
         setValue(fieldPath, value, { shouldDirty: true });
       } else if (fieldPath === 'skuVariants') {
-        // Special handling for SKU variants array
-        // Clear existing SKUs first
-        const currentLength = fields.length;
-        for (let i = currentLength - 1; i >= 0; i--) {
-          remove(i);
-        }
-        // Add imported SKUs
-        setTimeout(() => {
-          value.forEach(sku => append(sku));
-        }, 100);
+        // Skip SKU variants for now - will handle separately
       } else {
         setValue(fieldPath, value, { shouldDirty: true });
       }
     });
+
+    // Second pass: handle SKU variants separately and wait for completion
+    if (mappedFields.skuVariants) {
+      // Clear existing SKUs first
+      const currentLength = fields.length;
+      for (let i = currentLength - 1; i >= 0; i--) {
+        remove(i);
+      }
+
+      // Add imported SKUs and wait for state to update
+      await new Promise(resolve => {
+        setTimeout(() => {
+          mappedFields.skuVariants.forEach(sku => append(sku));
+          resolve();
+        }, 100);
+      });
+    }
 
     // Store which fields were imported for green highlighting
     setSapImportedFields(importedFieldPaths);
@@ -1279,6 +1296,7 @@ const CreateTicket = () => {
                         readOnly={false}
                         sapImportedFields={sapImportedFields}
                         getSAPImportedClass={getSAPImportedClass}
+                        sapMetadata={sapMetadata}
                       />
                     );
                 }

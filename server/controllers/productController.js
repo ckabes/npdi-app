@@ -1148,6 +1148,7 @@ const searchMARA = async (req, res) => {
 
     // Map MARA fields to ProductTicket fields (only full mappings from documentation)
     const mappedFields = {};
+    const metadata = {}; // Store non-editable descriptive data
 
     // Section 1: Core Product Identification
     if (maraData.TEXT_SHORT) {
@@ -1158,30 +1159,68 @@ const searchMARA = async (req, res) => {
     }
 
     // Section 2: Material Classification & Hierarchy
-    if (maraData.MATKL) {
-      mappedFields.materialGroup = maraData.MATKL;
-    }
+    // Map YYD_YSBU to SBU
     if (maraData.YYD_YSBU) {
       mappedFields.sbu = maraData.YYD_YSBU;
     } else if (maraData.SPART) {
       mappedFields.sbu = maraData.SPART;
     }
-    if (maraData.PRDHA) {
-      mappedFields.sialProductHierarchy = maraData.PRDHA;
-    }
-    if (maraData.YYD_BRAND) {
-      // Map brand codes to full names
-      const brandMap = {
-        'SA': 'Sigma-Aldrich',
-        'MM': 'Merck Millipore',
-        'SK': 'Supelco'
-      };
-      mappedFields.brand = brandMap[maraData.YYD_BRAND] || maraData.YYD_BRAND;
+
+    // Map YYD_MEMBF_TEXT to business line
+    if (maraData.YYD_MEMBF_TEXT) {
+      mappedFields['businessLine.line'] = maraData.YYD_MEMBF_TEXT;
     }
 
-    // Section 3: Units of Measure
+    // Map PRDHA to Main Group GPH field, but exclude specific values
+    if (maraData.PRDHA && maraData.PRDHA !== '1120999') {
+      mappedFields['businessLine.mainGroupGPH'] = maraData.PRDHA;
+    }
+
+    // Map YYD_YLOGO_TEXT to brand - pick closest match from available brands
+    if (maraData.YYD_YLOGO_TEXT) {
+      const logoText = maraData.YYD_YLOGO_TEXT.toUpperCase();
+
+      // Map common brand identifiers to full brand names
+      const brandMap = {
+        'SIGMA': 'Sigma-Aldrich',
+        'SIGMA-ALDRICH': 'Sigma-Aldrich',
+        'ALDRICH': 'Sigma-Aldrich',
+        'SUPELCO': 'Supelco',
+        'MERCK': 'Merck Millipore',
+        'MILLIPORE': 'Merck Millipore',
+        'MERK': 'Merck Millipore',
+        'SAFC': 'SAFC',
+        'FLUKA': 'Fluka'
+      };
+
+      // Try exact match first
+      let brand = brandMap[logoText];
+
+      // If no exact match, try partial match
+      if (!brand) {
+        for (const [key, value] of Object.entries(brandMap)) {
+          if (logoText.includes(key) || key.includes(logoText)) {
+            brand = value;
+            break;
+          }
+        }
+      }
+
+      // Default to original text if no match found
+      mappedFields.brand = brand || maraData.YYD_YLOGO_TEXT;
+    }
+
+    // Section 3: Units of Measure & Package Size
     if (maraData.MEINS) {
-      mappedFields['pricingData.baseUnit'] = maraData.MEINS.toLowerCase();
+      const baseUnit = maraData.MEINS.toLowerCase();
+
+      // Map to pricing base unit
+      mappedFields['pricingData.baseUnit'] = baseUnit;
+
+      // Map to SKU costing package size (value and unit)
+      // Standard package size of 100 units
+      mappedFields['skuVariants.0.packageSize.value'] = 100;
+      mappedFields['skuVariants.0.packageSize.unit'] = baseUnit;
     }
 
     // Section 4: Chemical Properties & Identification
@@ -1219,11 +1258,20 @@ const searchMARA = async (req, res) => {
       // Map source/substitution to production type
       mappedFields.productionType = maraData.YYD_SOSUB === 'P' ? 'Produced' : 'Procured';
     }
-    if (maraData.LABOR) {
-      mappedFields.primaryPlant = maraData.LABOR;
+
+    // Map ORG_PPL to primary plant (manufacturing plant)
+    if (maraData.ORG_PPL) {
+      mappedFields.primaryPlant = maraData.ORG_PPL;
+
+      // Store ORG_PPL_TEXT as metadata for display
+      if (maraData.ORG_PPL_TEXT) {
+        metadata.primaryPlantDescription = maraData.ORG_PPL_TEXT;
+      }
     }
-    if (maraData.YYD_PRDOR) {
-      mappedFields.countryOfOrigin = maraData.YYD_PRDOR;
+
+    // Map HERKL to country of origin (proper SAP field)
+    if (maraData.HERKL) {
+      mappedFields.countryOfOrigin = maraData.HERKL;
     }
 
     // Section 11: Vendor Information (for procured products)
@@ -1234,18 +1282,6 @@ const searchMARA = async (req, res) => {
       mappedFields['vendorInformation.vendorProductNumber'] = maraData.MFRPN;
     }
 
-    // SKU Information
-    if (maraData.MATNR) {
-      // Add as a BULK SKU variant
-      mappedFields.skuVariants = [{
-        type: 'BULK',
-        sku: maraData.MATNR,
-        description: maraData.YYD_MTNEX || '',
-        packageSize: { value: 1, unit: 'kg' },
-        pricing: { listPrice: 0, currency: 'USD' }
-      }];
-    }
-
     console.log(`[SAP Search] Mapped ${Object.keys(mappedFields).length} fields`);
 
     res.json({
@@ -1253,6 +1289,7 @@ const searchMARA = async (req, res) => {
       message: `Found SAP data for ${partNumber}`,
       data: maraData,
       mappedFields: mappedFields,
+      metadata: metadata, // Include metadata for descriptive fields
       fieldCount: Object.keys(mappedFields).length
     });
 
