@@ -1,5 +1,15 @@
 # Settings Redesign - System Settings vs User Preferences
 
+> **⚠️ OUTDATED DOCUMENT WARNING**
+>
+> This document contains outdated information about features that were planned but not fully implemented.
+> Many sections described here (Security, Email/SMTP, Database Backup, Webhook Integration) were removed
+> from the application as they were UI-only mockups without actual implementation.
+>
+> For current system settings capabilities, see the actual implementation in:
+> - `/client/src/components/admin/SystemSettings.jsx`
+> - `/server/models/SystemSettings.js`
+
 ## Overview
 
 The application settings have been redesigned to properly separate **system-wide settings** (admin-controlled, affecting all users) from **user preferences** (individual user settings).
@@ -35,68 +45,65 @@ These settings affect the entire application and all users. Only admins can modi
 - Support Email
 
 #### 2. Ticket Configuration
-- Auto-generate ticket numbers
-- Ticket prefix (e.g., "NPDI")
-- Default priority
-- Draft editing policies
-- Max draft age
-- Auto-submit reminders
-- Enable status history
-- Enable comments
+- ✅ Enable status history
+- ✅ Enable comments
+- ~~Auto-generate ticket numbers~~ (REMOVED - Not implemented)
+- ~~Ticket prefix~~ (REMOVED - Not implemented)
+- ~~Default priority~~ (REMOVED - Not implemented)
+- ~~Draft editing policies~~ (REMOVED - Not implemented)
+- ~~Max draft age~~ (REMOVED - Not implemented)
+- ~~Auto-submit reminders~~ (REMOVED - Not implemented)
 
-#### 3. Email / SMTP
-- Enable/disable email notifications system-wide
-- SMTP server configuration
-  - Server address
-  - Port
-  - Username & password
-  - From email/name
-  - TLS/SSL settings
-- SMTP connection test
+#### 3. ~~Email / SMTP~~ (REMOVED - Not implemented)
+- ~~Enable/disable email notifications system-wide~~
+- ~~SMTP server configuration~~
+- ~~SMTP connection test~~
 
-#### 4. Security
-- Session timeout
-- Max login attempts
-- Lockout duration
-- Password policies:
-  - Minimum length
-  - Require special characters
-  - Require numbers
-  - Require uppercase
-  - Password expiry
-- Two-factor authentication
-- Audit logging
+#### 4. ~~Security~~ (REMOVED - Not implemented)
+- ~~Session timeout~~
+- ~~Max login attempts~~
+- ~~Lockout duration~~
+- ~~Password policies~~
+- ~~Two-factor authentication~~
+- ~~Audit logging~~
+
+Note: The application uses profile-based authentication without traditional password/session management.
 
 #### 5. Integrations
-- **PubChem Integration**
+- ✅ **PubChem Integration** (IMPLEMENTED)
   - Enable/disable
   - Timeout settings
   - Cache time
   - Auto-population
   - Connection test
-- **Webhook Integration**
+- ✅ **Microsoft Teams Integration** (IMPLEMENTED)
   - Enable/disable
   - Webhook URL
-  - Secret key
-- **External API Settings**
-  - Timeout
-  - Retry attempts
+  - Notification event configuration
+- ✅ **Azure OpenAI (Langdock)** (IMPLEMENTED)
+  - API key (encrypted)
+  - Environment selection
+  - Model configuration
+  - Quota management
+- ✅ **Palantir Foundry** (IMPLEMENTED)
+  - Token (encrypted)
+  - Dataset RID
+  - SQL Query API integration
+- ✅ **SAP Integration** (IMPLEMENTED)
+  - Credentials (encrypted)
+  - RPM/PS configuration
+- ~~Webhook Integration~~ (REMOVED - Not implemented)
+- ~~External API Settings~~ (REMOVED - Not implemented)
 
 #### 6. Performance
-- **Cache Settings**
+- ✅ **Cache Settings**
   - Enable/disable caching
   - Cache timeout
-- **File Upload Settings**
+- ✅ **File Upload Settings**
   - Max file size
   - Max files per ticket
-- **Database & Backup**
-  - Enable automatic backups
-  - Backup frequency (hourly/daily/weekly)
-  - Backup retention period
-- **Logging**
-  - Log retention period
-  - Log level (error/warn/info/debug)
-  - Debug mode
+- ~~Database & Backup~~ (REMOVED - Not implemented)
+- ~~Logging~~ (REMOVED - Not implemented)
 
 ---
 
@@ -166,8 +173,9 @@ These settings are personal to each user and don't affect other users.
 - `GET /api/system-settings` - Get all system settings
 - `PUT /api/system-settings` - Update system settings
 - `GET /api/system-settings/:section` - Get specific section
-- `POST /api/system-settings/test-smtp` - Test SMTP connection
+- ~~`POST /api/system-settings/test-smtp`~~ (REMOVED - Not implemented)
 - `POST /api/system-settings/test-pubchem` - Test PubChem connection
+- `POST /api/system-settings/test-azure-openai` - Test Azure OpenAI connection
 
 **User Preferences**
 - `GET /api/user-preferences` - Get user's preferences
@@ -228,8 +236,9 @@ No new environment variables required. The existing MongoDB connection and JWT s
    - Click "Save Settings" to persist changes
 
 2. **Test Integrations:**
-   - SMTP: Configure email settings, click "Test SMTP Connection"
    - PubChem: Click "Test PubChem Connection" to verify API access
+   - Azure OpenAI: Click "Test Connection" to verify API key
+   - Palantir: Click "Test Connection" to verify token and dataset access
 
 ### For Users
 
@@ -266,10 +275,10 @@ No new environment variables required. The existing MongoDB connection and JWT s
    - Check user preferences before sending each notification
    - Implement browser notifications based on user preferences
 
-4. **Apply Performance Settings:**
-   - Use system cache settings in caching logic
-   - Enforce file upload limits from performance settings
-   - Implement database backup scheduler
+4. ~~Apply Performance Settings:~~ (PARTIALLY IMPLEMENTED)
+   - ✅ Cache settings are stored and may be used by individual services
+   - ❓ File upload limits are stored but enforcement is unclear
+   - ❌ Database backup scheduler - NOT IMPLEMENTED
 
 ### Future Enhancements
 
@@ -284,17 +293,19 @@ No new environment variables required. The existing MongoDB connection and JWT s
 
 ## Testing Checklist
 
-- [ ] Admin can save and retrieve system settings
-- [ ] System settings persist across sessions
-- [ ] SMTP connection test works (if SMTP configured)
-- [ ] PubChem connection test works
-- [ ] Users can save and retrieve their preferences
-- [ ] User preferences persist across sessions
-- [ ] Timezone auto-detection works
-- [ ] Reset preferences works correctly
-- [ ] Sensitive data (passwords) are masked in UI
-- [ ] Only admins can access system settings
-- [ ] All users can access their own preferences
+- [x] Admin can save and retrieve system settings
+- [x] System settings persist across sessions
+- [x] PubChem connection test works
+- [x] Azure OpenAI connection test works
+- [x] Palantir connection test works
+- [x] Users can save and retrieve their preferences
+- [x] User preferences persist across sessions
+- [x] Timezone auto-detection works
+- [x] Reset preferences works correctly
+- [x] Sensitive data (API keys, tokens, passwords) are encrypted and masked in UI
+- [x] Only admins can access system settings
+- [x] All users can access their own preferences
+- [ ] ~~SMTP connection test~~ (REMOVED - Not implemented)
 
 ---
 
@@ -312,20 +323,18 @@ await systemSettingsAPI.updateSettings({
     systemName: 'My NPDI System',
     companyName: 'Acme Corp'
   },
-  email: {
-    enabled: true,
-    smtpServer: 'smtp.gmail.com',
-    smtpPort: 587
+  integrations: {
+    langdock: {
+      enabled: true,
+      apiKey: 'your-azure-openai-key',
+      environment: 'dev',
+      model: 'gpt-4o-mini'
+    }
   }
 });
 
-// Test SMTP
-const result = await systemSettingsAPI.testSmtp({
-  smtpServer: 'smtp.gmail.com',
-  smtpPort: 587,
-  smtpUsername: 'user@example.com',
-  smtpPassword: 'password'
-});
+// Test Azure OpenAI
+const result = await systemSettingsAPI.testAzureOpenAI();
 ```
 
 ### User Preferences

@@ -12,32 +12,8 @@ const systemSettingsSchema = new mongoose.Schema({
 
   // Ticket Configuration
   tickets: {
-    autoTicketNumbers: { type: Boolean, default: true },
-    ticketPrefix: { type: String, default: 'NPDI' },
-    defaultPriority: {
-      type: String,
-      enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
-      default: 'MEDIUM'
-    },
-    allowDraftEditing: { type: Boolean, default: true },
-    maxDraftAge: { type: Number, default: 30 }, // days
-    autoSubmitReminder: { type: Number, default: 7 }, // days
     enableStatusHistory: { type: Boolean, default: true },
     enableComments: { type: Boolean, default: true }
-  },
-
-  // Security Policies
-  security: {
-    sessionTimeout: { type: Number, default: 480 }, // minutes
-    maxLoginAttempts: { type: Number, default: 5 },
-    lockoutDuration: { type: Number, default: 15 }, // minutes
-    passwordMinLength: { type: Number, default: 8 },
-    requireSpecialCharacters: { type: Boolean, default: true },
-    requireNumbers: { type: Boolean, default: true },
-    requireUppercase: { type: Boolean, default: true },
-    passwordExpiry: { type: Number, default: 90 }, // days
-    enableTwoFactor: { type: Boolean, default: false },
-    auditLogging: { type: Boolean, default: true }
   },
 
   // Integrations
@@ -55,12 +31,6 @@ const systemSettingsSchema = new mongoose.Schema({
       notifyOnTicketCreated: { type: Boolean, default: false },
       notifyOnCommentAdded: { type: Boolean, default: false },
       notifyOnAssignment: { type: Boolean, default: false }
-    },
-    webhook: {
-      enabled: { type: Boolean, default: false },
-      url: { type: String, default: '' },
-      secret: { type: String, default: '' },
-      events: [{ type: String }] // ['ticket.created', 'ticket.updated', etc.]
     },
     langdock: {
       enabled: { type: Boolean, default: false },
@@ -87,10 +57,6 @@ const systemSettingsSchema = new mongoose.Schema({
         resetDate: { type: Date },
         expiryDate: { type: Date }
       }
-    },
-    externalAPI: {
-      timeout: { type: Number, default: 10 }, // seconds
-      retryAttempts: { type: Number, default: 3 }
     },
     palantir: {
       enabled: { type: Boolean, default: false },
@@ -177,26 +143,7 @@ const systemSettingsSchema = new mongoose.Schema({
     },
     files: {
       maxFileSize: { type: Number, default: 10 }, // MB
-      maxFilesPerTicket: { type: Number, default: 10 },
-      allowedTypes: [{ type: String }] // ['pdf', 'jpg', 'png', etc.]
-    },
-    database: {
-      backupEnabled: { type: Boolean, default: true },
-      backupFrequency: {
-        type: String,
-        enum: ['hourly', 'daily', 'weekly'],
-        default: 'daily'
-      },
-      backupRetention: { type: Number, default: 30 } // days
-    },
-    logging: {
-      logRetention: { type: Number, default: 30 }, // days
-      enableDebugMode: { type: Boolean, default: false },
-      logLevel: {
-        type: String,
-        enum: ['error', 'warn', 'info', 'debug'],
-        default: 'info'
-      }
+      maxFilesPerTicket: { type: Number, default: 10 }
     }
   },
 
@@ -218,15 +165,6 @@ systemSettingsSchema.pre('save', function(next) {
     if (apiKey && apiKey !== '' && !encryption.isEncrypted(apiKey)) {
       console.log('Encrypting Azure OpenAI API key...');
       this.integrations.langdock.apiKey = encryption.encrypt(apiKey);
-    }
-  }
-
-  // Encrypt webhook secret if modified and not already encrypted
-  if (this.isModified('integrations.webhook.secret')) {
-    const secret = this.integrations?.webhook?.secret;
-    if (secret && secret !== '' && !encryption.isEncrypted(secret)) {
-      console.log('Encrypting webhook secret...');
-      this.integrations.webhook.secret = encryption.encrypt(secret);
     }
   }
 
@@ -253,21 +191,6 @@ systemSettingsSchema.methods.getDecryptedApiKey = function() {
     return encryption.decrypt(encryptedKey);
   } catch (error) {
     console.error('Error decrypting API key:', error);
-    return '';
-  }
-};
-
-// Method to get decrypted webhook secret (for internal use only)
-systemSettingsSchema.methods.getDecryptedWebhookSecret = function() {
-  const encryptedSecret = this.integrations?.webhook?.secret;
-  if (!encryptedSecret || encryptedSecret === '') {
-    return '';
-  }
-
-  try {
-    return encryption.decrypt(encryptedSecret);
-  } catch (error) {
-    console.error('Error decrypting webhook secret:', error);
     return '';
   }
 };
@@ -329,9 +252,6 @@ systemSettingsSchema.statics.updateSettings = async function(updates, userId) {
   // Mark nested paths as modified to trigger pre-save hooks
   if (updates.integrations?.langdock?.apiKey) {
     settings.markModified('integrations.langdock.apiKey');
-  }
-  if (updates.integrations?.webhook?.secret) {
-    settings.markModified('integrations.webhook.secret');
   }
   if (updates.integrations?.palantir?.token) {
     settings.markModified('integrations.palantir.token');
