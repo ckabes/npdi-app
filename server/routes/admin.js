@@ -3,9 +3,26 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const apiKeyController = require('../controllers/apiKeyController');
 const palantirService = require('../services/palantirService');
+const fs = require('fs').promises;
+const path = require('path');
 
 // Get comprehensive admin statistics
 router.get('/stats', adminController.getAdminStats);
+
+// Get maintenance guide (dynamically reads from file)
+router.get('/maintenance-guide', async (req, res) => {
+  try {
+    const guidePath = path.join(__dirname, '../../MAINTENANCE_GUIDE.md');
+    const content = await fs.readFile(guidePath, 'utf8');
+    res.type('text/markdown').send(content);
+  } catch (error) {
+    console.error('Error reading maintenance guide:', error);
+    res.status(500).json({
+      error: 'Failed to load maintenance guide',
+      message: error.message
+    });
+  }
+});
 
 // Palantir Integration Routes
 router.post('/palantir/test-connection', async (req, res) => {
