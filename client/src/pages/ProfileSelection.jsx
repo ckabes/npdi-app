@@ -63,6 +63,61 @@ const ProfileSelection = () => {
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#hexagons-profile)"/>
+
+          {/* Larger accent hexagons on the sides - more visible */}
+          {/* Top left */}
+          <polygon points="100,0 186.6,50 186.6,150 100,200 13.4,150 13.4,50"
+                   fill="none"
+                   stroke="#3b82f6"
+                   strokeWidth="1.5"
+                   opacity="0.15"
+                   transform="translate(-50, 80)"/>
+          <circle cx="50" cy="180" r="4" fill="#3b82f6" opacity="0.2"/>
+
+          {/* Middle left - purple */}
+          <polygon points="100,0 186.6,50 186.6,150 100,200 13.4,150 13.4,50"
+                   fill="none"
+                   stroke="#8b5cf6"
+                   strokeWidth="2"
+                   opacity="0.2"
+                   transform="translate(-80, 350) scale(1.3)"/>
+          <circle cx="50" cy="480" r="5" fill="#8b5cf6" opacity="0.25"/>
+
+          {/* Bottom left - cyan */}
+          <polygon points="100,0 186.6,50 186.6,150 100,200 13.4,150 13.4,50"
+                   fill="none"
+                   stroke="#06b6d4"
+                   strokeWidth="1.8"
+                   opacity="0.18"
+                   transform="translate(-60, 650) scale(1.1) rotate(15 100 100)"/>
+
+          {/* Top right */}
+          <g transform="translate(0, 0)">
+            <polygon points="100,0 186.6,50 186.6,150 100,200 13.4,150 13.4,50"
+                     fill="none"
+                     stroke="#60a5fa"
+                     strokeWidth="1.6"
+                     opacity="0.16"
+                     transform="translate(calc(100vw - 150), 120) scale(1.2)"/>
+            <circle cx="calc(100vw - 50)" cy="240" r="4.5" fill="#60a5fa" opacity="0.2"/>
+          </g>
+
+          {/* Middle right - light purple */}
+          <polygon points="100,0 186.6,50 186.6,150 100,200 13.4,150 13.4,50"
+                   fill="none"
+                   stroke="#a78bfa"
+                   strokeWidth="2.2"
+                   opacity="0.2"
+                   transform="translate(calc(100vw - 100), 400) scale(1.4) rotate(-10 100 100)"/>
+
+          {/* Bottom right - purple accent */}
+          <polygon points="100,0 186.6,50 186.6,150 100,200 13.4,150 13.4,50"
+                   fill="none"
+                   stroke="#8b5cf6"
+                   strokeWidth="1.5"
+                   opacity="0.15"
+                   transform="translate(calc(100vw - 130), 700) scale(0.9)"/>
+          <circle cx="calc(100vw - 30)" cy="790" r="3.5" fill="#8b5cf6" opacity="0.2"/>
         </svg>
       </div>
 
