@@ -33,7 +33,7 @@ The NPDI (New Product Data Introduction) Application is a full-stack web applica
 - **Technology Stack:** MERN Stack (MongoDB, Express.js, React, Node.js)
 - **Deployment Model:** Client-Server with REST API
 - **Database:** MongoDB with Mongoose ODM
-- **External Integrations:** PubChem API for chemical data enrichment
+- **External Integrations:** PubChem API for chemical data enrichment, Palantir Foundry SQL Query API v2 for SAP MARA data access, Azure OpenAI for AI content generation, Microsoft Teams for notifications
 - **Security Model:** Multi-layered with API key authentication and role-based access control
 
 ---
@@ -85,13 +85,16 @@ The NPDI application facilitates the interface between Product Managers and Prod
 │  │  Collections:                                              │ │
 │  │  - producttickets  - users         - permissions           │ │
 │  │  - apikeys         - formconfigs   - systemsettings        │ │
-│  │  - userpreferences - templates                             │ │
+│  │  - userpreferences - templates     - weightmatrices        │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
                               ↕
 ┌─────────────────────────────────────────────────────────────────┐
 │                   External Integrations                         │
-│              PubChem API (Chemical Data Enrichment)             │
+│  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────┐   │
+│  │   PubChem    │  │   Palantir   │  │   Azure OpenAI +    │   │
+│  │     API      │  │   Foundry    │  │   Teams Webhooks    │   │
+│  └──────────────┘  └──────────────┘  └─────────────────────┘   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -103,7 +106,8 @@ The NPDI application facilitates the interface between Product Managers and Prod
 - **Database:** MongoDB with Mongoose ODM 7.5.0
 - **Security:** Helmet, CORS, express-rate-limit
 - **Validation:** express-validator 7.0.1
-- **HTTP Client:** Axios 1.11.0 (for PubChem integration)
+- **HTTP Client:** Axios 1.11.0 (for PubChem, Palantir, Azure OpenAI integrations)
+- **Data Parsing:** Apache Arrow 14.0.0 (for Palantir binary data)
 
 #### Frontend
 - **Framework:** React 18.2.0
@@ -143,6 +147,7 @@ The Model layer defines the data structure and business rules using Mongoose sch
 - **SystemSettings** - Application-wide configuration
 - **UserPreferences** - User-specific settings
 - **TicketTemplate** - Reusable ticket templates
+- **WeightMatrix** - Package size to weight conversion for SKU variants
 
 **Responsibilities:**
 - Define data schemas with strict type validation
@@ -494,6 +499,15 @@ Services encapsulate complex operations and external integrations:
 - Implements rate limiting (200ms delay between requests)
 - Handles errors gracefully with fallback data
 
+**Palantir Service** (`palantirService.js`):
+- Connects to Palantir Foundry SQL Query API v2
+- Executes SQL queries against SAP MARA dataset
+- Implements async query execution workflow (submit → poll status → fetch results)
+- Parses Apache Arrow binary format responses
+- Maps MARA fields to ProductTicket schema
+- Provides material number lookup functionality
+- Includes connection testing and cache management
+
 **Key Methods:**
 - `getCompoundByCAS(casNumber)` - Primary lookup function
 - `enrichTicketData(casNumber)` - Returns complete enriched data for tickets
@@ -664,6 +678,7 @@ The application uses MongoDB, a document-oriented NoSQL database, chosen for:
 - `composition` - Product composition breakdown
 - `regulatoryInfo` - Regulatory compliance data
 - `corpbaseData` - Marketing and web content
+- `unspscCode` - United Nations Standard Products and Services Code for classification
 - `statusHistory[]` - Audit trail of all changes
 - `comments[]` - User comments and notes
 - `createdBy`, `assignedTo` - User references
@@ -785,6 +800,23 @@ The application uses MongoDB, a document-oriented NoSQL database, chosen for:
 - `category` - Template category
 - `templateData` - Pre-filled ticket data
 - `createdBy`, `isActive`
+
+#### 5.2.9 WeightMatrix Collection
+
+**Purpose:** Package size to weight conversion for SKU variants
+
+**Key Fields:**
+- `packageSize` - Package size string (e.g., "1 mg", "5 g", "100 mL")
+- `weightGrams` - Equivalent weight in grams
+- `category` - Category for grouping (e.g., "solid", "liquid")
+- `notes` - Additional information or conversion details
+- `createdAt`, `updatedAt` - Timestamps
+
+**Use Cases:**
+- Automatic weight calculation for SKU variants
+- Shipping cost estimation
+- Inventory management
+- Package dimension planning
 
 ### 5.3 Data Relationships
 
@@ -1488,7 +1520,228 @@ Available placeholders for prompt templates:
 - 429: Rate limit exceeded
 - Detailed error messages with troubleshooting hints
 
-### 7.4 Data Export Services
+### 7.4 Palantir Foundry SQL Query API Integration
+
+#### 7.4.1 Purpose
+
+The Palantir Foundry integration provides access to SAP MARA (Material Master) data stored in Palantir Foundry, enabling automatic population of product information from existing SAP materials.
+
+**Benefits:**
+- Direct SQL query access to large MARA datasets (250+ columns)
+- Efficient data retrieval without downloading entire Parquet files
+- Automatic mapping of SAP fields to ProductTicket schema
+- Reuse of existing SAP material data
+- Reduced manual data entry for existing products
+
+#### 7.4.2 Integration Architecture
+
+**Service Layer:** `server/services/palantirService.js`
+
+**API Endpoints Used:**
+1. **Execute Query:** `POST /api/v2/sqlQueries/execute?preview=true`
+   - Submits SQL query and receives queryId
+
+2. **Get Status:** `GET /api/v2/sqlQueries/{queryId}/getStatus?preview=true`
+   - Polls query execution status (running → succeeded)
+
+3. **Get Results:** `GET /api/v2/sqlQueries/{queryId}/getResults?preview=true`
+   - Fetches query results in Apache Arrow binary format
+
+**Authentication:**
+- OAuth2 Bearer token authentication
+- Token configured in SystemSettings
+- VPN connectivity to Merck internal network required
+
+**Configuration:**
+- Hostname: `palantir.mcloud.merckgroup.com`
+- Dataset RID (Resource Identifier)
+- API token (stored encrypted)
+- Timeout settings
+- Connection pool management
+
+#### 7.4.3 Async Query Execution Flow
+
+```
+1. Controller calls palantirService.executeQuery(sql)
+   ↓
+2. Service submits query via POST /execute
+   ↓
+3. Palantir returns queryId and initial status
+   ↓
+4. If status is 'running':
+   a) Poll GET /getStatus every 1 second
+   b) Maximum 60 poll attempts (60 second timeout)
+   c) Wait for status 'succeeded'
+   ↓
+5. Once succeeded, fetch results via GET /getResults
+   ↓
+6. Results returned as Apache Arrow binary stream
+   ↓
+7. Parse Arrow Table using apache-arrow library
+   ↓
+8. Convert Arrow data to JavaScript objects
+   ↓
+9. Return rows and metadata to controller
+```
+
+**Performance:**
+- Typical query execution: 2-3 seconds
+- Efficient filtering reduces payload (118KB vs 500MB for full file)
+- Status polling prevents timeout issues
+- Parallel field mapping for multiple results
+
+#### 7.4.4 SAP MARA Field Mapping
+
+The service automatically maps 250+ MARA fields to ProductTicket schema:
+
+**Chemical Properties:**
+- `YYD_CASNR` → `chemicalProperties.casNumber`
+- `YYD_MOLFORMULA` → `chemicalProperties.molecularFormula`
+- `YYD_MOLWEIGHT` → `chemicalProperties.molecularWeight`
+- `YYD_IUPACNAME` → `chemicalProperties.iupacName`
+
+**Product Information:**
+- `TEXT_SHORT` → `productName`
+- `MATKL` → `materialGroup`
+- `MEINS` → `baseUnitOfMeasure`
+- `BRGEW` → `grossWeight`
+- `NTGEW` → `netWeight`
+
+**Hazard Classification:**
+- `YYD_SIGNALWORD` → `hazardClassification.signalWord`
+- `YYD_UN_NR` → `hazardClassification.unNumber`
+- `YYD_CLASSCODE` → `hazardClassification.classCode`
+
+**Complete mapping documented in:** `docs/SAP-MARA-to-ProductTicket-Mapping.md`
+
+#### 7.4.5 Material Number Lookup Endpoint
+
+**Endpoint:** `GET /api/products/sap-search/:partNumber`
+
+**Flow:**
+```
+1. User enters material number (e.g., "176036")
+   ↓
+2. Frontend calls /sap-search/176036
+   ↓
+3. Controller builds SQL query:
+   SELECT * FROM `{datasetRID}` WHERE MATNR = '176036' LIMIT 1
+   ↓
+4. palantirService.executeQuery() executes async workflow
+   ↓
+5. Results mapped to ProductTicket fields
+   ↓
+6. Controller returns:
+   {
+     success: true,
+     data: { /* raw MARA data */ },
+     mappedFields: { /* mapped to ticket schema */ }
+   }
+   ↓
+7. Frontend pre-populates form fields with mapped data
+```
+
+#### 7.4.6 Apache Arrow Binary Parsing
+
+**Why Apache Arrow:**
+- Efficient columnar binary format
+- Zero-copy reads for large datasets
+- Cross-language compatibility
+- Industry standard for analytics
+
+**Implementation:**
+```javascript
+const arrow = require('apache-arrow');
+
+// Parse binary response
+const arrowTable = arrow.tableFromIPC(response.data);
+
+// Extract columns
+const columns = arrowTable.schema.fields.map(f => f.name);
+
+// Convert to JavaScript objects
+for (let i = 0; i < arrowTable.numRows; i++) {
+  const row = {};
+  for (const column of columns) {
+    row[column] = arrowTable.getChild(column).get(i);
+  }
+  rows.push(row);
+}
+```
+
+#### 7.4.7 Error Handling & Troubleshooting
+
+**Connection Errors:**
+- VPN connectivity checks
+- DNS resolution validation
+- Hostname configuration validation
+- Token expiration handling
+
+**Query Errors:**
+- SQL syntax validation
+- Dataset RID verification
+- Permission checking
+- Timeout management (60 second default)
+
+**Status Polling Errors:**
+- Maximum retry limit (60 attempts)
+- Exponential backoff (future enhancement)
+- Detailed error messages with queryId for debugging
+
+**Logging:**
+```
+✓ Query submitted: queryId abc123
+✓ Status: running (poll attempt 1/60)
+✓ Status: succeeded (total time: 2.8s)
+✓ Results retrieved: 296 columns, 1 row, 118KB
+✓ Parsed Apache Arrow table successfully
+```
+
+#### 7.4.8 Security Considerations
+
+**Authentication:**
+- Bearer tokens stored encrypted in SystemSettings
+- Tokens masked in admin UI (show last 8 chars)
+- Token rotation support
+- VPN requirement enforces network-level security
+
+**Data Access:**
+- Read-only SQL queries
+- No mutation operations (INSERT, UPDATE, DELETE)
+- Dataset-level permissions enforced by Palantir
+- Query results filtered by user permissions
+
+**Audit Trail:**
+- All queries logged with timestamp
+- User attribution for all lookups
+- Query execution time tracking
+- Error logging for failed attempts
+
+#### 7.4.9 Testing & Validation
+
+**Connection Test Endpoint:** `POST /api/admin/palantir/test-connection`
+
+**Test Query:**
+```sql
+SELECT * FROM `{datasetRID}` WHERE MATNR = '176036' LIMIT 1
+```
+
+**Validation Checks:**
+- Hostname resolution
+- API endpoint accessibility
+- Token authentication
+- Dataset accessibility
+- Query execution
+- Arrow parsing
+- Field mapping accuracy
+
+**Success Criteria:**
+- Query completes in < 10 seconds
+- Returns expected material number
+- All mapped fields populated correctly
+- No VPN or connectivity errors
+
+### 7.5 Data Export Services
 
 #### 7.4.1 PDP Checklist Export Service
 

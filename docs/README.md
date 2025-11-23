@@ -26,9 +26,13 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 
 ### Integrations
 - [Microsoft Teams Integration](integrations/TEAMS_INTEGRATION.md) - Teams webhook notifications setup
+- [Palantir SQL Query API Integration](Palantir-SQL-Query-API-Integration-Guide.md) - SAP MARA data access via Palantir Foundry
 
 ### User Guides
 - [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md) - How to customize forms
+
+### Data Mapping & Reference
+- [SAP MARA to ProductTicket Mapping](SAP-MARA-to-ProductTicket-Mapping.md) - Complete field mapping from SAP MARA to ProductTicket schema
 
 ### Security
 - [API Key Storage](security/API_KEY_STORAGE.md) - How API keys are encrypted and stored
@@ -50,6 +54,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 1. **Configuring Forms**: Use [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md)
 2. **Managing API Access**: See [API Key Setup](api/API_KEY_SETUP.md)
 3. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
+4. **Palantir SAP Integration**: Setup guide in [Palantir SQL Query API Integration](Palantir-SQL-Query-API-Integration-Guide.md)
 
 ### For IT/Infrastructure
 1. **API Key Security**: [API Key Storage](security/API_KEY_STORAGE.md)
@@ -61,12 +66,15 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - Core ticket management system with status workflow
 - REST API with API key authentication for external integrations
 - PubChem integration for automatic chemical data population
+- **Palantir Foundry SQL Query API v2 integration for SAP MARA data access**
+- **Weight Matrix Management for package size to weight conversions**
 - Dynamic form configuration with live preview editor
 - Profile-based access control (Product Manager, PM-OPS, Admin)
 - Microsoft Teams webhook notifications for ticket events
 - Excel export (PDP Checklist and Product Information Forms)
 - AI content generation via Azure OpenAI (product descriptions, marketing content)
 - Data export services for reporting and analysis
+- **UNSPSC code tracking for product classification**
 
 ---
 
@@ -91,6 +99,8 @@ docs/
 │   └── NPDI_WORKFLOW.md         # Workflow documentation
 ├── integrations/                 # Third-party integrations
 │   └── TEAMS_INTEGRATION.md      # Microsoft Teams webhooks
+├── Palantir-SQL-Query-API-Integration-Guide.md # Palantir Foundry integration
+├── SAP-MARA-to-ProductTicket-Mapping.md # SAP field mapping
 ├── guides/                       # How-to guides
 │   ├── SETUP_GUIDE.md            # Installation guide
 │   └── FORM_CONFIGURATION_GUIDE.md
@@ -131,6 +141,12 @@ A: Review [Architecture Overview](architecture/ARCHITECTURE.md)
 
 **Q: Is the application secure?**
 A: Check [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
+
+**Q: How do I integrate with SAP MARA data?**
+A: See [Palantir SQL Query API Integration](Palantir-SQL-Query-API-Integration-Guide.md)
+
+**Q: How are SAP fields mapped to the ticket schema?**
+A: Reference [SAP MARA to ProductTicket Mapping](SAP-MARA-to-ProductTicket-Mapping.md)
 
 ---
 
@@ -176,5 +192,5 @@ For additional support, contact the NPDI development team.
 
 ---
 
-**Last Updated:** 2025-11-19
+**Last Updated:** 2025-11-22
 **Maintained by:** NPDI Development Team

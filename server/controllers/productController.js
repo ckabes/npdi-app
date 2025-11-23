@@ -4,6 +4,7 @@ const User = require('../models/User');
 const pubchemService = require('../services/pubchemService');
 const teamsNotificationService = require('../services/teamsNotificationService');
 const aiContentService = require('../services/aiContentService');
+const palantirService = require('../services/palantirService');
 const { cleanTicketData, ensureDefaultSKU, ensureDefaultSBU } = require('../utils/enumCleaner');
 const { generatePDPChecklist } = require('../services/pdpChecklistExportService');
 const { generatePIF } = require('../services/pifExportService');
@@ -1100,6 +1101,186 @@ const generateCorpBaseContent = async (req, res) => {
   }
 };
 
+/**
+ * Search for SAP MARA data using Palantir Foundry SQL API
+ * Maps MARA fields to ProductTicket schema based on full mapping documentation
+ */
+const searchMARA = async (req, res) => {
+  try {
+    const { partNumber } = req.params;
+
+    if (!partNumber || partNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Part number is required'
+      });
+    }
+
+    console.log(`[SAP Search] Request for part number: ${partNumber}`);
+
+    // Check if Palantir is enabled
+    const isEnabled = await palantirService.isEnabled();
+    if (!isEnabled) {
+      return res.status(503).json({
+        success: false,
+        message: 'SAP integration is not configured. Please contact your administrator.'
+      });
+    }
+
+    // Query Palantir Foundry for MARA data
+    // The part number should already have -BULK appended by the frontend
+    const config = await palantirService.getConfig();
+    const query = `SELECT * FROM \`${config.datasetRID}\` WHERE MATNR = '${partNumber}' LIMIT 1`;
+
+    console.log(`[SAP Search] Executing query: ${query}`);
+
+    const result = await palantirService.executeQuery(query);
+
+    if (!result.rows || result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No SAP data found for part number: ${partNumber}`
+      });
+    }
+
+    const maraData = result.rows[0];
+    console.log(`[SAP Search] Found MARA data:`, Object.keys(maraData));
+
+    // Map MARA fields to ProductTicket fields (only full mappings from documentation)
+    const mappedFields = {};
+
+    // Section 1: Core Product Identification
+    if (maraData.TEXT_SHORT) {
+      mappedFields.productName = maraData.TEXT_SHORT;
+    }
+    if (maraData.TEXT_LONG) {
+      mappedFields['corpbaseData.productDescription'] = maraData.TEXT_LONG;
+    }
+
+    // Section 2: Material Classification & Hierarchy
+    if (maraData.MATKL) {
+      mappedFields.materialGroup = maraData.MATKL;
+    }
+    if (maraData.YYD_YSBU) {
+      mappedFields.sbu = maraData.YYD_YSBU;
+    } else if (maraData.SPART) {
+      mappedFields.sbu = maraData.SPART;
+    }
+    if (maraData.PRDHA) {
+      mappedFields.sialProductHierarchy = maraData.PRDHA;
+    }
+    if (maraData.YYD_BRAND) {
+      // Map brand codes to full names
+      const brandMap = {
+        'SA': 'Sigma-Aldrich',
+        'MM': 'Merck Millipore',
+        'SK': 'Supelco'
+      };
+      mappedFields.brand = brandMap[maraData.YYD_BRAND] || maraData.YYD_BRAND;
+    }
+
+    // Section 3: Units of Measure
+    if (maraData.MEINS) {
+      mappedFields['pricingData.baseUnit'] = maraData.MEINS.toLowerCase();
+    }
+
+    // Section 4: Chemical Properties & Identification
+    if (maraData.YYD_CASNR) {
+      mappedFields['chemicalProperties.casNumber'] = maraData.YYD_CASNR;
+    }
+
+    // Section 5: Storage & Handling
+    if (maraData.TEMPB) {
+      // Map temperature codes to readable values
+      const tempMap = {
+        'W3': 'CL (2-8 deg)',
+        'W2': 'RT (15-25 deg)',
+        'W1': 'Ambient'
+      };
+      mappedFields['chemicalProperties.storageTemperature'] = tempMap[maraData.TEMPB] || maraData.TEMPB;
+    }
+
+    // Section 6: Quality & Compliance
+    if (maraData.YYD_QASEG) {
+      // Map quality segment codes to MQ levels
+      const qualityMap = {
+        '100': 'MQ100',
+        '200': 'MQ200',
+        '300': 'MQ300',
+        '400': 'MQ400',
+        '500': 'MQ500',
+        '600': 'MQ600'
+      };
+      mappedFields['quality.mqQualityLevel'] = qualityMap[maraData.YYD_QASEG] || 'N/A';
+    }
+
+    // Section 10: Production Information
+    if (maraData.YYD_SOSUB) {
+      // Map source/substitution to production type
+      mappedFields.productionType = maraData.YYD_SOSUB === 'P' ? 'Produced' : 'Procured';
+    }
+    if (maraData.LABOR) {
+      mappedFields.primaryPlant = maraData.LABOR;
+    }
+    if (maraData.YYD_PRDOR) {
+      mappedFields.countryOfOrigin = maraData.YYD_PRDOR;
+    }
+
+    // Section 11: Vendor Information (for procured products)
+    if (maraData.YYD_MFRNR) {
+      mappedFields['vendorInformation.vendorSAPNumber'] = maraData.YYD_MFRNR;
+    }
+    if (maraData.MFRPN) {
+      mappedFields['vendorInformation.vendorProductNumber'] = maraData.MFRPN;
+    }
+
+    // SKU Information
+    if (maraData.MATNR) {
+      // Add as a BULK SKU variant
+      mappedFields.skuVariants = [{
+        type: 'BULK',
+        sku: maraData.MATNR,
+        description: maraData.YYD_MTNEX || '',
+        packageSize: { value: 1, unit: 'kg' },
+        pricing: { listPrice: 0, currency: 'USD' }
+      }];
+    }
+
+    console.log(`[SAP Search] Mapped ${Object.keys(mappedFields).length} fields`);
+
+    res.json({
+      success: true,
+      message: `Found SAP data for ${partNumber}`,
+      data: maraData,
+      mappedFields: mappedFields,
+      fieldCount: Object.keys(mappedFields).length
+    });
+
+  } catch (error) {
+    console.error('[SAP Search] Error:', error);
+
+    let errorMessage = 'Failed to search SAP data';
+    let statusCode = 500;
+
+    if (error.message.includes('not enabled') || error.message.includes('not configured')) {
+      errorMessage = 'SAP integration is not configured';
+      statusCode = 503;
+    } else if (error.message.includes('Authentication') || error.message.includes('token')) {
+      errorMessage = 'SAP authentication failed';
+      statusCode = 401;
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'SAP request timed out';
+      statusCode = 504;
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      message: errorMessage,
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createTicket,
   saveDraft,
@@ -1111,6 +1292,7 @@ module.exports = {
   addComment,
   getDashboardStats,
   lookupCAS,
+  searchMARA,
   getRecentActivity,
   exportPDPChecklist,
   exportPIF,

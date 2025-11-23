@@ -797,7 +797,388 @@ For issues or questions about the API:
 
 ---
 
+## Internal Web API Endpoints
+
+The following endpoints are used by the internal web application and require profile-based authentication (via headers) instead of API keys.
+
+### 1. PubChem CAS Number Lookup
+
+Automatically populate chemical data from PubChem database using CAS number.
+
+**Endpoint:** `GET /api/products/cas-lookup/:casNumber`
+
+**Authentication:** Profile headers (`x-user-role`, `x-user-email`, etc.)
+
+**Path Parameters:**
+- `casNumber` (string) - CAS Registry Number in format XXX-XX-X
+
+**Example Request:**
+```bash
+curl -H "x-user-role: PRODUCT_MANAGER" \
+  -H "x-user-email: john.smith@milliporesigma.com" \
+  "http://localhost:5000/api/products/cas-lookup/50-00-0"
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "casNumber": "50-00-0",
+    "molecularFormula": "CH2O",
+    "molecularWeight": 30.026,
+    "iupacName": "Formaldehyde",
+    "synonyms": ["Methanal", "Formalin", "Methylene oxide"],
+    "physicalState": "Liquid",
+    "ghsClassification": {
+      "hazardStatements": ["H301", "H311", "H331"],
+      "signalWord": "DANGER"
+    }
+  }
+}
+```
+
+**Timeout:** 30 seconds (PubChem API can be slow)
+
+---
+
+### 2. SAP MARA Data Search (via Palantir)
+
+Search SAP MARA dataset for existing product information using material number.
+
+**Endpoint:** `GET /api/products/sap-search/:partNumber`
+
+**Authentication:** Profile headers
+
+**Path Parameters:**
+- `partNumber` (string) - SAP Material Number (MATNR field)
+
+**Example Request:**
+```bash
+curl -H "x-user-role: PM_OPS" \
+  -H "x-user-email: sarah.johnson@milliporesigma.com" \
+  "http://localhost:5000/api/products/sap-search/176036"
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "MATNR": "176036",
+    "TEXT_SHORT": "Formaldehyde solution",
+    "YYD_CASNR": "50-00-0",
+    "YYD_MOLFORMULA": "CH2O",
+    "YYD_MOLWEIGHT": "30.026",
+    "BRGEW": "1.200",
+    "MEINS": "EA"
+  },
+  "mappedFields": {
+    "productName": "Formaldehyde solution",
+    "chemicalProperties.casNumber": "50-00-0",
+    "chemicalProperties.molecularFormula": "CH2O",
+    "chemicalProperties.molecularWeight": 30.026,
+    "grossWeight": 1.2,
+    "baseUnitOfMeasure": "EA"
+  },
+  "queryExecutionTime": "2.8s"
+}
+```
+
+**Performance:**
+- Typical query: 2-3 seconds
+- Uses Palantir SQL Query API v2
+- Async query execution with status polling
+- Apache Arrow binary format parsing
+
+**Requirements:**
+- VPN connection to Merck network
+- Palantir configuration in System Settings
+- Valid OAuth2 bearer token
+
+---
+
+### 3. AI Content Generation
+
+Generate marketing content using Azure OpenAI for product descriptions, titles, and features.
+
+**Endpoint:** `POST /api/products/generate-corpbase-content`
+
+**Authentication:** Profile headers
+
+**Request Body:**
+```json
+{
+  "productData": {
+    "productName": "Formaldehyde solution",
+    "casNumber": "50-00-0",
+    "molecularFormula": "CH2O",
+    "molecularWeight": 30.026
+  },
+  "fields": ["productDescription", "websiteTitle", "keyFeatures"],
+  "forceTemplate": false
+}
+```
+
+**Body Parameters:**
+- `productData` (object, required) - Product information for content generation
+  - `productName` (string, required) - Product name
+  - `casNumber` (string, optional) - CAS number
+  - `molecularFormula` (string, optional) - Molecular formula
+  - `molecularWeight` (number, optional) - Molecular weight
+- `fields` (array, optional) - Specific fields to generate (default: all enabled)
+- `forceTemplate` (boolean, optional) - Use template-based generation if AI unavailable
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "productDescription": "High-purity formaldehyde solution suitable for molecular biology...",
+    "websiteTitle": "Formaldehyde Solution - High Purity CH2O",
+    "metaDescription": "Premium formaldehyde solution for laboratory use...",
+    "keyFeatures": [
+      "High purity > 99%",
+      "Molecular biology grade",
+      "Stabilized formulation",
+      "Quality tested",
+      "Fast shipping"
+    ],
+    "applications": [
+      "Cell fixation",
+      "Tissue preservation",
+      "Protein crosslinking",
+      "Molecular diagnostics"
+    ]
+  },
+  "generationTime": "3.2s",
+  "model": "gpt-4o-mini"
+}
+```
+
+**Configuration:**
+- Azure OpenAI endpoint: Merck NLP API
+- Model: gpt-4o-mini (default), gpt-4o, gpt-5-mini
+- Max tokens: 2000 per field
+- Temperature: 0.5-0.7 (varies by content type)
+
+**Timeout:** 60 seconds
+
+---
+
+### 4. Weight Matrix Management
+
+Manage package size to weight conversions for SKU variants.
+
+#### 4.1 Get All Weight Matrix Entries
+
+**Endpoint:** `GET /api/weight-matrix`
+
+**Query Parameters:**
+- `page` (integer, default: 1) - Page number
+- `limit` (integer, default: 50, max: 100) - Results per page
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "packageSize": "100 g",
+      "weightGrams": 100,
+      "category": "solid",
+      "notes": "Standard solid package",
+      "createdAt": "2025-10-01T00:00:00.000Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 50,
+    "total": 142,
+    "pages": 3
+  }
+}
+```
+
+#### 4.2 Search Weight Matrix
+
+**Endpoint:** `GET /api/weight-matrix/search`
+
+**Query Parameters:**
+- `q` (string, required) - Search query for package size
+
+**Example Request:**
+```bash
+curl "http://localhost:5000/api/weight-matrix/search?q=100"
+```
+
+#### 4.3 Lookup Weight by Package Size
+
+**Endpoint:** `GET /api/weight-matrix/lookup/:packageSize`
+
+**Path Parameters:**
+- `packageSize` (string, URL-encoded) - Package size to lookup
+
+**Example Request:**
+```bash
+curl "http://localhost:5000/api/weight-matrix/lookup/100%20g"
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "packageSize": "100 g",
+    "weightGrams": 100,
+    "category": "solid"
+  }
+}
+```
+
+#### 4.4 Create Weight Matrix Entry
+
+**Endpoint:** `POST /api/weight-matrix`
+
+**Authentication:** Admin role required
+
+**Request Body:**
+```json
+{
+  "packageSize": "250 mL",
+  "weightGrams": 250,
+  "category": "liquid",
+  "notes": "Standard liquid volume"
+}
+```
+
+#### 4.5 Update Weight Matrix Entry
+
+**Endpoint:** `PUT /api/weight-matrix/:id`
+
+**Authentication:** Admin role required
+
+#### 4.6 Delete Weight Matrix Entry
+
+**Endpoint:** `DELETE /api/weight-matrix/:id`
+
+**Authentication:** Admin role required
+
+---
+
+### 5. Data Export Endpoints
+
+Export ticket data in various formats.
+
+#### 5.1 Export PDP Checklist
+
+**Endpoint:** `GET /api/products/:id/export-pdp`
+
+**Response Type:** `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (Excel)
+
+**Example Request:**
+```bash
+curl -H "x-user-role: PM_OPS" \
+  "http://localhost:5000/api/products/507f1f77bcf86cd799439011/export-pdp" \
+  --output PDP-Checklist.xlsx
+```
+
+#### 5.2 Export Product Information Form
+
+**Endpoint:** `GET /api/products/:id/export-pif`
+
+**Response Type:** Excel file
+
+#### 5.3 Export Ticket Data
+
+**Endpoint:** `GET /api/products/:id/export-data`
+
+**Response Type:** Excel file with all ticket data
+
+---
+
+### 6. Admin Endpoints
+
+#### 6.1 Test Palantir Connection
+
+**Endpoint:** `POST /api/admin/palantir/test-connection`
+
+**Authentication:** Admin role required
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "message": "Palantir connection test successful",
+  "connectionTime": "2.8s",
+  "sampleData": {
+    "MATNR": "176036",
+    "TEXT_SHORT": "Formaldehyde solution"
+  },
+  "queryId": "abc123-def456",
+  "columnsRetrieved": 296
+}
+```
+
+#### 6.2 Test Azure OpenAI Connection
+
+**Endpoint:** `POST /api/system-settings/test-azure-openai`
+
+**Authentication:** Admin role required
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "message": "Azure OpenAI connection test successful",
+  "model": "gpt-4o-mini",
+  "responseTime": "1.2s",
+  "sampleResponse": "This is a test response from Azure OpenAI."
+}
+```
+
+#### 6.3 Test PubChem Connection
+
+**Endpoint:** `POST /api/system-settings/test-pubchem`
+
+**Authentication:** Admin role required
+
+---
+
+## Integration Architecture
+
+### Palantir Foundry SQL Query API v2
+
+The SAP MARA search uses Palantir's async SQL query execution:
+
+**Workflow:**
+1. Submit query → receive queryId
+2. Poll status until "succeeded"
+3. Fetch results in Apache Arrow binary format
+4. Parse Arrow table to JavaScript objects
+5. Map MARA fields to ProductTicket schema
+
+**Benefits:**
+- Efficient querying without downloading entire dataset
+- Direct SQL access to 250+ MARA columns
+- Automatic field mapping
+- 2-3 second typical query time vs 45+ seconds for file download
+
+**Documentation:** See `docs/Palantir-SQL-Query-API-Integration-Guide.md`
+
+---
+
 ## Changelog
+
+### Version 1.2.0 (2025-11-22)
+- Added Palantir SAP MARA search endpoint
+- Added Azure OpenAI content generation endpoint
+- Added PubChem CAS lookup endpoint
+- Added Weight Matrix management endpoints
+- Added data export endpoints
+- Added admin testing endpoints
+- Documented internal web API endpoints
 
 ### Version 1.1.0 (2025-10-19)
 - Added forecasted sales volume data for PREPACK SKUs
