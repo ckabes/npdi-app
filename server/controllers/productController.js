@@ -1171,9 +1171,9 @@ const searchMARA = async (req, res) => {
       mappedFields['businessLine.line'] = maraData.YYD_MEMBF_TEXT;
     }
 
-    // Map PRDHA to Main Group GPH field, but exclude specific values
-    if (maraData.PRDHA && maraData.PRDHA !== '1120999') {
-      mappedFields['businessLine.mainGroupGPH'] = maraData.PRDHA;
+    // Map YYD_GPHPL to Main Group GPH field, but exclude specific values
+    if (maraData.YYD_GPHPL && maraData.YYD_GPHPL !== '1120999') {
+      mappedFields['businessLine.mainGroupGPH'] = maraData.YYD_GPHPL;
     }
 
     // Map YYD_YLOGO_TEXT to brand - pick closest match from available brands
@@ -1210,17 +1210,12 @@ const searchMARA = async (req, res) => {
       mappedFields.brand = brand || maraData.YYD_YLOGO_TEXT;
     }
 
-    // Section 3: Units of Measure & Package Size
+    // Section 3: Units of Measure
     if (maraData.MEINS) {
       const baseUnit = maraData.MEINS.toLowerCase();
 
-      // Map to pricing base unit
+      // Map to pricing base unit only
       mappedFields['pricingData.baseUnit'] = baseUnit;
-
-      // Map to SKU costing package size (value and unit)
-      // Standard package size of 100 units
-      mappedFields['skuVariants.0.packageSize.value'] = 100;
-      mappedFields['skuVariants.0.packageSize.unit'] = baseUnit;
     }
 
     // Section 4: Chemical Properties & Identification
@@ -1229,14 +1224,68 @@ const searchMARA = async (req, res) => {
     }
 
     // Section 5: Storage & Handling
-    if (maraData.TEMPB) {
-      // Map temperature codes to readable values
-      const tempMap = {
-        'W3': 'CL (2-8 deg)',
-        'W2': 'RT (15-25 deg)',
-        'W1': 'Ambient'
+    if (maraData.TEMPB || maraData.TEMPB_TEXT) {
+      // Comprehensive temperature mapping function
+      // Uses TEMPB_TEXT (text description) if available, falls back to TEMPB code
+      const mapTemperature = (tempCode, tempText) => {
+        // If text description is available, use intelligent matching
+        if (tempText) {
+          const text = tempText.toLowerCase().trim();
+
+          // Room temperature / Ambient
+          if (text.includes('room temp') || text.includes('ambient') ||
+              text.includes('rt') || text.match(/15.*25/) || text.match(/20.*25/)) {
+            return 'Ambient';
+          }
+
+          // Refrigerated / Cold storage (2-8°C)
+          if (text.includes('refrigerat') || text.includes('cold') ||
+              text.includes('cool') || text.match(/2.*8/) || text.includes('2-8')) {
+            return 'CL (2-8 deg)';
+          }
+
+          // Frozen
+          if (text.includes('frozen') || text.includes('freez') ||
+              text.includes('-20') || text.includes('-80')) {
+            return 'Frozen';
+          }
+
+          // Controlled room temperature
+          if (text.includes('controlled room')) {
+            return 'RT (15-25 deg)';
+          }
+
+          // If text doesn't match patterns, return the text as-is
+          return tempText;
+        }
+
+        // Fall back to code-based mapping if no text available
+        if (tempCode) {
+          const codeMap = {
+            // Common SAP standard codes
+            '01': 'Frozen (-20 deg)',
+            '02': 'CL (2-8 deg)',
+            '03': 'RT (15-25 deg)',
+            '04': 'Ambient',
+            '28': 'Ambient', // Customer code observed: 28 = room temperature
+            // Legacy/custom codes
+            'W1': 'Ambient',
+            'W2': 'RT (15-25 deg)',
+            'W3': 'CL (2-8 deg)',
+            'W4': 'Frozen (-20 deg)'
+          };
+
+          return codeMap[tempCode] || tempCode;
+        }
+
+        return null;
       };
-      mappedFields['chemicalProperties.storageTemperature'] = tempMap[maraData.TEMPB] || maraData.TEMPB;
+
+      const mappedTemp = mapTemperature(maraData.TEMPB, maraData.TEMPB_TEXT);
+      if (mappedTemp) {
+        mappedFields['chemicalProperties.storageTemperature'] = mappedTemp;
+        console.log(`[SAP Search] Temperature mapping: TEMPB="${maraData.TEMPB}", TEMPB_TEXT="${maraData.TEMPB_TEXT}" → "${mappedTemp}"`);
+      }
     }
 
     // Section 6: Quality & Compliance
@@ -1256,7 +1305,13 @@ const searchMARA = async (req, res) => {
     // Section 10: Production Information
     if (maraData.YYD_SOSUB) {
       // Map source/substitution to production type
-      mappedFields.productionType = maraData.YYD_SOSUB === 'P' ? 'Produced' : 'Procured';
+      // F = Procured (Fremdbeschaffung - External procurement)
+      // E = Produced (Eigenfertigung - In-house production)
+      if (maraData.YYD_SOSUB === 'F') {
+        mappedFields.productionType = 'Procured';
+      } else if (maraData.YYD_SOSUB === 'E') {
+        mappedFields.productionType = 'Produced';
+      }
     }
 
     // Map ORG_PPL to primary plant (manufacturing plant)
@@ -1318,6 +1373,149 @@ const searchMARA = async (req, res) => {
   }
 };
 
+/**
+ * Search for similar products with the same CAS number
+ * Maximum 20 second search, stops at 3 results
+ */
+const searchSimilarProducts = async (req, res) => {
+  try {
+    const { casNumber } = req.params;
+    const { maxResults = 3, maxSearchTime = 20000 } = req.query;
+
+    console.log(`[Similar Products] Starting search for CAS: ${casNumber}`);
+    console.log(`[Similar Products] Max results: ${maxResults}, Max time: ${maxSearchTime}ms`);
+
+    if (!casNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'CAS number is required'
+      });
+    }
+
+    // Validate CAS number format
+    if (!/^\d{1,7}-\d{2}-\d$/.test(casNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid CAS number format'
+      });
+    }
+
+    const palantirService = require('../services/palantirService');
+    const config = await palantirService.getConfig();
+
+    if (!config.enabled) {
+      return res.status(503).json({
+        success: false,
+        message: 'Palantir integration is not enabled'
+      });
+    }
+
+    // Build SQL query to find products with the same CAS
+    // Select only MATNR (material number) and TEXT_SHORT (product name)
+    // Filter by CAS number and exclude products without material numbers
+    const query = `
+      SELECT DISTINCT MATNR, TEXT_SHORT
+      FROM \`${config.datasetRID}\`
+      WHERE YYD_CASNR = '${casNumber}'
+        AND MATNR IS NOT NULL
+        AND MATNR != ''
+      ORDER BY MATNR
+      LIMIT ${parseInt(maxResults) * 10}
+    `;
+
+    const startTime = Date.now();
+    const foundProducts = [];
+    const seenMATNRs = new Set();
+
+    try {
+      console.log(`[Similar Products] Executing query for CAS: ${casNumber}`);
+
+      const result = await palantirService.executeQuery(query, {
+        timeout: parseInt(maxSearchTime)
+      });
+
+      if (result && result.rows && result.rows.length > 0) {
+        console.log(`[Similar Products] Query returned ${result.rows.length} raw results`);
+
+        // Process results and deduplicate by MATNR
+        for (const row of result.rows) {
+          if (row.MATNR && !seenMATNRs.has(row.MATNR)) {
+            seenMATNRs.add(row.MATNR);
+            foundProducts.push({
+              MATNR: row.MATNR,
+              TEXT_SHORT: row.TEXT_SHORT || 'No name available'
+            });
+
+            // Stop if we have enough results
+            if (foundProducts.length >= parseInt(maxResults)) {
+              console.log(`[Similar Products] Reached target of ${maxResults} unique products`);
+              break;
+            }
+          }
+        }
+
+        console.log(`[Similar Products] Found ${foundProducts.length} unique products`);
+      } else {
+        console.log(`[Similar Products] No products found with CAS: ${casNumber}`);
+      }
+
+      const elapsed = Date.now() - startTime;
+
+      res.json({
+        success: true,
+        message: foundProducts.length > 0
+          ? `Found ${foundProducts.length} similar product${foundProducts.length === 1 ? '' : 's'}`
+          : `No similar products found`,
+        products: foundProducts,
+        searchTime: Math.round(elapsed / 1000),
+        casNumber: casNumber
+      });
+
+    } catch (queryError) {
+      console.error('[Similar Products] Query execution error:', queryError);
+
+      const elapsed = Date.now() - startTime;
+
+      // Check if it's a timeout
+      if (queryError.message.includes('timeout') || queryError.message.includes('timed out')) {
+        return res.json({
+          success: true,
+          message: `Search timed out after ${Math.round(elapsed / 1000)} seconds`,
+          products: foundProducts, // Return any products found before timeout
+          searchTime: Math.round(elapsed / 1000),
+          casNumber: casNumber,
+          timedOut: true
+        });
+      }
+
+      throw queryError; // Re-throw other errors
+    }
+
+  } catch (error) {
+    console.error('[Similar Products] Error:', error);
+
+    let errorMessage = 'Failed to search similar products';
+    let statusCode = 500;
+
+    if (error.message.includes('not enabled') || error.message.includes('not configured')) {
+      errorMessage = 'Palantir integration is not configured';
+      statusCode = 503;
+    } else if (error.message.includes('Authentication') || error.message.includes('token')) {
+      errorMessage = 'Palantir authentication failed';
+      statusCode = 401;
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Search request timed out';
+      statusCode = 504;
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      message: errorMessage,
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createTicket,
   saveDraft,
@@ -1330,6 +1528,7 @@ module.exports = {
   getDashboardStats,
   lookupCAS,
   searchMARA,
+  searchSimilarProducts,
   getRecentActivity,
   exportPDPChecklist,
   exportPIF,

@@ -15,6 +15,9 @@ router.get('/cas-lookup/:casNumber', productController.lookupCAS);
 // SAP MARA data search endpoint (via Palantir Foundry)
 router.get('/sap-search/:partNumber', productController.searchMARA);
 
+// Similar products search endpoint (searches by CAS number)
+router.get('/similar-products/:casNumber', productController.searchSimilarProducts);
+
 // AI-powered CorpBase content generation endpoint
 router.post('/generate-corpbase-content', [
   body('productData.productName').notEmpty().trim().withMessage('Product name is required'),
