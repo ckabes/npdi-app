@@ -242,7 +242,7 @@ const Dashboard = () => {
   // Show PMOps performance dashboard if user is PMOps
   if (isPMOPS) {
     return (
-      <div className={`space-y-6 ${enableTransition ? 'transition-all duration-700 ease-out' : ''} ${isAnimating ? 'translate-y-1/2 opacity-80' : 'translate-y-0 opacity-100'}`}>
+      <div className={`space-y-6 ${enableTransition ? 'transition-all duration-700 ease-out' : ''} ${isAnimating ? 'translate-y-1/2 opacity-0' : 'translate-y-0 opacity-100'}`}>
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">PMOps Performance Dashboard</h1>
@@ -908,7 +908,7 @@ const Dashboard = () => {
 
   // Default dashboard for Product Managers and others
   return (
-    <div className={`space-y-6 ${enableTransition ? 'transition-all duration-700 ease-out' : ''} ${isAnimating ? 'translate-y-1/2 opacity-80' : 'translate-y-0 opacity-100'}`}>
+    <div className={`space-y-6 ${enableTransition ? 'transition-all duration-700 ease-out' : ''} ${isAnimating ? 'translate-y-1/2 opacity-0' : 'translate-y-0 opacity-100'}`}>
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-millipore-blue to-blue-600 shadow-lg rounded-lg">
         <div className="px-6 py-6">
