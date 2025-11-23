@@ -10,9 +10,18 @@ const DynamicFormSection = ({
   data = {},
   previewMode = false,  // New prop: when true, show all fields regardless of visibility conditions
   sapImportedFields = new Set(),  // Set of field paths that were imported from SAP
-  getSAPImportedClass = () => ''  // Function to get CSS class for SAP-imported fields
+  getSAPImportedClass = () => '',  // Function to get CSS class for SAP-imported fields
+  sapMetadata = {}  // Metadata from SAP import (e.g., descriptions)
 }) => {
   if (!section || !section.visible) return null;
+
+  // Track which fields have been edited by the user
+  const [editedFields, setEditedFields] = React.useState(new Set());
+
+  // Handle field edit to hide metadata descriptions
+  const handleFieldEdit = (fieldKey) => {
+    setEditedFields(prev => new Set([...prev, fieldKey]));
+  };
 
   // Helper function to check if a field would be visible
   const isFieldVisible = (field) => {
@@ -136,6 +145,10 @@ const DynamicFormSection = ({
     const baseInputClass = isReadOnly
       ? `form-input bg-gray-50 cursor-not-allowed ${sapHighlight}`
       : `form-input ${sapHighlight}`;
+
+    // Check if there's metadata description for this field
+    const metadataKey = `${field.fieldKey}Description`;
+    const hasMetadata = sapMetadata[metadataKey] && !editedFields.has(field.fieldKey);
 
     const renderInput = () => {
       switch (field.type) {
@@ -375,30 +388,36 @@ const DynamicFormSection = ({
             );
           }
 
+          const { onChange: registerOnChange, ...registerProps } = register(fieldPath, {
+            required: field.required ? `${field.label} is required` : false,
+            ...(field.validation?.pattern && {
+              pattern: {
+                value: new RegExp(field.validation.pattern),
+                message: `Invalid ${field.label.toLowerCase()} format`
+              }
+            }),
+            ...(field.validation?.minLength && {
+              minLength: {
+                value: field.validation.minLength,
+                message: `${field.label} must be at least ${field.validation.minLength} characters`
+              }
+            }),
+            ...(field.validation?.maxLength && {
+              maxLength: {
+                value: field.validation.maxLength,
+                message: `${field.label} must be at most ${field.validation.maxLength} characters`
+              }
+            })
+          });
+
           return (
             <input
               type="text"
-              {...register(fieldPath, {
-                required: field.required ? `${field.label} is required` : false,
-                ...(field.validation?.pattern && {
-                  pattern: {
-                    value: new RegExp(field.validation.pattern),
-                    message: `Invalid ${field.label.toLowerCase()} format`
-                  }
-                }),
-                ...(field.validation?.minLength && {
-                  minLength: {
-                    value: field.validation.minLength,
-                    message: `${field.label} must be at least ${field.validation.minLength} characters`
-                  }
-                }),
-                ...(field.validation?.maxLength && {
-                  maxLength: {
-                    value: field.validation.maxLength,
-                    message: `${field.label} must be at most ${field.validation.maxLength} characters`
-                  }
-                })
-              })}
+              {...registerProps}
+              onChange={(e) => {
+                registerOnChange(e);
+                handleFieldEdit(field.fieldKey);
+              }}
               className={baseInputClass}
               placeholder={field.placeholder}
             />
@@ -428,6 +447,11 @@ const DynamicFormSection = ({
           {field.required && <span className="text-red-500 ml-1">*</span>}
         </label>
         {renderInput()}
+        {hasMetadata && (
+          <p className="mt-1 text-xs text-gray-500 italic">
+            {sapMetadata[metadataKey]}
+          </p>
+        )}
         {field.helpText && (
           <p className="mt-1 text-xs text-gray-500">{field.helpText}</p>
         )}

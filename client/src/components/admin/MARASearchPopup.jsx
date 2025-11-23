@@ -11,6 +11,7 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
   const [searching, setSearching] = useState(false);
   const [sapData, setSapData] = useState(null);
   const [mappedFields, setMappedFields] = useState(null);
+  const [metadata, setMetadata] = useState(null);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -21,6 +22,7 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
     setSearching(true);
     setSapData(null);
     setMappedFields(null);
+    setMetadata(null);
 
     try {
       // Normalize search term: append -BULK if not already present
@@ -37,6 +39,7 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
       if (response.data.success && response.data.data) {
         setSapData(response.data.data);
         setMappedFields(response.data.mappedFields);
+        setMetadata(response.data.metadata || {});
         toast.success(`Found SAP data for ${normalizedPartNumber}`);
       } else {
         toast.error(response.data.message || 'No data found for this part number');
@@ -61,7 +64,7 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
 
     // Small delay to ensure popup close animation completes
     setTimeout(() => {
-      onApprove(mappedFields);
+      onApprove(mappedFields, metadata);
     }, 200);
   };
 
