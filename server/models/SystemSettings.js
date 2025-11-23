@@ -91,6 +91,22 @@ const systemSettingsSchema = new mongoose.Schema({
     externalAPI: {
       timeout: { type: Number, default: 10 }, // seconds
       retryAttempts: { type: Number, default: 3 }
+    },
+    palantir: {
+      enabled: { type: Boolean, default: false },
+      token: { type: String, default: '' }, // Encrypted at rest using AES-256-GCM
+      datasetRID: { type: String, default: '' }, // Resource Identifier for the dataset
+      hostname: {
+        type: String,
+        default: 'merckgroup.palantirfoundry.com' // Default Merck Palantir hostname
+      },
+      timeout: { type: Number, default: 30 }, // seconds
+      lastConnectionTest: { type: Date },
+      connectionStatus: {
+        type: String,
+        enum: ['unknown', 'connected', 'failed'],
+        default: 'unknown'
+      }
     }
   },
 
@@ -214,6 +230,15 @@ systemSettingsSchema.pre('save', function(next) {
     }
   }
 
+  // Encrypt Palantir token if modified and not already encrypted
+  if (this.isModified('integrations.palantir.token')) {
+    const token = this.integrations?.palantir?.token;
+    if (token && token !== '' && !encryption.isEncrypted(token)) {
+      console.log('Encrypting Palantir token...');
+      this.integrations.palantir.token = encryption.encrypt(token);
+    }
+  }
+
   next();
 });
 
@@ -243,6 +268,21 @@ systemSettingsSchema.methods.getDecryptedWebhookSecret = function() {
     return encryption.decrypt(encryptedSecret);
   } catch (error) {
     console.error('Error decrypting webhook secret:', error);
+    return '';
+  }
+};
+
+// Method to get decrypted Palantir token (for internal use only)
+systemSettingsSchema.methods.getDecryptedPalantirToken = function() {
+  const encryptedToken = this.integrations?.palantir?.token;
+  if (!encryptedToken || encryptedToken === '') {
+    return '';
+  }
+
+  try {
+    return encryption.decrypt(encryptedToken);
+  } catch (error) {
+    console.error('Error decrypting Palantir token:', error);
     return '';
   }
 };

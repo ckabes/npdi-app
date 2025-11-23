@@ -65,7 +65,9 @@
       "WebSearch",
       "WebFetch(domain:help.sap.com)",
       "Bash(git rm:*)",
-      "Bash(git filter-branch:*)"
+      "Bash(git filter-branch:*)",
+      "WebFetch(domain:www.sigmaaldrich.com)",
+      "WebFetch(domain:www.palantir.com)"
     ],
     "deny": []
   }

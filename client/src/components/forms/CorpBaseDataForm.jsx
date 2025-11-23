@@ -51,10 +51,27 @@ const CorpBaseDataForm = ({
     </svg>
   );
 
+  // Fix orphaned <li> tags by wrapping them in <ul>
+  const fixOrphanedListItems = (html) => {
+    if (!html) return html;
+
+    // Check if there are <li> tags without a parent <ul> or <ol>
+    // This regex finds <li> tags that aren't inside <ul> or <ol>
+    const hasOrphanedLi = /<li[^>]*>/.test(html) && !/<ul[^>]*>/.test(html) && !/<ol[^>]*>/.test(html);
+
+    if (hasOrphanedLi) {
+      // Wrap all content in a <ul> tag
+      return `<ul>\n${html}\n</ul>`;
+    }
+
+    return html;
+  };
+
   // Handle preview opening
   const handlePreview = (field, content) => {
     setPreviewField({ field, content });
-    setEditedHtml(content || '');
+    const fixedHtml = fixOrphanedListItems(content || '');
+    setEditedHtml(fixedHtml);
     setIsPreviewOpen(true);
   };
 
@@ -396,8 +413,8 @@ const CorpBaseDataForm = ({
                     Rendered HTML Preview
                   </h4>
                   <div
-                    className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm prose prose-sm max-w-none min-h-[100px]"
-                    dangerouslySetInnerHTML={{ __html: editedHtml }}
+                    className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm prose prose-sm max-w-none min-h-[100px] [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:my-2 [&_li]:my-1"
+                    dangerouslySetInnerHTML={{ __html: fixOrphanedListItems(editedHtml) }}
                   />
                 </div>
 

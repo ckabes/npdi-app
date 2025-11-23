@@ -21,12 +21,26 @@ const DynamicFormSection = ({
 
     // Check field visibility dependencies
     if (field.visibleWhen) {
-      const { fieldKey: dependentFieldKey, value: requiredValue } = field.visibleWhen;
+      const { fieldKey: dependentFieldKey, value: requiredValue, values: requiredValues } = field.visibleWhen;
+
+      // If visibleWhen exists but has no actual conditions, treat as always visible
+      const hasNoConditions = !dependentFieldKey &&
+                              requiredValue === undefined &&
+                              (!requiredValues || requiredValues.length === 0);
+      if (hasNoConditions) {
+        return true;
+      }
+
       // In read-only preview mode, get the default value of the dependent field
       const dependentField = section.fields?.find(f => f.fieldKey === dependentFieldKey);
       const currentValue = readOnly && dependentField?.defaultValue !== undefined
         ? dependentField.defaultValue
         : (watch ? watch(dependentFieldKey) : data[dependentFieldKey]);
+
+      // Handle array of values (OR condition)
+      if (requiredValues && Array.isArray(requiredValues) && requiredValues.length > 0) {
+        return requiredValues.includes(currentValue);
+      }
 
       // Convert checkbox string values to boolean for comparison
       let compareValue = currentValue;
@@ -58,25 +72,41 @@ const DynamicFormSection = ({
 
     // Check field visibility dependencies (skip in preview mode)
     if (!previewMode && field.visibleWhen) {
-      const { fieldKey: dependentFieldKey, value: requiredValue } = field.visibleWhen;
-      // In read-only preview mode, get the default value of the dependent field
-      const dependentField = section.fields?.find(f => f.fieldKey === dependentFieldKey);
-      const currentValue = readOnly && dependentField?.defaultValue !== undefined
-        ? dependentField.defaultValue
-        : (watch ? watch(dependentFieldKey) : data[dependentFieldKey]);
+      const { fieldKey: dependentFieldKey, value: requiredValue, values: requiredValues } = field.visibleWhen;
 
-      // Convert checkbox string values to boolean for comparison
-      let compareValue = currentValue;
-      let compareRequired = requiredValue;
+      // If visibleWhen exists but has no actual conditions, treat as always visible
+      const hasNoConditions = !dependentFieldKey &&
+                              requiredValue === undefined &&
+                              (!requiredValues || requiredValues.length === 0);
+      if (hasNoConditions) {
+        // Continue rendering - field is always visible
+      } else {
+        // In read-only preview mode, get the default value of the dependent field
+        const dependentField = section.fields?.find(f => f.fieldKey === dependentFieldKey);
+        const currentValue = readOnly && dependentField?.defaultValue !== undefined
+          ? dependentField.defaultValue
+          : (watch ? watch(dependentFieldKey) : data[dependentFieldKey]);
 
-      if (requiredValue === 'true' || requiredValue === 'false') {
-        compareRequired = requiredValue === 'true';
-        compareValue = Boolean(currentValue);
-      }
+        // Handle array of values (OR condition)
+        if (requiredValues && Array.isArray(requiredValues) && requiredValues.length > 0) {
+          if (!requiredValues.includes(currentValue)) {
+            return null;
+          }
+        } else {
+          // Convert checkbox string values to boolean for comparison
+          let compareValue = currentValue;
+          let compareRequired = requiredValue;
 
-      // Only show this field if the dependent field has the required value
-      if (compareValue !== compareRequired) {
-        return null;
+          if (requiredValue === 'true' || requiredValue === 'false') {
+            compareRequired = requiredValue === 'true';
+            compareValue = Boolean(currentValue);
+          }
+
+          // Only show this field if the dependent field has the required value
+          if (compareValue !== compareRequired) {
+            return null;
+          }
+        }
       }
     }
 

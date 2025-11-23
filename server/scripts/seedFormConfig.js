@@ -145,6 +145,209 @@ const defaultFormConfig = {
             { value: 'Calbiochem', label: 'Calbiochem' },
             { value: 'Merck', label: 'Merck' }
           ]
+        },
+        {
+          fieldKey: 'productScope.scope',
+          label: 'Product Scope',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Select product scope...',
+          helpText: 'Geographic scope for product distribution',
+          gridColumn: 'half',
+          order: 6,
+          isCustom: false,
+          options: [
+            { value: 'Worldwide', label: 'Worldwide' },
+            { value: 'US only', label: 'US only' },
+            { value: 'Europe only', label: 'Europe only' },
+            { value: 'EEA Restricted', label: 'EEA Restricted' },
+            { value: 'Other', label: 'Other' }
+          ]
+        },
+        {
+          fieldKey: 'productScope.otherSpecification',
+          label: 'Product Scope Details',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Specify product scope details',
+          helpText: 'Provide details for other product scope',
+          gridColumn: 'half',
+          order: 7,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'productScope.scope',
+            value: 'Other'
+          }
+        },
+        {
+          fieldKey: 'distributionType.type',
+          label: 'Distribution Type',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Select distribution type...',
+          helpText: 'How the product will be distributed',
+          gridColumn: 'half',
+          order: 8,
+          isCustom: false,
+          options: [
+            { value: 'Standard', label: 'Standard' },
+            { value: 'Purchase on Demand', label: 'Purchase on Demand' },
+            { value: 'Dock to Stock', label: 'Dock to Stock' }
+          ]
+        },
+        {
+          fieldKey: 'distributionType.coaCreator',
+          label: 'Who will create COAs?',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Select...',
+          helpText: 'Specify who is responsible for creating Certificates of Analysis',
+          gridColumn: 'half',
+          order: 9,
+          isCustom: false,
+          options: [
+            { value: 'Internal', label: 'Internal' },
+            { value: 'Vendor', label: 'Vendor' }
+          ],
+          visibleWhen: {
+            fieldKey: 'distributionType.type',
+            values: ['Purchase on Demand', 'Dock to Stock']
+          }
+        },
+        {
+          fieldKey: 'distributionType.labelingType',
+          label: 'How will product be labeled?',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Select...',
+          helpText: 'Type of label to be used',
+          gridColumn: 'half',
+          order: 10,
+          isCustom: false,
+          options: [
+            { value: 'SIAL Label', label: 'SIAL Label' },
+            { value: 'Vendor Label', label: 'Vendor Label' }
+          ],
+          visibleWhen: {
+            fieldKey: 'distributionType.type',
+            values: ['Purchase on Demand', 'Dock to Stock']
+          }
+        },
+        {
+          fieldKey: 'distributionType.labelingResponsibility',
+          label: 'Who is responsible for labeling?',
+          type: 'radio',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Specify who will apply the labels',
+          gridColumn: 'half',
+          order: 11,
+          isCustom: false,
+          options: [
+            { value: 'Internal', label: 'Internal' },
+            { value: 'Vendor', label: 'Vendor' }
+          ],
+          visibleWhen: {
+            fieldKey: 'distributionType.type',
+            values: ['Purchase on Demand', 'Dock to Stock']
+          }
+        },
+        {
+          fieldKey: 'distributionType.vendorLabelSource',
+          label: 'How does vendor obtain labels?',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Describe how vendor obtains SIAL labels',
+          helpText: 'If vendor is labeling with SIAL labels, explain how they obtain them',
+          gridColumn: 'full',
+          order: 12,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'distributionType.labelingResponsibility',
+            value: 'Vendor'
+          }
+        },
+        {
+          fieldKey: 'sialProductHierarchy',
+          label: 'SIAL Product Hierarchy',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter SIAL product hierarchy code',
+          helpText: 'SIAL product hierarchy classification code',
+          gridColumn: 'half',
+          order: 13,
+          isCustom: false
+        },
+        {
+          fieldKey: 'businessLine.line',
+          label: 'Business Line',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Select business line...',
+          helpText: 'Business line categorization for the product',
+          gridColumn: 'half',
+          order: 14,
+          isCustom: false,
+          options: [
+            { value: 'Biochemistry', label: 'Biochemistry' },
+            { value: 'Chemical Synthesis', label: 'Chemical Synthesis' },
+            { value: 'Discovery Chemistry', label: 'Discovery Chemistry' },
+            { value: 'Lab Classics', label: 'Lab Classics' },
+            { value: 'Material Science', label: 'Material Science' },
+            { value: 'BRM Applied Lab Essentials', label: 'BRM Applied Lab Essentials' },
+            { value: 'Advanced Genomics', label: 'Advanced Genomics' },
+            { value: 'Beads & Fusion', label: 'Beads & Fusion' },
+            { value: 'Applied Biology', label: 'Applied Biology' },
+            { value: 'Production Materials', label: 'Production Materials' },
+            { value: 'Other', label: 'Other' }
+          ]
+        },
+        {
+          fieldKey: 'businessLine.otherSpecification',
+          label: 'Business Line Details',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Specify business line details',
+          helpText: 'Provide details for other business line',
+          gridColumn: 'half',
+          order: 15,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'businessLine.line',
+            value: 'Other'
+          }
+        },
+        {
+          fieldKey: 'materialGroup',
+          label: 'Main Group (GPH)',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter main group/GPH code',
+          helpText: 'Main product group or GPH classification',
+          gridColumn: 'half',
+          order: 16,
+          isCustom: false
         }
       ]
     },
@@ -159,7 +362,7 @@ const defaultFormConfig = {
       isCustom: false,
       fields: [
         {
-          fieldKey: 'vendorName',
+          fieldKey: 'vendorInformation.vendorName',
           label: 'Vendor Name',
           type: 'text',
           required: false,
@@ -176,7 +379,7 @@ const defaultFormConfig = {
           }
         },
         {
-          fieldKey: 'vendorProductName',
+          fieldKey: 'vendorInformation.vendorProductName',
           label: 'Vendor Product Name',
           type: 'text',
           required: false,
@@ -193,8 +396,8 @@ const defaultFormConfig = {
           }
         },
         {
-          fieldKey: 'vendorSAPNumber',
-          label: 'Vendor SAP Number',
+          fieldKey: 'vendorInformation.vendorSAPNumber',
+          label: 'Vendor Number',
           type: 'text',
           required: false,
           visible: true,
@@ -210,7 +413,7 @@ const defaultFormConfig = {
           }
         },
         {
-          fieldKey: 'vendorProductNumber',
+          fieldKey: 'vendorInformation.vendorProductNumber',
           label: 'Vendor Product Number',
           type: 'text',
           required: false,
@@ -220,6 +423,194 @@ const defaultFormConfig = {
           helpText: 'Vendor\'s product catalog number',
           gridColumn: 'half',
           order: 4,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.vendorCostPerUOM.value',
+          label: 'Vendor Cost',
+          type: 'number',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter vendor cost',
+          helpText: 'Cost per unit of measure from vendor',
+          gridColumn: 'third',
+          order: 5,
+          isCustom: false,
+          validation: {
+            min: 0,
+            step: 0.01
+          },
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.vendorCostPerUOM.unit',
+          label: 'UOM',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Unit of measure for vendor cost',
+          gridColumn: 'third',
+          order: 6,
+          isCustom: false,
+          options: [
+            { value: 'mg', label: 'mg' },
+            { value: 'g', label: 'g' },
+            { value: 'kg', label: 'kg' },
+            { value: 'mL', label: 'mL' },
+            { value: 'L', label: 'L' },
+            { value: 'EA', label: 'EA (each)' },
+            { value: 'units', label: 'units' },
+            { value: 'vials', label: 'vials' },
+            { value: 'plates', label: 'plates' }
+          ],
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.amountToBePurchased.value',
+          label: 'Amount to Purchase',
+          type: 'number',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter amount',
+          helpText: 'Quantity to be purchased from vendor',
+          gridColumn: 'third',
+          order: 7,
+          isCustom: false,
+          validation: {
+            min: 0,
+            step: 0.01
+          },
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.amountToBePurchased.unit',
+          label: 'Unit',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Unit of measure for purchase amount',
+          gridColumn: 'third',
+          order: 8,
+          isCustom: false,
+          options: [
+            { value: 'mg', label: 'mg' },
+            { value: 'g', label: 'g' },
+            { value: 'kg', label: 'kg' },
+            { value: 'mL', label: 'mL' },
+            { value: 'L', label: 'L' },
+            { value: 'EA', label: 'EA (each)' },
+            { value: 'units', label: 'units' },
+            { value: 'vials', label: 'vials' },
+            { value: 'plates', label: 'plates' }
+          ],
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.vendorLeadTimeWeeks',
+          label: 'Vendor Lead Time (Weeks)',
+          type: 'number',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'e.g., 4',
+          helpText: 'Lead time in weeks for delivery from vendor',
+          gridColumn: 'third',
+          order: 9,
+          isCustom: false,
+          validation: {
+            min: 0,
+            step: 0.5
+          },
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.purchaseUOM',
+          label: 'Purchase UOM',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Select purchase unit...',
+          helpText: 'Unit of measure for purchasing',
+          gridColumn: 'half',
+          order: 10,
+          isCustom: false,
+          options: [
+            { value: 'mg', label: 'mg' },
+            { value: 'g', label: 'g' },
+            { value: 'kg', label: 'kg' },
+            { value: 'mL', label: 'mL' },
+            { value: 'L', label: 'L' },
+            { value: 'EA', label: 'EA (each)' },
+            { value: 'units', label: 'units' },
+            { value: 'vials', label: 'vials' },
+            { value: 'plates', label: 'plates' }
+          ],
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.purchaseCurrency',
+          label: 'Purchase Currency',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          defaultValue: 'USD',
+          helpText: 'Currency for purchase transactions',
+          gridColumn: 'half',
+          order: 11,
+          isCustom: false,
+          options: [
+            { value: 'USD', label: 'USD - US Dollar' },
+            { value: 'EUR', label: 'EUR - Euro' },
+            { value: 'GBP', label: 'GBP - British Pound' },
+            { value: 'JPY', label: 'JPY - Japanese Yen' },
+            { value: 'CNY', label: 'CNY - Chinese Yuan' },
+            { value: 'INR', label: 'INR - Indian Rupee' },
+            { value: 'CHF', label: 'CHF - Swiss Franc' }
+          ],
+          visibleWhen: {
+            fieldKey: 'productionType',
+            value: 'Procured'
+          }
+        },
+        {
+          fieldKey: 'vendorInformation.countryOfOrigin',
+          label: 'Country of Origin',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter country of origin',
+          helpText: 'Country where the product is manufactured/sourced',
+          gridColumn: 'half',
+          order: 12,
           isCustom: false,
           visibleWhen: {
             fieldKey: 'productionType',
@@ -316,6 +707,168 @@ const defaultFormConfig = {
             { value: 'Powder', label: 'Powder' },
             { value: 'Crystal', label: 'Crystal' }
           ]
+        },
+        {
+          fieldKey: 'retestOrExpiration.hasExpirationDate',
+          label: 'Has Expiration Date?',
+          type: 'radio',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Does this product have an expiration date?',
+          gridColumn: 'half',
+          order: 6,
+          isCustom: false,
+          options: [
+            { value: 'true', label: 'Yes' },
+            { value: 'false', label: 'No' }
+          ]
+        },
+        {
+          fieldKey: 'retestOrExpiration.expirationPeriod.value',
+          label: 'Expiration Period',
+          type: 'number',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'e.g., 12',
+          helpText: 'Length of expiration period',
+          gridColumn: 'third',
+          order: 7,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'retestOrExpiration.hasExpirationDate',
+            value: 'true'
+          }
+        },
+        {
+          fieldKey: 'retestOrExpiration.expirationPeriod.unit',
+          label: 'Unit',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Time unit for expiration period',
+          gridColumn: 'third',
+          order: 8,
+          isCustom: false,
+          options: [
+            { value: 'days', label: 'Days' },
+            { value: 'months', label: 'Months' },
+            { value: 'years', label: 'Years' }
+          ],
+          visibleWhen: {
+            fieldKey: 'retestOrExpiration.hasExpirationDate',
+            value: 'true'
+          }
+        },
+        {
+          fieldKey: 'retestOrExpiration.hasRetestDate',
+          label: 'Has Retest Date?',
+          type: 'radio',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Does this product require retesting?',
+          gridColumn: 'half',
+          order: 9,
+          isCustom: false,
+          options: [
+            { value: 'true', label: 'Yes' },
+            { value: 'false', label: 'No' }
+          ]
+        },
+        {
+          fieldKey: 'retestOrExpiration.retestPeriod.value',
+          label: 'Retest Period',
+          type: 'number',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'e.g., 36',
+          helpText: 'Length of retest period',
+          gridColumn: 'third',
+          order: 10,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'retestOrExpiration.hasRetestDate',
+            value: 'true'
+          }
+        },
+        {
+          fieldKey: 'retestOrExpiration.retestPeriod.unit',
+          label: 'Unit',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Time unit for retest period',
+          gridColumn: 'third',
+          order: 11,
+          isCustom: false,
+          options: [
+            { value: 'days', label: 'Days' },
+            { value: 'months', label: 'Months' },
+            { value: 'years', label: 'Years' }
+          ],
+          visibleWhen: {
+            fieldKey: 'retestOrExpiration.hasRetestDate',
+            value: 'true'
+          }
+        },
+        {
+          fieldKey: 'retestOrExpiration.hasShelfLife',
+          label: 'Has Shelf Life?',
+          type: 'radio',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Does this product have a defined shelf life?',
+          gridColumn: 'half',
+          order: 12,
+          isCustom: false,
+          options: [
+            { value: 'true', label: 'Yes' },
+            { value: 'false', label: 'No' }
+          ]
+        },
+        {
+          fieldKey: 'retestOrExpiration.shelfLifePeriod.value',
+          label: 'Shelf Life Period',
+          type: 'number',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'e.g., 24',
+          helpText: 'Length of shelf life period',
+          gridColumn: 'third',
+          order: 13,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'retestOrExpiration.hasShelfLife',
+            value: 'true'
+          }
+        },
+        {
+          fieldKey: 'retestOrExpiration.shelfLifePeriod.unit',
+          label: 'Unit',
+          type: 'select',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Time unit for shelf life period',
+          gridColumn: 'third',
+          order: 14,
+          isCustom: false,
+          options: [
+            { value: 'days', label: 'Days' },
+            { value: 'months', label: 'Months' },
+            { value: 'years', label: 'Years' }
+          ],
+          visibleWhen: {
+            fieldKey: 'retestOrExpiration.hasShelfLife',
+            value: 'true'
+          }
         }
       ]
     },
@@ -347,6 +900,7 @@ const defaultFormConfig = {
             { value: 'kg', label: 'kg (kilogram)' },
             { value: 'mL', label: 'mL (milliliter)' },
             { value: 'L', label: 'L (liter)' },
+            { value: 'EA', label: 'EA (each)' },
             { value: 'units', label: 'units' },
             { value: 'vials', label: 'vials' },
             { value: 'plates', label: 'plates' }
@@ -563,6 +1117,68 @@ const defaultFormConfig = {
           gridColumn: 'full',
           order: 6,
           isCustom: false
+        }
+      ]
+    },
+    {
+      sectionKey: 'intellectualProperty',
+      name: 'Intellectual Property',
+      description: 'Patent and licensing information',
+      visible: true,
+      collapsible: true,
+      defaultExpanded: false,
+      order: 8,
+      isCustom: false,
+      fields: [
+        {
+          fieldKey: 'intellectualProperty.hasIP',
+          label: 'Is there intellectual property associated with this product?',
+          type: 'radio',
+          required: false,
+          visible: true,
+          editable: true,
+          helpText: 'Indicate if this product has any patents or licenses',
+          gridColumn: 'full',
+          order: 1,
+          isCustom: false,
+          options: [
+            { value: 'true', label: 'Yes' },
+            { value: 'false', label: 'No' }
+          ]
+        },
+        {
+          fieldKey: 'intellectualProperty.patentNumber',
+          label: 'Patent Number',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter patent number(s)',
+          helpText: 'Patent number(s) associated with this product',
+          gridColumn: 'half',
+          order: 2,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'intellectualProperty.hasIP',
+            value: 'true'
+          }
+        },
+        {
+          fieldKey: 'intellectualProperty.licenseNumber',
+          label: 'License Number',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter license number(s)',
+          helpText: 'License number(s) associated with this product',
+          gridColumn: 'half',
+          order: 3,
+          isCustom: false,
+          visibleWhen: {
+            fieldKey: 'intellectualProperty.hasIP',
+            value: 'true'
+          }
         }
       ]
     }

@@ -10,7 +10,7 @@ import {
   SparklesIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { systemSettingsAPI } from '../../services/api';
+import { systemSettingsAPI, adminAPI } from '../../services/api';
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState({});
@@ -19,6 +19,8 @@ const SystemSettings = () => {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [testingPalantir, setTestingPalantir] = useState(false);
+  const [palantirTestResult, setPalantirTestResult] = useState(null);
 
   useEffect(() => {
     fetchSettings();
@@ -184,6 +186,53 @@ const SystemSettings = () => {
     } catch (error) {
       console.error('PubChem test error:', error);
       toast.error(error.response?.data?.message || 'PubChem connection test failed');
+    }
+  };
+
+  const testPalantirConnection = async () => {
+    try {
+      setTestingPalantir(true);
+      setPalantirTestResult(null);
+
+      // Save settings first to ensure the latest config is used
+      toast.loading('Saving settings before testing...', { id: 'palantir-save' });
+      await systemSettingsAPI.updateSettings(settings);
+      toast.success('Settings saved', { id: 'palantir-save' });
+
+      // Small delay to ensure database write completes
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const response = await adminAPI.testPalantir();
+
+      setPalantirTestResult({
+        success: response.data.success,
+        message: response.data.message,
+        datasetRID: response.data.datasetRID,
+        hostname: response.data.hostname,
+        duration: response.data.duration,
+        datasetName: response.data.datasetName,
+        fileCount: response.data.fileCount,
+        sampleFile: response.data.sampleFile,
+        rowsFound: response.data.rowsFound,
+        sampleData: response.data.sampleData,
+        diagnostics: response.data.diagnostics
+      });
+
+      if (response.data.success) {
+        toast.success('Palantir Foundry connection successful!');
+      } else {
+        toast.error(`Connection failed: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('Palantir test error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Connection failed';
+      setPalantirTestResult({
+        success: false,
+        message: errorMessage
+      });
+      toast.error(`Connection failed: ${errorMessage}`);
+    } finally {
+      setTestingPalantir(false);
     }
   };
 
@@ -665,6 +714,254 @@ const SystemSettings = () => {
                 placeholder="••••••••"
               />
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Palantir Foundry Integration */}
+      <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <h4 className="text-lg font-medium text-gray-900 mb-4">Palantir Foundry Integration</h4>
+        <p className="text-sm text-gray-600 mb-4">
+          Configure SQL query access to Palantir Foundry datasets. Your token is encrypted at rest.
+        </p>
+
+        <div className="space-y-4">
+          <div className="flex items-center">
+            <input
+              id="palantirEnabled"
+              type="checkbox"
+              checked={settings.integrations?.palantir?.enabled || false}
+              onChange={(e) => {
+                const newIntegrations = { ...settings.integrations };
+                if (!newIntegrations.palantir) newIntegrations.palantir = {};
+                newIntegrations.palantir = { ...newIntegrations.palantir, enabled: e.target.checked };
+                setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+              }}
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label htmlFor="palantirEnabled" className="ml-3 text-sm font-semibold text-gray-700">
+              Enable Palantir Foundry Dataset Access
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Personal Token <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                value={settings.integrations?.palantir?.token || ''}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  if (!newIntegrations.palantir) newIntegrations.palantir = {};
+                  newIntegrations.palantir = { ...newIntegrations.palantir, token: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="Enter your Palantir personal token"
+                disabled={!settings.integrations?.palantir?.enabled}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Your token is stored securely using AES-256-GCM encryption
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Dataset RID <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={settings.integrations?.palantir?.datasetRID || ''}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  if (!newIntegrations.palantir) newIntegrations.palantir = {};
+                  newIntegrations.palantir = { ...newIntegrations.palantir, datasetRID: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="ri.foundry.main.dataset.12345678-1234-1234-1234-123456789012"
+                disabled={!settings.integrations?.palantir?.enabled}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                The Resource Identifier (RID) for the Palantir dataset you want to query
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Hostname
+              </label>
+              <input
+                type="text"
+                value={settings.integrations?.palantir?.hostname || 'merckgroup.palantirfoundry.com'}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  if (!newIntegrations.palantir) newIntegrations.palantir = {};
+                  newIntegrations.palantir = { ...newIntegrations.palantir, hostname: e.target.value };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                placeholder="merckgroup.palantirfoundry.com"
+                disabled={!settings.integrations?.palantir?.enabled}
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Default: merckgroup.palantirfoundry.com
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Timeout (seconds)
+              </label>
+              <input
+                type="number"
+                value={settings.integrations?.palantir?.timeout || 30}
+                onChange={(e) => {
+                  const newIntegrations = { ...settings.integrations };
+                  if (!newIntegrations.palantir) newIntegrations.palantir = {};
+                  newIntegrations.palantir = { ...newIntegrations.palantir, timeout: parseInt(e.target.value) };
+                  setSettings(prev => ({ ...prev, integrations: newIntegrations }));
+                }}
+                className="form-input"
+                min="10"
+                max="120"
+                disabled={!settings.integrations?.palantir?.enabled}
+              />
+            </div>
+          </div>
+
+          {/* Test Connection Section */}
+          <div className="border-t mt-6 pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h5 className="text-sm font-medium text-gray-900">Connection Test</h5>
+                <p className="text-xs text-gray-500 mt-1">
+                  Test the Palantir Foundry SQL API connection with a simple query. Settings will be saved automatically before testing.
+                </p>
+              </div>
+              <button
+                onClick={testPalantirConnection}
+                disabled={testingPalantir || !settings.integrations?.palantir?.enabled || !settings.integrations?.palantir?.token || !settings.integrations?.palantir?.datasetRID}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  testingPalantir || !settings.integrations?.palantir?.enabled || !settings.integrations?.palantir?.token || !settings.integrations?.palantir?.datasetRID
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                {testingPalantir ? 'Testing...' : 'Test Connection'}
+              </button>
+            </div>
+
+            {/* Test Result Display */}
+            {palantirTestResult && (
+              <div className={`mt-4 p-4 rounded-lg ${
+                palantirTestResult.success
+                  ? 'bg-green-50 border border-green-200'
+                  : 'bg-red-50 border border-red-200'
+              }`}>
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    {palantirTestResult.success ? (
+                      <svg className="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="ml-3 flex-1">
+                    <h5 className={`text-sm font-medium ${
+                      palantirTestResult.success ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      {palantirTestResult.success ? 'Connection Successful' : 'Connection Failed'}
+                    </h5>
+                    <p className={`text-sm mt-1 ${
+                      palantirTestResult.success ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {palantirTestResult.message}
+                    </p>
+                    {palantirTestResult.success && (
+                      <div className="mt-2 space-y-1">
+                        {palantirTestResult.datasetName && (
+                          <p className="text-xs text-gray-600">
+                            Dataset Name: <span className="font-semibold">{palantirTestResult.datasetName}</span>
+                          </p>
+                        )}
+                        {palantirTestResult.datasetRID && (
+                          <p className="text-xs text-gray-600">
+                            Dataset RID: <span className="font-mono text-xs">{palantirTestResult.datasetRID}</span>
+                          </p>
+                        )}
+                        {palantirTestResult.hostname && (
+                          <p className="text-xs text-gray-600">
+                            Hostname: <span className="font-mono">{palantirTestResult.hostname}</span>
+                          </p>
+                        )}
+                        {palantirTestResult.duration && (
+                          <p className="text-xs text-gray-600">
+                            Response Time: <span className="font-mono">{palantirTestResult.duration}ms</span>
+                          </p>
+                        )}
+                        {palantirTestResult.sampleData && (
+                          <div className="mt-2 p-2 bg-green-100 rounded border border-green-300">
+                            <p className="text-xs font-medium text-green-800 mb-1">Sample Data Found:</p>
+                            <div className="text-xs text-green-700 font-mono">
+                              {palantirTestResult.sampleData.MATNR && (
+                                <div>Material: {palantirTestResult.sampleData.MATNR}</div>
+                              )}
+                              {palantirTestResult.sampleData.TEXT_SHORT && (
+                                <div className="truncate">Description: {palantirTestResult.sampleData.TEXT_SHORT}</div>
+                              )}
+                              {palantirTestResult.rowsFound !== undefined && (
+                                <div className="mt-1 text-gray-600">Rows found: {palantirTestResult.rowsFound}</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {palantirTestResult.diagnostics && (
+                      <div className="mt-2 p-2 bg-white rounded border border-gray-200">
+                        <p className="text-xs text-gray-500 mb-1">Diagnostics:</p>
+                        <ul className="text-xs text-gray-700 space-y-0.5">
+                          <li>Enabled: {palantirTestResult.diagnostics.enabled ? '✓' : '✗'}</li>
+                          <li>Token Configured: {palantirTestResult.diagnostics.hasToken ? '✓' : '✗'}</li>
+                          <li>Dataset RID Configured: {palantirTestResult.diagnostics.hasDatasetRID ? '✓' : '✗'}</li>
+                          {palantirTestResult.diagnostics.apiUsed && (
+                            <li>API Used: <span className="font-mono">{palantirTestResult.diagnostics.apiUsed}</span></li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!settings.integrations?.palantir?.enabled && (
+              <p className="text-xs text-amber-600 mt-2">
+                Please enable Palantir integration first
+              </p>
+            )}
+            {settings.integrations?.palantir?.enabled && (!settings.integrations?.palantir?.token || !settings.integrations?.palantir?.datasetRID) && (
+              <p className="text-xs text-amber-600 mt-2">
+                Please configure both token and dataset RID first
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <p className="text-xs text-blue-800">
+              <strong>How to get your Personal Token:</strong><br />
+              1. Log into Palantir Foundry<br />
+              2. Click your profile icon → Settings → Tokens<br />
+              3. Generate a new token with appropriate permissions<br />
+              4. Copy and paste it above - it will be encrypted when saved
+            </p>
           </div>
         </div>
       </div>

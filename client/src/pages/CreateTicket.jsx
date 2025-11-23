@@ -758,7 +758,22 @@ const CreateTicket = () => {
       navigate(`/tickets/${response.data.ticket._id}`);
     } catch (error) {
       console.error('Create ticket error:', error);
-      toast.error(error.response?.data?.message || 'Failed to create ticket');
+
+      // Enhanced error handling with validation details
+      const errorData = error.response?.data;
+
+      if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
+        // Show each validation error
+        errorData.validationErrors.forEach((msg, index) => {
+          setTimeout(() => {
+            toast.error(msg, { duration: 5000 });
+          }, index * 100); // Stagger toasts slightly
+        });
+      } else if (errorData?.message) {
+        toast.error(errorData.message, { duration: 5000 });
+      } else {
+        toast.error('Failed to create ticket. Please check your input and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -773,7 +788,22 @@ const CreateTicket = () => {
       navigate(`/tickets/${response.data.ticket._id}`);
     } catch (error) {
       console.error('Save draft error:', error);
-      toast.error(error.response?.data?.message || 'Failed to save draft');
+
+      // Enhanced error handling with validation details
+      const errorData = error.response?.data;
+
+      if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
+        // Show each validation error
+        errorData.validationErrors.forEach((msg, index) => {
+          setTimeout(() => {
+            toast.error(msg, { duration: 5000 });
+          }, index * 100); // Stagger toasts slightly
+        });
+      } else if (errorData?.message) {
+        toast.error(errorData.message, { duration: 5000 });
+      } else {
+        toast.error('Failed to save draft. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

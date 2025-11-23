@@ -47,4 +47,11 @@ SECURITY_ANALYSIS.md
 
 # Dependency management (contains vulnerability details and update strategy)
 DEPENDENCY_MANAGEMENT.md
+
+# Dependency license analysis (contains licensing review)
+DEPENDENCY_LICENSE_ANALYSIS.md
+
+# VPN diagnostic reports (contains network configuration details)
+VPN_DIAGNOSTIC_REPORT_*.txt
+
 unspsc.csv
