@@ -426,6 +426,11 @@ class PalantirService {
       const resultData = response.data;
       console.log(`[Palantir Service]   Response type: ${resultData.type || 'unknown'}`);
 
+      // Debug: log the full response structure
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[Palantir Service]   Full response keys: ${Object.keys(resultData).join(', ')}`);
+      }
+
       // Handle different response types from execute endpoint
       // Response is a union type: running, succeeded, failed, canceled
 
@@ -442,10 +447,14 @@ class PalantirService {
       // Extract queryId (present in both "running" and "succeeded" responses)
       const queryId = resultData.queryId;
       if (!queryId) {
+        console.error('[Palantir Service]   ERROR: No queryId in response');
+        console.error('[Palantir Service]   Response data:', JSON.stringify(resultData, null, 2));
         throw new Error('No queryId returned from execute endpoint');
       }
 
-      console.log(`[Palantir Service]   Query ID: ${queryId}`);
+      console.log(`[Palantir Service]   Query ID (raw): ${queryId}`);
+      console.log(`[Palantir Service]   Query ID type: ${typeof queryId}`);
+      console.log(`[Palantir Service]   Query ID length: ${queryId.length}`);
 
       // If query already succeeded, skip polling
       let queryStatus = resultData.type;
@@ -456,7 +465,12 @@ class PalantirService {
 
         const maxPolls = 60; // 60 attempts
         const pollInterval = 1000; // 1 second
-        const statusUrl = `https://${config.hostname}/api/v2/sqlQueries/${queryId}/getStatus?preview=true`;
+
+        // URL-encode the queryId to handle special characters and base64 content
+        const encodedQueryId = encodeURIComponent(queryId);
+        const statusUrl = `https://${config.hostname}/api/v2/sqlQueries/${encodedQueryId}/getStatus?preview=true`;
+
+        console.log(`[Palantir Service]   Status URL: ${statusUrl}`);
 
         for (let poll = 1; poll <= maxPolls; poll++) {
           await new Promise(resolve => setTimeout(resolve, pollInterval));
@@ -501,7 +515,10 @@ class PalantirService {
 
       // Fetch results using getResults endpoint
       console.log(`[Palantir Service]   Fetching results...`);
-      const resultsUrl = `https://${config.hostname}/api/v2/sqlQueries/${queryId}/getResults?preview=true`;
+
+      // URL-encode the queryId to handle special characters and base64 content
+      const encodedQueryId = encodeURIComponent(queryId);
+      const resultsUrl = `https://${config.hostname}/api/v2/sqlQueries/${encodedQueryId}/getResults?preview=true`;
       console.log(`[Palantir Service]   Results URL: ${resultsUrl}`);
 
       const resultsResponse = await axios.get(resultsUrl, {

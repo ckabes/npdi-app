@@ -73,23 +73,15 @@ const defaultFormConfig = {
         {
           fieldKey: 'sbu',
           label: 'Strategic Business Unit (SBU)',
-          type: 'select',
+          type: 'text',
           required: true,
           visible: true,
           editable: true,
-          defaultValue: 'P90',
+          placeholder: 'Enter SBU code (e.g., P90, 775, P87)',
           helpText: 'Business unit responsible for this product',
           gridColumn: 'half',
           order: 2,
-          isCustom: false,
-          options: [
-            { value: '775', label: 'SBU 775' },
-            { value: 'P90', label: 'SBU P90' },
-            { value: '440', label: 'SBU 440' },
-            { value: 'P87', label: 'SBU P87' },
-            { value: 'P89', label: 'SBU P89' },
-            { value: 'P85', label: 'SBU P85' }
-          ]
+          isCustom: false
         },
         {
           fieldKey: 'priority',
@@ -296,45 +288,28 @@ const defaultFormConfig = {
         {
           fieldKey: 'businessLine.line',
           label: 'Business Line',
-          type: 'select',
+          type: 'text',
           required: false,
           visible: true,
           editable: true,
-          placeholder: 'Select business line...',
-          helpText: 'Business line categorization for the product',
+          placeholder: 'e.g., Biochemistry, Chemical Synthesis, Production Materials, etc.',
+          helpText: 'Business line categorization for the product (common: Biochemistry, Chemical Synthesis, Discovery Chemistry, Lab Classics, Material Science, Production Materials)',
           gridColumn: 'half',
           order: 14,
-          isCustom: false,
-          options: [
-            { value: 'Biochemistry', label: 'Biochemistry' },
-            { value: 'Chemical Synthesis', label: 'Chemical Synthesis' },
-            { value: 'Discovery Chemistry', label: 'Discovery Chemistry' },
-            { value: 'Lab Classics', label: 'Lab Classics' },
-            { value: 'Material Science', label: 'Material Science' },
-            { value: 'BRM Applied Lab Essentials', label: 'BRM Applied Lab Essentials' },
-            { value: 'Advanced Genomics', label: 'Advanced Genomics' },
-            { value: 'Beads & Fusion', label: 'Beads & Fusion' },
-            { value: 'Applied Biology', label: 'Applied Biology' },
-            { value: 'Production Materials', label: 'Production Materials' },
-            { value: 'Other', label: 'Other' }
-          ]
+          isCustom: false
         },
         {
           fieldKey: 'businessLine.otherSpecification',
           label: 'Business Line Details',
           type: 'text',
           required: false,
-          visible: true,
+          visible: false,  // Hidden since businessLine.line is now free text
           editable: true,
           placeholder: 'Specify business line details',
           helpText: 'Provide details for other business line',
           gridColumn: 'half',
           order: 15,
-          isCustom: false,
-          visibleWhen: {
-            fieldKey: 'businessLine.line',
-            value: 'Other'
-          }
+          isCustom: false
         },
         {
           fieldKey: 'materialGroup',
@@ -347,6 +322,19 @@ const defaultFormConfig = {
           helpText: 'Main product group or GPH classification',
           gridColumn: 'half',
           order: 16,
+          isCustom: false
+        },
+        {
+          fieldKey: 'similarProducts',
+          label: 'Similar Products',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Comma-separated material numbers (search by CAS)',
+          helpText: 'List of similar products (material numbers) with the same CAS number',
+          gridColumn: 'full',
+          order: 17,
           isCustom: false
         }
       ]

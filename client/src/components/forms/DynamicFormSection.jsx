@@ -207,7 +207,7 @@ const DynamicFormSection = ({
           if (isReadOnly) {
             return (
               <select
-                className="form-select bg-gray-50 cursor-not-allowed"
+                className={`form-select bg-gray-50 cursor-not-allowed ${sapHighlight}`}
                 value={value || ''}
                 disabled={true}
               >
@@ -225,7 +225,7 @@ const DynamicFormSection = ({
               {...register(fieldPath, {
                 required: field.required ? `${field.label} is required` : false
               })}
-              className="form-select"
+              className={`form-select ${sapHighlight}`}
             >
               <option value="">Select {field.label}...</option>
               {field.options?.map(option => (

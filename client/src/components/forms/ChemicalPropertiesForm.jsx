@@ -14,6 +14,8 @@ import React, { useState } from 'react';
  * @param {Function} props.onCASLookup - callback for CAS lookup button
  * @param {boolean} props.readOnly - whether form should be read-only
  * @param {boolean} props.showAutoPopulateButton - whether to show auto-populate button
+ * @param {Set} props.sapImportedFields - set of field paths that were imported from SAP
+ * @param {Function} props.getSAPImportedClass - function to get CSS class for SAP-imported fields
  */
 const ChemicalPropertiesForm = ({
   register,
@@ -24,7 +26,9 @@ const ChemicalPropertiesForm = ({
   casLookupLoading = false,
   onCASLookup,
   readOnly = false,
-  showAutoPopulateButton = true
+  showAutoPopulateButton = true,
+  sapImportedFields = new Set(),
+  getSAPImportedClass = () => ''
 }) => {
   const casNumber = watch('chemicalProperties.casNumber');
   const visibleProperties = watch('chemicalProperties.additionalProperties.visibleProperties') || [];
@@ -180,12 +184,12 @@ const ChemicalPropertiesForm = ({
               {...register('chemicalProperties.casNumber', {
                 required: 'CAS number is required',
                 pattern: {
-                  value: /^\d{1,7}-\d{2}-\d$/,
-                  message: 'Please enter a valid CAS number (e.g., 64-17-5)'
+                  value: /^\d+-\d{2}-\d$/,
+                  message: 'Please enter a valid CAS number (e.g., 64-17-5 or 1234567-89-0)'
                 }
               })}
               type="text"
-              className="form-input"
+              className={`form-input ${getSAPImportedClass('chemicalProperties.casNumber')}`}
               placeholder="e.g., 64-17-5"
               readOnly={readOnly}
               onKeyDown={(e) => {
