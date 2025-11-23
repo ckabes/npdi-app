@@ -55,3 +55,10 @@ DEPENDENCY_LICENSE_ANALYSIS.md
 VPN_DIAGNOSTIC_REPORT_*.txt
 
 unspsc.csv
+
+# Data files (CSV, Excel exports should not be committed)
+/*.csv
+/*.xlsx
+/*.xls
+MARA_Export.csv
+Weight_Matrix_CSV.csv
