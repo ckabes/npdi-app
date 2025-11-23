@@ -25,7 +25,7 @@ const ProfileSelection = () => {
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
       {/* Molecular background image */}
       <div
-        className="fixed inset-0 bg-cover bg-center bg-no-repeat"
+        className={`fixed inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500 ease-in-out ${isTransitioning ? 'translate-x-[-100vw]' : 'translate-x-0'}`}
         style={{
           backgroundImage: 'url(/background2.png)',
           zIndex: 0
