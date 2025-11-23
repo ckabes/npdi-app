@@ -28,9 +28,12 @@ const ProfileSelection = () => {
       />
 
       {/* Logo and title centered at top of screen */}
-      <div className="fixed top-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-3 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-3 shadow-lg" style={{ zIndex: 10 }}>
-        <img src="/M.png" alt="MilliporeSigma" className="h-8 w-auto" />
-        <span className="text-xl font-bold text-gray-800">NPDI PORTAL</span>
+      <div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg px-6 py-4 shadow-lg text-center" style={{ zIndex: 10 }}>
+        <div className="flex items-center justify-center space-x-3 mb-2">
+          <img src="/M.png" alt="MilliporeSigma" className="h-8 w-auto" />
+          <span className="text-xl font-bold text-gray-800">NPDI PORTAL</span>
+        </div>
+        <p className="text-sm text-gray-600 italic">elevating humanity, sparking innovation</p>
       </div>
 
       {/* Content wrapper with higher z-index */}
