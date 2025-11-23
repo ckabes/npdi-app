@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../utils/AuthContext';
 
 const ProfileSelection = () => {
   const { profiles, selectProfile } = useAuth();
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleProfileSelect = (profileId) => {
-    selectProfile(profileId);
+    setIsTransitioning(true);
+    // Delay the actual navigation to allow animation to play
+    setTimeout(() => {
+      selectProfile(profileId);
+    }, 300);
   };
 
   const formatRoleName = (role) => {
@@ -17,7 +22,7 @@ const ProfileSelection = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+    <div className={`min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
       {/* Molecular background image */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
