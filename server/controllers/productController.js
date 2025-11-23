@@ -51,9 +51,16 @@ const createTicket = async (req, res) => {
       });
     }
 
+    // Get current user information from request headers
+    const currentUser = getCurrentUser(req);
+
+    // Look up the user in the database to get the ObjectId
+    const userRecord = await User.findOne({ email: currentUser.email });
+
     let ticketData = {
       ...req.body,
-      createdBy: null // Remove authentication requirement
+      createdBy: currentUser.email, // Set to current user's email
+      createdByUser: userRecord?._id // Set the user reference if found
     };
 
     // All submitted tickets should have SUBMITTED status initially
@@ -98,9 +105,8 @@ const createTicket = async (req, res) => {
 
     console.log('Creating ticket with data:', JSON.stringify(ticketData, null, 2));
     const ticket = new ProductTicket(ticketData);
-    
+
     // Add creation entry to status history with user info
-    const currentUser = getCurrentUser(req);
     ticket.statusHistory = [{
       status: ticket.status,
       changedBy: null, // Object ID would go here in real system
@@ -169,10 +175,17 @@ const saveDraft = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Get current user information from request headers
+    const currentUser = getCurrentUser(req);
+
+    // Look up the user in the database to get the ObjectId
+    const userRecord = await User.findOne({ email: currentUser.email });
+
     let ticketData = {
       ...req.body,
       status: 'DRAFT',
-      createdBy: null
+      createdBy: currentUser.email, // Set to current user's email
+      createdByUser: userRecord?._id // Set the user reference if found
     };
 
     // Use utility functions to clean and ensure defaults
@@ -181,9 +194,8 @@ const saveDraft = async (req, res) => {
     ticketData = cleanTicketData(ticketData);
 
     const ticket = new ProductTicket(ticketData);
-    
+
     // Add creation entry to status history for draft
-    const currentUser = getCurrentUser(req);
     ticket.statusHistory = [{
       status: 'DRAFT',
       changedBy: null, // Object ID would go here in real system
@@ -212,7 +224,7 @@ const saveDraft = async (req, res) => {
 
 const getTickets = async (req, res) => {
   try {
-    const { status, sbu, priority, page = 1, limit = 10, search, createdBy } = req.query;
+    const { status, sbu, priority, page = 1, limit = 10, search, createdBy, sortBy = 'updatedAt', sortOrder = 'desc' } = req.query;
 
     let filter = {
       // By default, exclude archived tickets (completed/canceled)
@@ -237,9 +249,15 @@ const getTickets = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    // Build dynamic sort object based on query parameters
+    const sortField = sortBy || 'updatedAt';
+    const sortDirection = sortOrder === 'asc' ? 1 : -1;
+    const sortObject = { [sortField]: sortDirection };
+
     // Note: createdBy and assignedTo are String fields (email addresses), not ObjectId references
     const tickets = await ProductTicket.find(filter)
-      .sort({ createdAt: -1 })
+      .populate('createdByUser', 'firstName lastName email')  // Populate user info for display
+      .sort(sortObject)
       .skip(skip)
       .limit(parseInt(limit));
 
@@ -283,6 +301,7 @@ const getArchivedTickets = async (req, res) => {
 
     // Note: createdBy and assignedTo are String fields (email addresses), not ObjectId references
     const tickets = await ProductTicket.find(filter)
+      .populate('createdByUser', 'firstName lastName email')  // Populate user info for display
       .sort({ updatedAt: -1 }) // Sort by last updated for archived tickets
       .skip(skip)
       .limit(parseInt(limit));
@@ -309,9 +328,10 @@ const getTicketById = async (req, res) => {
     const { id } = req.params;
     
     let filter = { _id: id, ...req.sbuFilter };
-    
+
     // Note: createdBy, assignedTo, comments.user, and statusHistory.changedBy are String fields (email addresses), not ObjectId references
-    const ticket = await ProductTicket.findOne(filter);
+    const ticket = await ProductTicket.findOne(filter)
+      .populate('createdByUser', 'firstName lastName email');  // Populate user info for display
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found or access denied' });
@@ -1183,17 +1203,13 @@ const searchMARA = async (req, res) => {
       console.log(`[SAP Search] Business Line (YYD_MEMBF_TEXT): NOT PRESENT`);
     }
 
-    // Map YYD_GPHPL to Material Group field (Main Group GPH), but exclude specific values
-    if (maraData.YYD_GPHPL) {
-      const gphpl = String(maraData.YYD_GPHPL).trim();
-      if (gphpl !== '1120999') {
-        mappedFields['materialGroup'] = gphpl;
-        console.log(`[SAP Search] GPH Product Line (YYD_GPHPL): "${gphpl}" → materialGroup ✓`);
-      } else {
-        console.log(`[SAP Search] GPH Product Line (YYD_GPHPL): "${gphpl}" - EXCLUDED (filtered value)`);
-      }
+    // Map PRODH_12 to Material Group field (Main Group GPH)
+    if (maraData.PRODH_12) {
+      const prodh12 = String(maraData.PRODH_12).trim();
+      mappedFields['materialGroup'] = prodh12;
+      console.log(`[SAP Search] Product Hierarchy Level 12 (PRODH_12): "${prodh12}" → materialGroup ✓`);
     } else {
-      console.log(`[SAP Search] GPH Product Line (YYD_GPHPL): NOT PRESENT`);
+      console.log(`[SAP Search] Product Hierarchy Level 12 (PRODH_12): NOT PRESENT`);
     }
 
     // Map YYD_YLOGO_TEXT to brand - pick closest match from available brands
@@ -1383,23 +1399,7 @@ const searchMARA = async (req, res) => {
     }
 
     // Section 10: Production Information
-    if (maraData.YYD_SOSUB) {
-      const sosub = String(maraData.YYD_SOSUB).trim();
-      // Map source/substitution to production type
-      // F = Procured (Fremdbeschaffung - External procurement)
-      // E = Produced (Eigenfertigung - In-house production)
-      if (sosub === 'F') {
-        mappedFields.productionType = 'Procured';
-        console.log(`[SAP Search] Production Type (YYD_SOSUB): "${sosub}" → Procured ✓`);
-      } else if (sosub === 'E') {
-        mappedFields.productionType = 'Produced';
-        console.log(`[SAP Search] Production Type (YYD_SOSUB): "${sosub}" → Produced ✓`);
-      } else {
-        console.warn(`[SAP Search] Production Type (YYD_SOSUB): "${sosub}" - UNKNOWN VALUE (expected F or E)`);
-      }
-    } else {
-      console.log(`[SAP Search] Production Type (YYD_SOSUB): NOT PRESENT`);
-    }
+    // Note: YYD_SOSUB does not accurately map to production type - removed
 
     // Map ORG_PPL to primary plant (manufacturing plant)
     if (maraData.ORG_PPL) {
@@ -1512,14 +1512,17 @@ const searchSimilarProducts = async (req, res) => {
     }
 
     const palantirService = require('../services/palantirService');
-    const config = await palantirService.getConfig();
 
-    if (!config.enabled) {
+    // Check if Palantir is enabled
+    const isEnabled = await palantirService.isEnabled();
+    if (!isEnabled) {
       return res.status(503).json({
         success: false,
         message: 'Palantir integration is not enabled'
       });
     }
+
+    const config = await palantirService.getConfig();
 
     // Build SQL query to find products with the same CAS
     // Select only MATNR (material number) and TEXT_SHORT (product name)
@@ -1536,7 +1539,7 @@ const searchSimilarProducts = async (req, res) => {
 
     const startTime = Date.now();
     const foundProducts = [];
-    const seenMATNRs = new Set();
+    const seenPrefixes = new Set(); // Track first 6 digits to identify unique products
 
     try {
       console.log(`[Similar Products] Executing query for CAS: ${casNumber}`);
@@ -1548,24 +1551,35 @@ const searchSimilarProducts = async (req, res) => {
       if (result && result.rows && result.rows.length > 0) {
         console.log(`[Similar Products] Query returned ${result.rows.length} raw results`);
 
-        // Process results and deduplicate by MATNR
+        // Process results and deduplicate by first 6 digits of MATNR
+        // Products with the same first 6 digits are variants (different sizes, etc.)
         for (const row of result.rows) {
-          if (row.MATNR && !seenMATNRs.has(row.MATNR)) {
-            seenMATNRs.add(row.MATNR);
-            foundProducts.push({
-              MATNR: row.MATNR,
-              TEXT_SHORT: row.TEXT_SHORT || 'No name available'
-            });
+          if (row.MATNR) {
+            // Extract first 6 characters from MATNR (e.g., "176036" from "176036-BULK")
+            const prefix = row.MATNR.substring(0, 6);
 
-            // Stop if we have enough results
-            if (foundProducts.length >= parseInt(maxResults)) {
-              console.log(`[Similar Products] Reached target of ${maxResults} unique products`);
-              break;
+            // Only include this product if we haven't seen this prefix before
+            if (!seenPrefixes.has(prefix)) {
+              seenPrefixes.add(prefix);
+              foundProducts.push({
+                MATNR: prefix, // Only show first 6 digits, not the full SKU
+                TEXT_SHORT: row.TEXT_SHORT || 'No name available'
+              });
+
+              console.log(`[Similar Products] Added unique product: ${prefix} (from ${row.MATNR})`);
+
+              // Stop if we have enough results
+              if (foundProducts.length >= parseInt(maxResults)) {
+                console.log(`[Similar Products] Reached target of ${maxResults} unique products`);
+                break;
+              }
+            } else {
+              console.log(`[Similar Products] Skipping variant: ${row.MATNR} (prefix ${prefix} already seen)`);
             }
           }
         }
 
-        console.log(`[Similar Products] Found ${foundProducts.length} unique products`);
+        console.log(`[Similar Products] Found ${foundProducts.length} unique products (by first 6 digits)`);
       } else {
         console.log(`[Similar Products] No products found with CAS: ${casNumber}`);
       }

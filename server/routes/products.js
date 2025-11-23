@@ -28,10 +28,7 @@ router.post('/generate-corpbase-content', [
 
 router.post('/', [
   body('productName').notEmpty().withMessage('Product name is required').trim(),
-  body('sbu').optional().custom(value => {
-    if (value === '') return true; // Allow empty strings, will be cleaned up in controller
-    return ['775', 'P90', '440', 'P87', 'P89', 'P85'].includes(value);
-  }).withMessage('SBU must be one of: 775, P90, 440, P87, P89, P85'),
+  body('sbu').notEmpty().withMessage('SBU is required').trim(),
   body('chemicalProperties.casNumber').optional().custom(value => {
     if (!value || value === '') return true; // Allow empty/missing CAS numbers
     return /^\d{1,7}-\d{2}-\d$/.test(value);
@@ -64,10 +61,7 @@ router.post('/', [
 
 router.post('/draft', [
   body('productName').optional().trim(),
-  body('sbu').optional().custom(value => {
-    if (value === '') return true;
-    return ['775', 'P90', '440', 'P87', 'P89', 'P85'].includes(value);
-  }),
+  body('sbu').optional().trim(),
   body('chemicalProperties.casNumber').optional().custom(value => {
     if (!value || value === '') return true; // Allow empty/missing CAS numbers
     return /^\d{1,7}-\d{2}-\d$/.test(value);

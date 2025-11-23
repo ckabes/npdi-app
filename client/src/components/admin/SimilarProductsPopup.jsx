@@ -5,7 +5,7 @@ import { productAPI } from '../../services/api';
 /**
  * Similar Products Search Popup Component
  * Searches Palantir Foundry for products with the same CAS number
- * Maximum 20 second search, stops at 3 results
+ * Maximum 20 second search, initially shows 3 results with option to load more
  */
 const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
   const [searching, setSearching] = useState(false);
@@ -14,30 +14,34 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
   const [searchComplete, setSearchComplete] = useState(false);
   const [searchTime, setSearchTime] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
+  const [maxResults, setMaxResults] = useState(3);
+  const [hasMoreResults, setHasMoreResults] = useState(false);
 
   useEffect(() => {
     // Auto-start search when popup opens
-    handleSearch();
+    handleSearch(3);
   }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = async (resultsToFetch = maxResults) => {
     setSearching(true);
-    setFoundProducts([]);
-    setSelectedProducts(new Set());
+    // Only clear products if this is the initial search
+    if (resultsToFetch === 3) {
+      setFoundProducts([]);
+      setSelectedProducts(new Set());
+    }
     setSearchComplete(false);
     setSearchTime(0);
     setTimedOut(false);
 
     const startTime = Date.now();
     const maxSearchTime = 20000; // 20 seconds
-    const minResults = 3;
 
     try {
-      console.log(`[Similar Products] Starting search for CAS: ${casNumber}`);
+      console.log(`[Similar Products] Starting search for CAS: ${casNumber}, fetching ${resultsToFetch} results`);
 
       // Start the search with polling logic
       const response = await productAPI.searchSimilarProducts(casNumber, {
-        maxResults: minResults,
+        maxResults: resultsToFetch,
         maxSearchTime: maxSearchTime
       });
 
@@ -48,13 +52,17 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
         const products = response.data.products || [];
         setFoundProducts(products);
 
+        // Check if we got exactly the number requested (might be more available)
+        // If we got fewer than requested, we've reached the end
+        setHasMoreResults(products.length === resultsToFetch);
+
         if (products.length === 0) {
           setTimedOut(true);
           toast.info(`No similar products found in ${Math.round(elapsed / 1000)} seconds`);
-        } else if (products.length < minResults) {
+        } else if (products.length < 3) {
           toast.success(`Found ${products.length} similar product${products.length === 1 ? '' : 's'}`);
         } else {
-          toast.success(`Found ${products.length} similar products (stopped at ${minResults})`);
+          toast.success(`Found ${products.length} similar product${products.length === 1 ? '' : 's'}`);
         }
       } else {
         toast.error(response.data.message || 'Search failed');
@@ -77,6 +85,12 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
       newSelection.add(matnr);
     }
     setSelectedProducts(newSelection);
+  };
+
+  const handleLoadMore = async () => {
+    const newMaxResults = maxResults + 3;
+    setMaxResults(newMaxResults);
+    await handleSearch(newMaxResults);
   };
 
   const handleApprove = () => {
@@ -129,7 +143,11 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
                 </svg>
                 <div>
                   <p className="text-sm font-medium text-gray-900">Searching Palantir Foundry...</p>
-                  <p className="text-xs text-gray-600">Maximum 20 seconds, stops at 3 results</p>
+                  <p className="text-xs text-gray-600">
+                    {maxResults === 3
+                      ? 'Maximum 20 seconds, fetching first 3 results'
+                      : `Fetching up to ${maxResults} results...`}
+                  </p>
                 </div>
               </div>
             </div>
@@ -207,6 +225,24 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
                       <p className="text-xs font-medium text-gray-700 mb-1">Selected material numbers:</p>
                       <p className="text-sm font-mono text-gray-900">
                         {Array.from(selectedProducts).join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Load More Button */}
+                  {hasMoreResults && !searching && (
+                    <div className="mt-4 text-center">
+                      <button
+                        onClick={handleLoadMore}
+                        className="btn btn-secondary inline-flex items-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Load 3 More Products</span>
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Currently showing {foundProducts.length} products
                       </p>
                     </div>
                   )}

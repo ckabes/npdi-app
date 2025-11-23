@@ -12,16 +12,21 @@ const DynamicFormSection = ({
   sapImportedFields = new Set(),  // Set of field paths that were imported from SAP
   getSAPImportedClass = () => '',  // Function to get CSS class for SAP-imported fields
   sapMetadata = {},  // Metadata from SAP import (e.g., descriptions)
-  onOpenSimilarProducts = null  // Handler for similar products search button
+  onOpenSimilarProducts = null,  // Handler for similar products search button
+  onFieldEdit = null  // Handler for when SAP-imported field is edited (removes green highlight)
 }) => {
   if (!section || !section.visible) return null;
 
   // Track which fields have been edited by the user
   const [editedFields, setEditedFields] = React.useState(new Set());
 
-  // Handle field edit to hide metadata descriptions
+  // Handle field edit to hide metadata descriptions and remove SAP highlight
   const handleFieldEdit = (fieldKey) => {
     setEditedFields(prev => new Set([...prev, fieldKey]));
+    // Call parent's onFieldEdit if provided (removes SAP green highlight)
+    if (onFieldEdit) {
+      onFieldEdit(fieldKey);
+    }
   };
 
   // Helper function to check if a field would be visible
@@ -54,13 +59,14 @@ const DynamicFormSection = ({
         return requiredValues.includes(currentValue);
       }
 
-      // Convert checkbox string values to boolean for comparison
+      // Convert checkbox/radio string values to boolean for comparison
       let compareValue = currentValue;
       let compareRequired = requiredValue;
 
       if (requiredValue === 'true' || requiredValue === 'false') {
         compareRequired = requiredValue === 'true';
-        compareValue = Boolean(currentValue);
+        // Convert string 'true'/'false' to boolean (not Boolean() which makes any string truthy!)
+        compareValue = currentValue === 'true';
       }
 
       // Only show this field if the dependent field has the required value
@@ -105,13 +111,14 @@ const DynamicFormSection = ({
             return null;
           }
         } else {
-          // Convert checkbox string values to boolean for comparison
+          // Convert checkbox/radio string values to boolean for comparison
           let compareValue = currentValue;
           let compareRequired = requiredValue;
 
           if (requiredValue === 'true' || requiredValue === 'false') {
             compareRequired = requiredValue === 'true';
-            compareValue = Boolean(currentValue);
+            // Convert string 'true'/'false' to boolean (not Boolean() which makes any string truthy!)
+            compareValue = currentValue === 'true';
           }
 
           // Only show this field if the dependent field has the required value
@@ -165,11 +172,16 @@ const DynamicFormSection = ({
               />
             );
           }
+          const { onChange: textareaOnChange, ...textareaRegisterProps } = register(fieldPath, {
+            required: field.required ? `${field.label} is required` : false
+          });
           return (
             <textarea
-              {...register(fieldPath, {
-                required: field.required ? `${field.label} is required` : false
-              })}
+              {...textareaRegisterProps}
+              onChange={(e) => {
+                textareaOnChange(e);
+                handleFieldEdit(field.fieldKey);
+              }}
               className={baseInputClass}
               placeholder={field.placeholder}
               rows={4}
@@ -188,15 +200,20 @@ const DynamicFormSection = ({
               />
             );
           }
+          const { onChange: numberOnChange, ...numberRegisterProps } = register(fieldPath, {
+            required: field.required ? `${field.label} is required` : false,
+            valueAsNumber: true,
+            ...(field.validation?.min !== undefined && { min: field.validation.min }),
+            ...(field.validation?.max !== undefined && { max: field.validation.max })
+          });
           return (
             <input
               type="number"
-              {...register(fieldPath, {
-                required: field.required ? `${field.label} is required` : false,
-                valueAsNumber: true,
-                ...(field.validation?.min !== undefined && { min: field.validation.min }),
-                ...(field.validation?.max !== undefined && { max: field.validation.max })
-              })}
+              {...numberRegisterProps}
+              onChange={(e) => {
+                numberOnChange(e);
+                handleFieldEdit(field.fieldKey);
+              }}
               className={baseInputClass}
               placeholder={field.placeholder}
               step={field.validation?.step || 'any'}
@@ -220,11 +237,16 @@ const DynamicFormSection = ({
               </select>
             );
           }
+          const { onChange: selectOnChange, ...selectRegisterProps } = register(fieldPath, {
+            required: field.required ? `${field.label} is required` : false
+          });
           return (
             <select
-              {...register(fieldPath, {
-                required: field.required ? `${field.label} is required` : false
-              })}
+              {...selectRegisterProps}
+              onChange={(e) => {
+                selectOnChange(e);
+                handleFieldEdit(field.fieldKey);
+              }}
               className={`form-select ${sapHighlight}`}
             >
               <option value="">Select {field.label}...</option>
