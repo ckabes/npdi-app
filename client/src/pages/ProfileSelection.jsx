@@ -10,7 +10,7 @@ const ProfileSelection = () => {
     // Delay the actual navigation to allow animation to play
     setTimeout(() => {
       selectProfile(profileId);
-    }, 300);
+    }, 500);
   };
 
   const formatRoleName = (role) => {
@@ -22,7 +22,7 @@ const ProfileSelection = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative transition-all duration-300 ease-in-out ${isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
       {/* Molecular background image */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
@@ -36,7 +36,7 @@ const ProfileSelection = () => {
       <div className="relative" style={{ zIndex: 1 }}>
 
         {/* Main content box with white background */}
-        <div className="sm:mx-auto sm:w-full sm:max-w-lg bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8">
+        <div className={`sm:mx-auto sm:w-full sm:max-w-lg bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-8 transition-all duration-500 ease-in-out ${isTransitioning ? 'opacity-0 translate-y-[-100vh] rotate-3' : 'opacity-100 translate-y-0 rotate-0'}`}>
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900">
               Select Your Profile
