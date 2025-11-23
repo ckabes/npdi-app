@@ -17,7 +17,32 @@ const ProfileSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative">
+      {/* Hexagonal background pattern */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+        <svg className="w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="hexagons-profile" x="0" y="0" width="100" height="87" patternUnits="userSpaceOnUse">
+              <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
+                       fill="none"
+                       stroke="#3b82f6"
+                       strokeWidth="0.5"
+                       opacity="0.3"/>
+              <polygon points="50,0 93.3,25 93.3,62 50,87 6.7,62 6.7,25"
+                       fill="none"
+                       stroke="#60a5fa"
+                       strokeWidth="0.3"
+                       opacity="0.2"
+                       transform="scale(0.7) translate(21, 18)"/>
+              <circle cx="50" cy="43.5" r="2" fill="#3b82f6" opacity="0.2"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#hexagons-profile)"/>
+        </svg>
+      </div>
+
+      {/* Content wrapper with higher z-index */}
+      <div className="relative" style={{ zIndex: 1 }}>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="text-center">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -69,6 +94,7 @@ const ProfileSelection = () => {
         <p className="text-xs text-gray-500">
           MilliporeSigma NPDI Application - Development Mode
         </p>
+      </div>
       </div>
     </div>
   );
