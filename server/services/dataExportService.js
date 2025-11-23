@@ -90,7 +90,8 @@ const generateDataExport = async (ticket) => {
   addField('Brand', ticket.brand);
   addField('Status', ticket.status);
   addField('Priority', ticket.priority);
-  addField('Created By', ticket.createdBy);
+  addField('Created By (Email)', ticket.createdBy);
+  addField('Created By (Name)', ticket.createdByUser ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}` : '');
   addField('Assigned To', ticket.assignedTo);
   addField('Created At', ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : '');
   addField('Updated At', ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString() : '');
@@ -102,11 +103,26 @@ const generateDataExport = async (ticket) => {
   addSectionHeader('PRODUCT SCOPE & DISTRIBUTION');
   addField('Product Scope', ticket.productScope?.scope);
   addField('Other Scope Specification', ticket.productScope?.otherSpecification);
-  addField('Distribution Type', ticket.distributionType);
+  addField('Distribution Type', ticket.distributionType?.type);
+  addField('COA Creator', ticket.distributionType?.coaCreator);
+  addField('Labeling Type', ticket.distributionType?.labelingType);
+  addField('Labeling Responsibility', ticket.distributionType?.labelingResponsibility);
+  addField('Vendor Label Source', ticket.distributionType?.vendorLabelSource);
   addField('Country of Origin', ticket.countryOfOrigin);
   addField('SIAL Product Hierarchy', ticket.sialProductHierarchy);
   addField('Material Group', ticket.materialGroup);
   currentRow++;
+
+  // ============================================================================
+  // BUSINESS LINE
+  // ============================================================================
+  if (ticket.businessLine) {
+    addSectionHeader('BUSINESS LINE');
+    addField('Business Line', ticket.businessLine.line);
+    addField('Main Group GPH', ticket.businessLine.mainGroupGPH);
+    addField('Other Specification', ticket.businessLine.otherSpecification);
+    currentRow++;
+  }
 
   // ============================================================================
   // CHEMICAL PROPERTIES
@@ -238,6 +254,9 @@ const generateDataExport = async (ticket) => {
       addField('Type', sku.type);
       addField('Description', sku.description);
       addField('Package Size', `${sku.packageSize?.value || ''} ${sku.packageSize?.unit || ''}`);
+      addField('Gross Weight', sku.grossWeight?.value ? `${sku.grossWeight.value} ${sku.grossWeight.unit || ''}` : '');
+      addField('Net Weight', sku.netWeight?.value ? `${sku.netWeight.value} ${sku.netWeight.unit || ''}` : '');
+      addField('Volume', sku.volume?.value ? `${sku.volume.value} ${sku.volume.unit || ''}` : '');
 
       if (sku.pricing) {
         addField('Standard Cost', sku.pricing.standardCost);
@@ -293,6 +312,7 @@ const generateDataExport = async (ticket) => {
     addField('Competitive Advantages', corpbase.competitiveAdvantages);
     addField('Technical Specifications', corpbase.technicalSpecifications);
     addField('Quality Standards', corpbase.qualityStandards);
+    addField('UNSPSC Code', corpbase.unspscCode);
     addField('AI Generated', corpbase.aiGenerated ? 'Yes' : 'No');
     addField('Generated At', corpbase.generatedAt ? new Date(corpbase.generatedAt).toLocaleString() : '');
     currentRow++;
@@ -308,6 +328,24 @@ const generateDataExport = async (ticket) => {
     addField('Vendor Product Name', vendor.vendorProductName);
     addField('Vendor SAP Number', vendor.vendorSAPNumber);
     addField('Vendor Product Number', vendor.vendorProductNumber);
+    addField('Vendor Cost Per UOM', vendor.vendorCostPerUOM?.value ? `${vendor.vendorCostPerUOM.value} ${vendor.vendorCostPerUOM.unit || ''}` : '');
+    addField('Amount To Be Purchased', vendor.amountToBePurchased?.value ? `${vendor.amountToBePurchased.value} ${vendor.amountToBePurchased.unit || ''}` : '');
+    addField('Vendor Lead Time (Weeks)', vendor.vendorLeadTimeWeeks);
+    addField('Purchase UOM', vendor.purchaseUOM);
+    addField('Purchase Currency', vendor.purchaseCurrency);
+    addField('Country of Origin (Vendor)', vendor.countryOfOrigin);
+    currentRow++;
+  }
+
+  // ============================================================================
+  // INTELLECTUAL PROPERTY
+  // ============================================================================
+  if (ticket.intellectualProperty) {
+    const ip = ticket.intellectualProperty;
+    addSectionHeader('INTELLECTUAL PROPERTY');
+    addField('Has Intellectual Property', ip.hasIP ? 'Yes' : 'No');
+    addField('Patent Number', ip.patentNumber);
+    addField('License Number', ip.licenseNumber);
     currentRow++;
   }
 
@@ -317,9 +355,17 @@ const generateDataExport = async (ticket) => {
   if (ticket.retestOrExpiration) {
     const retest = ticket.retestOrExpiration;
     addSectionHeader('RETEST / EXPIRATION');
-    addField('Type', retest.type);
-    if (retest.shelfLife) {
-      addField('Shelf Life', `${retest.shelfLife.value || ''} ${retest.shelfLife.unit || ''}`);
+    addField('Has Expiration Date', retest.hasExpirationDate ? 'Yes' : 'No');
+    if (retest.expirationPeriod) {
+      addField('Expiration Period', `${retest.expirationPeriod.value || ''} ${retest.expirationPeriod.unit || ''}`);
+    }
+    addField('Has Retest Date', retest.hasRetestDate ? 'Yes' : 'No');
+    if (retest.retestPeriod) {
+      addField('Retest Period', `${retest.retestPeriod.value || ''} ${retest.retestPeriod.unit || ''}`);
+    }
+    addField('Has Shelf Life', retest.hasShelfLife ? 'Yes' : 'No');
+    if (retest.shelfLifePeriod) {
+      addField('Shelf Life Period', `${retest.shelfLifePeriod.value || ''} ${retest.shelfLifePeriod.unit || ''}`);
     }
     currentRow++;
   }
@@ -368,6 +414,27 @@ const generateDataExport = async (ticket) => {
       addField('Name', `${comment.userInfo?.firstName || ''} ${comment.userInfo?.lastName || ''}`);
       addField('Timestamp', new Date(comment.timestamp).toLocaleString());
       addField('Content', comment.content);
+    });
+    currentRow++;
+  }
+
+  // ============================================================================
+  // STATUS HISTORY
+  // ============================================================================
+  if (ticket.statusHistory && ticket.statusHistory.length > 0) {
+    addSectionHeader('STATUS HISTORY');
+    ticket.statusHistory.forEach((history, idx) => {
+      addSubSection(`History Entry ${idx + 1}`);
+      addField('Action', history.action);
+      addField('Status', history.status);
+      addField('Changed By', history.changedBy);
+      addField('User Name', history.userInfo ? `${history.userInfo.firstName || ''} ${history.userInfo.lastName || ''}` : '');
+      addField('User Role', history.userInfo?.role || '');
+      addField('Changed At', new Date(history.changedAt).toLocaleString());
+      addField('Reason', history.reason);
+      if (history.details) {
+        addField('Details', JSON.stringify(history.details, null, 2));
+      }
     });
     currentRow++;
   }
