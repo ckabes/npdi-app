@@ -14,7 +14,8 @@ const PricingCalculationForm = ({
   watch,
   readOnly = false
 }) => {
-  const baseUnit = watch('pricingData.baseUnit') || 'g';
+  const baseUnit = watch('baseUnit.unit') || 'g';
+  const baseUnitValue = watch('baseUnit.value') || 0;
   const rawMaterialCostPerUnit = watch('pricingData.standardCosts.rawMaterialCostPerUnit') || 0;
 
   return (
@@ -26,25 +27,12 @@ const PricingCalculationForm = ({
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="text-sm font-medium text-blue-900 mb-3">Standard Cost Inputs</h4>
 
-          <div className="mb-4">
-            <label className="block text-xs font-medium text-gray-600 mb-1">
-              Base Costing Unit
-            </label>
-            <select
-              {...register('pricingData.baseUnit')}
-              className="form-select text-sm w-32"
-              disabled={readOnly}
-            >
-              <option value="mg">mg (milligram)</option>
-              <option value="g">g (gram)</option>
-              <option value="kg">kg (kilogram)</option>
-              <option value="mL">mL (milliliter)</option>
-              <option value="L">L (liter)</option>
-              <option value="units">units</option>
-              <option value="vials">vials</option>
-              <option value="plates">plates</option>
-            </select>
-          </div>
+          {baseUnitValue > 0 && (
+            <div className="mb-4 bg-white p-3 rounded border border-blue-200">
+              <p className="text-xs font-medium text-gray-600 mb-1">Using Base Unit:</p>
+              <p className="text-sm font-semibold text-blue-900">{baseUnitValue} {baseUnit}</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <div>

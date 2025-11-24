@@ -8,16 +8,25 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  // Get the current user profile from localStorage
+  // Get the current user profile from localStorage - always read fresh to avoid stale data
   const savedProfileId = localStorage.getItem('selectedProfile');
 
   if (savedProfileId) {
-    // Get profile data from localStorage cache or API
+    // Always read fresh from localStorage to ensure we have the latest profile data
     let profileData = localStorage.getItem('currentProfileData');
 
     if (profileData) {
       try {
         const profile = JSON.parse(profileData);
+        // Debug logging to help track profile issues
+        if (config.url && config.url.includes('/comments')) {
+          console.log('API Request - Adding comment with profile:', {
+            firstName: profile.firstName,
+            lastName: profile.lastName,
+            role: profile.role,
+            email: profile.email
+          });
+        }
         // Add user information as headers (no authentication, just profile data)
         config.headers['x-user-role'] = profile.role;
         config.headers['x-user-firstname'] = profile.firstName;
@@ -29,7 +38,11 @@ apiClient.interceptors.request.use(async (config) => {
       } catch (error) {
         console.error('Error parsing profile data:', error);
       }
+    } else {
+      console.warn('No profile data found in localStorage');
     }
+  } else {
+    console.warn('No saved profile ID found');
   }
 
   return config;
