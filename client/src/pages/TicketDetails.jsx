@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
-import { productAPI } from '../services/api';
+import { productAPI, templatesAPI } from '../services/api';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import SKUAssignment from '../components/SKUAssignment';
@@ -20,16 +20,18 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { StatusBadge, PriorityBadge } from '../components/badges';
-import { DynamicCustomSections } from '../components/forms';
+import {
+  DynamicFormRenderer,
+  DynamicFormSection,
+  ChemicalPropertiesForm,
+  QualitySpecificationsForm,
+  PricingCalculationForm,
+  SKUVariantsForm,
+  CorpBaseDataForm,
+  DynamicCustomSections
+} from '../components/forms';
 import UNSPSCSelector from '../components/forms/UNSPSCSelector';
-// Shared form components - ready for future refactoring
-// import {
-//   ChemicalPropertiesForm,
-//   QualitySpecificationsForm,
-//   PricingCalculationForm,
-//   SKUVariantsForm,
-//   CorpBaseDataForm
-// } from '../components/forms';
+import PMOpsTabView from '../components/PMOpsTabView';
 
 const TicketDetails = () => {
   const { id } = useParams();
@@ -41,14 +43,9 @@ const TicketDetails = () => {
   const [editMode, setEditMode] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [isUNSPSCSelectorOpen, setIsUNSPSCSelectorOpen] = useState(false);
+  const [template, setTemplate] = useState(null);
+  const [loadingTemplate, setLoadingTemplate] = useState(false);
   const formInitializedRef = useRef(false);
-  const [expandedSections, setExpandedSections] = useState({
-    chemical: true,
-    hazard: true,
-    sku: true,
-    corpbase: true,
-    business: true
-  });
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   // Initialize form with proper defaults based on ticket data
   const getDefaultFormValues = () => {
@@ -70,29 +67,7 @@ const TicketDetails = () => {
   const { register: registerEdit, handleSubmit: handleSubmitEdit, setValue: setValueEdit, watch: watchEdit, control: controlEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm();
   const { fields: editFields, append: editAppend, remove: editRemove } = useFieldArray({ control: controlEdit, name: 'skuVariants' });
   const { fields: editCompositionFields, append: editAppendComposition, remove: editRemoveComposition } = useFieldArray({ control: controlEdit, name: 'composition.components' });
-
-  // Calculate automatic margin based on standard cost and list price
-  const calculateMargin = (standardCost, listPrice) => {
-    const cost = parseFloat(standardCost) || 0;
-    const price = parseFloat(listPrice) || 0;
-    if (cost === 0 || price === 0) return 0;
-    return Math.round(((price - cost) / cost) * 100);
-  };
-
-  // Calculate list price from standard cost and margin
-  const calculateListPrice = (standardCost, margin) => {
-    const cost = parseFloat(standardCost) || 0;
-    const marginPercent = parseFloat(margin) || 0;
-    if (cost === 0) return 0;
-    return parseFloat((cost * (1 + marginPercent / 100)).toFixed(2));
-  };
-
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
+  const { fields: editQualityFields, append: editAppendQuality, remove: editRemoveQuality } = useFieldArray({ control: controlEdit, name: 'quality.attributes' });
 
   const copyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text);
@@ -103,16 +78,42 @@ const TicketDetails = () => {
     fetchTicket();
   }, [id]);
 
+  // Load user's template for edit mode form configuration
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      if (!user?.email || !user?.role) return;
+
+      try {
+        setLoadingTemplate(true);
+        const response = await templatesAPI.getUserTemplate(user.email, user.role);
+
+        // Handle PM Ops case (no template)
+        if (isPMOPS || !response.data) {
+          setTemplate(null);
+        } else {
+          setTemplate(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching template:', error);
+        setTemplate(null);
+      } finally {
+        setLoadingTemplate(false);
+      }
+    };
+
+    fetchTemplate();
+  }, [user, isPMOPS]);
+
   useEffect(() => {
     if (ticket && editMode && !formInitializedRef.current) {
       // Only populate once when entering edit mode
       formInitializedRef.current = true;
-      
+
       // Reset the entire form with ticket data
       const formData = getDefaultFormValues();
       resetEdit(formData);
     }
-    
+
     // Reset form initialization when exiting edit mode
     if (!editMode && formInitializedRef.current) {
       formInitializedRef.current = false;
@@ -399,6 +400,20 @@ const TicketDetails = () => {
         </div>
       )}
 
+      {/* Urgent Ticket Banner */}
+      {ticket.priority === 'URGENT' && (
+        <div className="bg-red-600 border-l-4 border-red-800 shadow-lg">
+          <div className="px-6 py-3">
+            <div className="flex items-center space-x-3">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span className="text-white font-bold text-lg tracking-wide">URGENT TICKET</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* NPDI Initiated Banner */}
       {ticket.status === 'NPDI_INITIATED' && (
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg shadow-lg p-6">
@@ -460,8 +475,8 @@ const TicketDetails = () => {
                 </svg>
               </div>
               <div className="text-white">
-                <h2 className="text-2xl font-bold">SKU Assignment Required</h2>
-                <p className="text-yellow-100">This ticket needs part numbers and SKU variants assigned before processing can continue.</p>
+                <h2 className="text-2xl font-bold">Part Number Assignment Required</h2>
+                <p className="text-yellow-100">This ticket needs a part number assigned before processing can continue.</p>
                 <div className="flex items-center space-x-4 mt-2">
                   <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
                     Ticket: {ticket.ticketNumber}
@@ -516,8 +531,9 @@ const TicketDetails = () => {
             <p className="text-xs text-gray-500 mt-1">Current ticket: <span className="font-semibold text-gray-700">{ticket.ticketNumber}</span></p>
           </div>
           <div className="p-6">
-            <form onSubmit={async (e) => {
-              e.preventDefault();
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
               const npdiNumber = e.target.npdiTrackingNumber.value;
               if (npdiNumber && npdiNumber.trim()) {
                 try {
@@ -547,7 +563,15 @@ const TicketDetails = () => {
                   toast.error(`Failed to save NPDI tracking number: ${errorMsg}`);
                 }
               }
-            }}>
+            }}
+              onKeyDown={(e) => {
+                // Prevent Enter key from submitting this critical form
+                // User must explicitly click "Initiate NPDI" button
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
+            >
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 rounded-lg p-5 shadow-sm">
                 <div className="flex items-center mb-3">
                   <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center mr-3">
@@ -645,1442 +669,700 @@ const TicketDetails = () => {
           </div>
           
           <div className="max-w-4xl mx-auto">
-            <form key={`edit-form-${ticket._id}`} onSubmit={handleSubmitEdit(handleUpdateTicket)} className="space-y-8">
-            {/* Production Type */}
-            <div className="card">
-              <div className="card-body">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">
-                      Production Type
-                    </label>
-                    <p className="text-xs text-gray-500">
-                      Select whether this product is produced internally or procured from external suppliers
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        {...registerEdit('productionType')}
-                        value="Produced"
-                        defaultChecked={ticket.productionType === 'Produced'}
-                        className="form-radio h-4 w-4 text-millipore-blue"
-                      />
-                      <span className="ml-2 text-sm font-medium text-gray-700">Produced</span>
-                    </label>
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        {...registerEdit('productionType')}
-                        value="Procured"
-                        defaultChecked={ticket.productionType === 'Procured'}
-                        className="form-radio h-4 w-4 text-millipore-blue"
-                      />
-                      <span className="ml-2 text-sm font-medium text-gray-700">Procured</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Basic Information */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
-              </div>
-              <div className="card-body space-y-6">
-                {/* Product Name - Full width at top */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product Name *
-                    <span className="text-xs text-gray-500 ml-2">(Commercial/Marketing name, different from chemical name)</span>
-                  </label>
-                  <input
-                    {...registerEdit('productName')}
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g., Sigma-Aldrich Premium Grade Acetone"
-                    defaultValue={ticket.productName}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Strategic Business Unit *
-                    </label>
-                    <select {...registerEdit('sbu')} className="form-select" defaultValue={ticket.sbu}>
-                      <option value="775">SBU 775</option>
-                      <option value="P90">SBU P90</option>
-                      <option value="440">SBU 440</option>
-                      <option value="P87">SBU P87</option>
-                      <option value="P89">SBU P89</option>
-                      <option value="P85">SBU P85</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Priority
-                    </label>
-                    <select {...registerEdit('priority')} className="form-select" defaultValue={ticket.priority}>
-                      <option value="LOW">Low</option>
-                      <option value="MEDIUM">Medium</option>
-                      <option value="HIGH">High</option>
-                      <option value="URGENT">Urgent</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Chemical Properties */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Chemical Properties</h3>
-              </div>
-              <div className="card-body space-y-6">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      CAS Number *
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.casNumber')}
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., 64-17-5"
-                      defaultValue={ticket.chemicalProperties?.casNumber}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Molecular Formula
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.molecularFormula')}
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., C2H6O"
-                      defaultValue={ticket.chemicalProperties?.molecularFormula}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      IUPAC Name (Chemical Name)
-                      <span className="text-xs text-gray-500 ml-2">(Auto-populated from PubChem)</span>
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.iupacName')}
-                      type="text"
-                      className="form-input"
-                      placeholder="IUPAC systematic name"
-                      defaultValue={ticket.chemicalProperties?.iupacName}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Molecular Weight (g/mol)
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.molecularWeight')}
-                      type="number"
-                      step="0.01"
-                      className="form-input"
-                      placeholder="g/mol"
-                      defaultValue={ticket.chemicalProperties?.molecularWeight}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SMILES
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.canonicalSMILES')}
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., CCO (for ethanol)"
-                      defaultValue={ticket.chemicalProperties?.canonicalSMILES}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Physical State
-                    </label>
-                    <select {...registerEdit('chemicalProperties.physicalState')} className="form-select" defaultValue={ticket.chemicalProperties?.physicalState}>
-                      <option value="Solid">Solid</option>
-                      <option value="Liquid">Liquid</option>
-                      <option value="Gas">Gas</option>
-                      <option value="Powder">Powder</option>
-                      <option value="Crystal">Crystal</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Shipping Conditions
-                    </label>
-                    <select {...registerEdit('chemicalProperties.shippingConditions')} className="form-select" defaultValue={ticket.chemicalProperties?.shippingConditions}>
-                      <option value="Standard">Standard (Ambient)</option>
-                      <option value="Wet Ice">Wet Ice (2-8°C)</option>
-                      <option value="Dry Ice">Dry Ice (-20°C to -80°C)</option>
-                      <option value="Liquid Nitrogen">Liquid Nitrogen (-196°C)</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Additional Chemical Properties */}
-                <div className="space-y-6 border-t border-gray-200 pt-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      InChI
-                    </label>
-                    <textarea
-                      {...registerEdit('chemicalProperties.inchi')}
-                      rows="2"
-                      className="form-input font-mono text-sm"
-                      placeholder="International Chemical Identifier"
-                      defaultValue={ticket.chemicalProperties?.inchi}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      InChI Key
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.inchiKey')}
-                      type="text"
-                      className="form-input font-mono text-sm"
-                      placeholder="Hashed InChI identifier"
-                      defaultValue={ticket.chemicalProperties?.inchiKey}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Synonyms
-                    </label>
-                    <textarea
-                      {...registerEdit('chemicalProperties.synonyms')}
-                      rows="3"
-                      className="form-input"
-                      placeholder="Common names, trade names, alternate chemical names (comma-separated)"
-                      defaultValue={ticket.chemicalProperties?.synonyms}
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      List of common synonyms and alternative names for this chemical
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Hazard Statements
-                    </label>
-                    <textarea
-                      {...registerEdit('chemicalProperties.hazardStatements')}
-                      rows="4"
-                      className="form-input"
-                      placeholder="GHS hazard statements (H-codes), one per line"
-                      defaultValue={ticket.chemicalProperties?.hazardStatements}
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Globally Harmonized System (GHS) hazard statements such as H302, H315, etc.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        UN Number
-                      </label>
-                      <input
-                        {...registerEdit('chemicalProperties.unNumber')}
-                        type="text"
-                        className="form-input"
-                        placeholder="e.g., UN1170"
-                        defaultValue={ticket.chemicalProperties?.unNumber}
-                      />
-                      <p className="mt-1 text-xs text-gray-500">
-                        United Nations number for hazardous materials transport
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 border-t border-gray-200 pt-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Purity Min (%)
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.purity.min')}
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      className="form-input"
-                      placeholder="98.0"
-                      defaultValue={ticket.chemicalProperties?.purity?.min}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Purity Max (%)
-                    </label>
-                    <input
-                      {...registerEdit('chemicalProperties.purity.max')}
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="100"
-                      className="form-input"
-                      placeholder="99.9"
-                      defaultValue={ticket.chemicalProperties?.purity?.max}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quality Specifications */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Quality Specifications</h3>
-              </div>
-              <div className="card-body space-y-6">
-                {/* MQ Quality Level */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    MQ Quality Level
-                  </label>
-                  <select {...registerEdit('quality.mqQualityLevel')} className="form-select max-w-xs" defaultValue={ticket.quality?.mqQualityLevel || 'N/A'}>
-                    <option value="N/A">N/A</option>
-                    <option value="MQ100">MQ100</option>
-                    <option value="MQ200">MQ200</option>
-                    <option value="MQ300">MQ300</option>
-                    <option value="MQ400">MQ400</option>
-                    <option value="MQ500">MQ500</option>
-                    <option value="MQ600">MQ600</option>
-                  </select>
-                </div>
-
-                {/* Quality Attributes Display - Read Only in Edit Mode */}
-                {ticket.quality?.attributes && ticket.quality.attributes.length > 0 ? (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Quality Attributes</label>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Test/Attribute
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Data Source
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Value/Range
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Comments
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {ticket.quality.attributes.map((attr, index) => (
-                            <tr key={index}>
-                              <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                                {attr.testAttribute}
-                              </td>
-                              <td className="px-4 py-3 text-sm">
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  attr.dataSource === 'QC'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-green-100 text-green-800'
-                                }`}>
-                                  {attr.dataSource}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-900">
-                                {attr.valueRange}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-500">
-                                {attr.comments || '-'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <p className="mt-2 text-xs text-gray-500">
-                      Note: Quality attributes cannot be edited after ticket creation. Please create a new ticket to modify quality specifications.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                    <p className="text-sm">No quality attributes defined for this ticket</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Product Composition */}
-            <div className="card">
-              <div className="card-header">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">Product Composition</h3>
-                    <p className="text-sm text-gray-500 mt-1">Define the chemical components that make up this product</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => editAppendComposition({
-                      proprietary: false,
-                      componentCAS: '',
-                      weightPercent: 0,
-                      componentName: '',
-                      componentFormula: ''
-                    })}
-                    className="btn btn-sm btn-secondary"
-                  >
-                    + Add Component
-                  </button>
-                </div>
-              </div>
-              <div className="card-body">
-                {editCompositionFields.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
-                    <p className="text-sm">No components defined. Click "+ Add Component" to add.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Proprietary
-                          </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Component CAS
-                          </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Weight %
-                          </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Component Name
-                          </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Component Formula
-                          </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {editCompositionFields.map((field, index) => (
-                          <tr key={field.id}>
-                            <td className="px-3 py-4 whitespace-nowrap">
-                              <select
-                                {...registerEdit(`composition.components.${index}.proprietary`)}
-                                className="form-select text-sm"
-                                defaultValue={ticket.composition?.components?.[index]?.proprietary || false}
-                              >
-                                <option value="false">No</option>
-                                <option value="true">Yes</option>
-                              </select>
-                            </td>
-                            <td className="px-3 py-4 whitespace-nowrap">
-                              <input
-                                {...registerEdit(`composition.components.${index}.componentCAS`)}
-                                type="text"
-                                className="form-input text-sm w-32"
-                                placeholder="CAS Number"
-                                defaultValue={ticket.composition?.components?.[index]?.componentCAS}
+            <form
+              key={`edit-form-${ticket._id}`}
+              onSubmit={handleSubmitEdit(handleUpdateTicket)}
+              onKeyDown={(e) => {
+                // Prevent Enter key from submitting the form
+                if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                  e.preventDefault();
+                }
+              }}
+              className="space-y-8"
+            >
+              {/* Render all sections dynamically based on template configuration */}
+              {!loadingTemplate && template?.formConfiguration ? (
+                <>
+                  {/* Render template-configured sections */}
+                  {template.formConfiguration.sections
+                    ?.filter(section => section.visible)
+                    .sort((a, b) => (a.order || 0) - (b.order || 0))
+                    .map(section => {
+                      // Use specialized components for sections that need special functionality
+                      switch (section.sectionKey) {
+                        case 'chemical':
+                          return (
+                            <div key={section.sectionKey} id="chemical-properties-section">
+                              <ChemicalPropertiesForm
+                                register={registerEdit}
+                                watch={watchEdit}
+                                setValue={setValueEdit}
+                                errors={editErrors}
+                                autoPopulated={false}
+                                casLookupLoading={false}
+                                onCASLookup={() => {}}
+                                readOnly={false}
+                                showAutoPopulateButton={false}
                               />
-                            </td>
-                            <td className="px-3 py-4 whitespace-nowrap">
-                              <input
-                                {...registerEdit(`composition.components.${index}.weightPercent`, {
-                                  valueAsNumber: true,
-                                  min: 0,
-                                  max: 100
-                                })}
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="100"
-                                className="form-input text-sm w-24"
-                                placeholder="0-100"
-                                defaultValue={ticket.composition?.components?.[index]?.weightPercent}
-                              />
-                            </td>
-                            <td className="px-3 py-4">
-                              <input
-                                {...registerEdit(`composition.components.${index}.componentName`)}
-                                type="text"
-                                className="form-input text-sm w-48"
-                                placeholder="Component Name"
-                                defaultValue={ticket.composition?.components?.[index]?.componentName}
-                              />
-                            </td>
-                            <td className="px-3 py-4">
-                              <input
-                                {...registerEdit(`composition.components.${index}.componentFormula`)}
-                                type="text"
-                                className="form-input text-sm w-32"
-                                placeholder="Formula"
-                                defaultValue={ticket.composition?.components?.[index]?.componentFormula}
-                              />
-                            </td>
-                            <td className="px-3 py-4 whitespace-nowrap">
-                              <button
-                                type="button"
-                                onClick={() => editRemoveComposition(index)}
-                                className="text-red-600 hover:text-red-900 text-sm"
-                              >
-                                Remove
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-                {editCompositionFields.length > 0 && (
-                  <div className="mt-4 text-sm text-gray-600">
-                    <p className="font-medium">Total Weight: {editCompositionFields.reduce((sum, _, idx) => {
-                      const weight = watchEdit(`composition.components.${idx}.weightPercent`) || 0;
-                      return sum + parseFloat(weight);
-                    }, 0).toFixed(2)}%</p>
-                    {Math.abs(editCompositionFields.reduce((sum, _, idx) => {
-                      const weight = watchEdit(`composition.components.${idx}.weightPercent`) || 0;
-                      return sum + parseFloat(weight);
-                    }, 0) - 100) > 0.01 && (
-                      <p className="text-orange-600 mt-1">⚠ Warning: Total weight should equal 100%</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
+                            </div>
+                          );
 
-            {/* Business Information */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Business Information</h3>
-              </div>
-              <div className="card-body space-y-6">
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Primary Plant
-                    </label>
-                    <input
-                      {...registerEdit('primaryPlant')}
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., Milwaukee, St. Louis"
-                      defaultValue={ticket.primaryPlant}
-                    />
-                  </div>
+                        case 'composition':
+                          // Check if composition section is visible
+                          if (!section.visible) return null;
+                          return (
+                            <div key={section.sectionKey} className="card">
+                              <div className="card-header">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <h3 className="text-lg font-medium text-gray-900">Product Composition</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Define the chemical components that make up this product</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => editAppendComposition({
+                                      proprietary: false,
+                                      componentCAS: '',
+                                      weightPercent: 0,
+                                      componentName: '',
+                                      componentFormula: ''
+                                    })}
+                                    className="btn btn-sm btn-secondary"
+                                  >
+                                    + Add Component
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="card-body">
+                                {editCompositionFields.length === 0 ? (
+                                  <div className="text-center py-8 text-gray-500">
+                                    <p>No components added yet.</p>
+                                    <p className="text-sm mt-2">Click "+ Add Component" above to add manually.</p>
+                                  </div>
+                                ) : (
+                                  <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                      <thead className="bg-gray-50">
+                                        <tr>
+                                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Proprietary
+                                          </th>
+                                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Component CAS
+                                          </th>
+                                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Weight %
+                                          </th>
+                                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Component Name
+                                          </th>
+                                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Component Formula
+                                          </th>
+                                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Actions
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="bg-white divide-y divide-gray-200">
+                                        {editCompositionFields.map((field, index) => (
+                                          <tr key={field.id}>
+                                            <td className="px-3 py-4 whitespace-nowrap">
+                                              <select
+                                                {...registerEdit(`composition.components.${index}.proprietary`)}
+                                                className="form-select text-sm"
+                                              >
+                                                <option value="false">No</option>
+                                                <option value="true">Yes</option>
+                                              </select>
+                                            </td>
+                                            <td className="px-3 py-4 whitespace-nowrap">
+                                              <input
+                                                {...registerEdit(`composition.components.${index}.componentCAS`)}
+                                                type="text"
+                                                className="form-input text-sm w-32"
+                                                placeholder="CAS Number"
+                                              />
+                                            </td>
+                                            <td className="px-3 py-4 whitespace-nowrap">
+                                              <input
+                                                {...registerEdit(`composition.components.${index}.weightPercent`, {
+                                                  valueAsNumber: true,
+                                                  min: 0,
+                                                  max: 100
+                                                })}
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="100"
+                                                className="form-input text-sm w-24"
+                                                placeholder="0-100"
+                                              />
+                                            </td>
+                                            <td className="px-3 py-4">
+                                              <input
+                                                {...registerEdit(`composition.components.${index}.componentName`)}
+                                                type="text"
+                                                className="form-input text-sm w-48"
+                                                placeholder="Component Name"
+                                              />
+                                            </td>
+                                            <td className="px-3 py-4">
+                                              <input
+                                                {...registerEdit(`composition.components.${index}.componentFormula`)}
+                                                type="text"
+                                                className="form-input text-sm w-32"
+                                                placeholder="Formula"
+                                              />
+                                            </td>
+                                            <td className="px-3 py-4 whitespace-nowrap">
+                                              <button
+                                                type="button"
+                                                onClick={() => editRemoveComposition(index)}
+                                                className="text-red-600 hover:text-red-900 text-sm"
+                                              >
+                                                Remove
+                                              </button>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                )}
+                                {editCompositionFields.length > 0 && (
+                                  <div className="mt-4 text-sm text-gray-600">
+                                    {(() => {
+                                      const totalWeight = editCompositionFields.reduce((sum, _, idx) => {
+                                        const weight = watchEdit(`composition.components.${idx}.weightPercent`) || 0;
+                                        return sum + parseFloat(weight);
+                                      }, 0);
+                                      const roundedTotal = parseFloat(totalWeight.toFixed(2));
+                                      const isOffBy = Math.abs(roundedTotal - 100) > 0.1;
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Material Group
-                    </label>
-                    <input
-                      {...registerEdit('materialGroup')}
-                      type="text"
-                      className="form-input"
-                      placeholder="SAP Material Group"
-                      defaultValue={ticket.materialGroup}
-                    />
-                  </div>
+                                      return (
+                                        <>
+                                          <p className="font-medium">Total Weight: {roundedTotal.toFixed(2)}%</p>
+                                          {isOffBy && (
+                                            <p className="text-orange-600 mt-1">⚠ Warning: Total weight should equal 100%</p>
+                                          )}
+                                        </>
+                                      );
+                                    })()}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Country of Origin
-                    </label>
-                    <input
-                      {...registerEdit('countryOfOrigin')}
-                      type="text"
-                      className="form-input"
-                      placeholder="e.g., USA, Germany"
-                      defaultValue={ticket.countryOfOrigin}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Brand
-                    </label>
-                    <select {...registerEdit('brand')} className="form-select" defaultValue={ticket.brand || ''}>
-                      <option value="">Select Brand...</option>
-                      <option value="Sigma-Aldrich">Sigma-Aldrich</option>
-                      <option value="Supelco">Supelco</option>
-                      <option value="Millipore">Millipore</option>
-                      <option value="SAFC">SAFC</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      SIAL Product Hierarchy
-                    </label>
-                    <input
-                      {...registerEdit('sialProductHierarchy')}
-                      type="text"
-                      className="form-input"
-                      placeholder="Product hierarchy code"
-                      defaultValue={ticket.sialProductHierarchy}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Product Scope
-                    </label>
-                    <select {...registerEdit('productScope.scope')} className="form-select" defaultValue={ticket.productScope?.scope || ''}>
-                      <option value="">Select Scope...</option>
-                      <option value="Worldwide">Worldwide</option>
-                      <option value="Regional">Regional</option>
-                      <option value="Country-Specific">Country-Specific</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Business Line
-                    </label>
-                    <select {...registerEdit('businessLine.line')} className="form-select" defaultValue={ticket.businessLine?.line || ''}>
-                      <option value="">Select Business Line...</option>
-                      <option value="Research">Research</option>
-                      <option value="Applied">Applied</option>
-                      <option value="Production">Production</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Distribution Type
-                    </label>
-                    <select {...registerEdit('distributionType')} className="form-select" defaultValue={ticket.distributionType || ''}>
-                      <option value="">Select Distribution Type...</option>
-                      <option value="Standard">Standard</option>
-                      <option value="Purchase on Demand">Purchase on Demand</option>
-                      <option value="Dock to Stock">Dock to Stock</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Similar Products
-                    <span className="text-xs text-gray-500 ml-2">(Comma-separated material numbers)</span>
-                  </label>
-                  <input
-                    {...registerEdit('similarProducts')}
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g., 176036, 185647, 192849"
-                    defaultValue={ticket.similarProducts}
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    List of similar products with the same CAS number
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Vendor Information (for Procured products) */}
-            {watchEdit('productionType') === 'Procured' && (
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="text-lg font-medium text-gray-900">Vendor Information</h3>
-                  <p className="text-sm text-gray-500 mt-1">External supplier details for procured products</p>
-                </div>
-                <div className="card-body space-y-6">
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vendor Name
-                      </label>
-                      <input
-                        {...registerEdit('vendorInformation.vendorName')}
-                        type="text"
-                        className="form-input"
-                        placeholder="Supplier company name"
-                        defaultValue={ticket.vendorInformation?.vendorName}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vendor Product Name
-                      </label>
-                      <input
-                        {...registerEdit('vendorInformation.vendorProductName')}
-                        type="text"
-                        className="form-input"
-                        placeholder="Product name from vendor"
-                        defaultValue={ticket.vendorInformation?.vendorProductName}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vendor SAP Number
-                      </label>
-                      <input
-                        {...registerEdit('vendorInformation.vendorSAPNumber')}
-                        type="text"
-                        className="form-input"
-                        placeholder="SAP vendor number"
-                        defaultValue={ticket.vendorInformation?.vendorSAPNumber}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vendor Product Number
-                      </label>
-                      <input
-                        {...registerEdit('vendorInformation.vendorProductNumber')}
-                        type="text"
-                        className="form-input"
-                        placeholder="Vendor's product/catalog number"
-                        defaultValue={ticket.vendorInformation?.vendorProductNumber}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Margin & Pricing Calculation */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">Margin & Pricing Calculation</h3>
-              </div>
-              <div className="card-body space-y-6">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-blue-900 mb-3">Standard Cost Inputs</h4>
-                  
-                  <div className="mb-4">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Base Costing Unit
-                    </label>
-                    <select
-                      {...registerEdit('pricingData.baseUnit')}
-                      className="form-select text-sm w-32"
-                      defaultValue={ticket.pricingData?.baseUnit || 'g'}
-                    >
-                      <option value="mg">mg (milligram)</option>
-                      <option value="g">g (gram)</option>
-                      <option value="kg">kg (kilogram)</option>
-                      <option value="mL">mL (milliliter)</option>
-                      <option value="L">L (liter)</option>
-                      <option value="units">units</option>
-                      <option value="vials">vials</option>
-                      <option value="plates">plates</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Standard Cost ($/{watchEdit('pricingData.baseUnit') || 'unit'})
-                      </label>
-                      <input
-                        {...registerEdit('pricingData.standardCosts.rawMaterialCostPerUnit')}
-                        type="number"
-                        step="0.01"
-                        className="form-input text-sm"
-                        placeholder="0.50"
-                        defaultValue={ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Packaging Cost ($/unit)
-                      </label>
-                      <input
-                        {...registerEdit('pricingData.standardCosts.packagingCost')}
-                        type="number"
-                        step="0.01"
-                        className="form-input text-sm"
-                        placeholder="2.50"
-                        defaultValue={ticket.pricingData?.standardCosts?.packagingCost}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Labor & Overhead ($/unit)
-                      </label>
-                      <input
-                        {...registerEdit('pricingData.standardCosts.laborOverheadCost')}
-                        type="number"
-                        step="0.01"
-                        className="form-input text-sm"
-                        placeholder="5.00"
-                        defaultValue={ticket.pricingData?.standardCosts?.laborOverheadCost}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Standard Cost Display */}
-                  <div className="mt-4 pt-4 border-t border-blue-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-600">Standard Cost per Base Unit:</span>
-                      <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-blue-600 text-white">
-                        ${parseFloat(watchEdit('pricingData.standardCosts.rawMaterialCostPerUnit') || ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || 0).toFixed(2)} / {watchEdit('pricingData.baseUnit') || ticket.pricingData?.baseUnit || 'unit'}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      This value is calculated from your standard cost input above
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-green-900 mb-3">Target Margin</h4>
-                  <div className="max-w-xs">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Target Margin (%)
-                    </label>
-                    <input
-                      {...registerEdit('pricingData.targetMargin')}
-                      type="number"
-                      step="1"
-                      className="form-input text-sm"
-                      placeholder="50"
-                      defaultValue={ticket.pricingData?.targetMargin || 50}
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Single target margin applied to all SKU sizes
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* SKU Variants Edit Section */}
-            <div className="card">
-              <div className="card-header">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">SKU Variants & Pricing</h3>
-                  <button
-                    type="button"
-                    onClick={() => editAppend({
-                      type: 'PREPACK',
-                      sku: '',
-                      packageSize: { value: 100, unit: 'g' },
-                      pricing: { listPrice: 0, currency: 'USD' }
-                    })}
-                    className="btn btn-secondary btn-sm flex items-center space-x-2"
-                  >
-                    <PlusIcon className="h-4 w-4" />
-                    <span>Add SKU</span>
-                  </button>
-                </div>
-              </div>
-              <div className="card-body">
-                {editFields.length === 0 ? (
-                  <div className="text-center py-6">
-                    <p className="text-gray-500">No SKU variants configured</p>
-                    <button
-                      type="button"
-                      onClick={() => editAppend({
-                        type: 'PREPACK',
-                        sku: '',
-                        packageSize: { value: 100, unit: 'g' },
-                        pricing: { listPrice: 0, currency: 'USD' }
-                      })}
-                      className="mt-2 btn btn-primary btn-sm"
-                    >
-                      Add First SKU
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {editFields.map((field, index) => (
-                      <div key={field.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-sm font-medium text-gray-900">SKU Variant #{index + 1}</h4>
-                          {editFields.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => editRemove(index)}
-                              className="text-red-600 hover:text-red-800 p-1"
-                              title="Remove SKU"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          )}
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              SKU Type
-                            </label>
-                            <select
-                              {...registerEdit(`skuVariants.${index}.type`)}
-                              className="form-select"
-                              defaultValue={field.type}
-                            >
-                              <option value="BULK">BULK</option>
-                              <option value="CONF">CONF</option>
-                              <option value="SPEC">SPEC</option>
-                              <option value="VAR">VAR</option>
-                              <option value="PREPACK">PREPACK</option>
-                            </select>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              SKU Code
-                            </label>
-                            <input
-                              {...registerEdit(`skuVariants.${index}.sku`)}
-                              type="text"
-                              className="form-input"
-                              placeholder="e.g., ABC123-1G"
-                              defaultValue={field.sku}
+                        case 'quality':
+                          // Check if quality section is visible
+                          if (!section.visible) return null;
+                          return (
+                            <QualitySpecificationsForm
+                              key={section.sectionKey}
+                              register={registerEdit}
+                              watch={watchEdit}
+                              qualityFields={editQualityFields}
+                              appendQuality={editAppendQuality}
+                              removeQuality={editRemoveQuality}
+                              readOnly={false}
+                              editMode={true}
                             />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Package Size
-                            </label>
-                            <div className="flex space-x-2">
-                              <input
-                                {...registerEdit(`skuVariants.${index}.packageSize.value`)}
-                                type="number"
-                                step="0.01"
-                                className="form-input flex-1"
-                                placeholder="100"
-                                defaultValue={field.packageSize?.value}
+                          );
+
+                        case 'pricing':
+                          return (
+                            <React.Fragment key={section.sectionKey}>
+                              {/* Base Unit Section - appears before pricing */}
+                              <div className="card">
+                                <div className="card-header">
+                                  <h3 className="text-lg font-medium text-gray-900">Base Unit Size</h3>
+                                </div>
+                                <div className="card-body">
+                                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <p className="text-sm text-gray-700 mb-4">
+                                      Define the base unit size for this product. This will be used for:
+                                    </p>
+                                    <ul className="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
+                                      <li>BULK SKU package size (automatically set to this value)</li>
+                                      <li>Pricing calculations (cost per base unit)</li>
+                                      <li>Standard reference for all SKU variants</li>
+                                    </ul>
+                                    <div className="flex items-center space-x-3">
+                                      <div className="flex-1 max-w-md">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                          Base Unit
+                                        </label>
+                                        <div className="flex items-center space-x-2">
+                                          <input
+                                            {...registerEdit('baseUnit.value')}
+                                            type="number"
+                                            step="0.01"
+                                            className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                                            placeholder="Value"
+                                          />
+                                          <select
+                                            {...registerEdit('baseUnit.unit')}
+                                            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                                          >
+                                            <option value="mg">mg</option>
+                                            <option value="g">g</option>
+                                            <option value="kg">kg</option>
+                                            <option value="mL">mL</option>
+                                            <option value="L">L</option>
+                                          </select>
+                                        </div>
+                                        <p className="mt-2 text-xs text-gray-500">
+                                          Example: Set to "100 g" if your bulk product comes in 100 gram units
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <PricingCalculationForm
+                                register={registerEdit}
+                                watch={watchEdit}
+                                readOnly={false}
                               />
-                              <select
-                                {...registerEdit(`skuVariants.${index}.packageSize.unit`)}
-                                className="form-select w-20"
-                                defaultValue={field.packageSize?.unit}
-                              >
-                                <option value="mg">mg</option>
-                                <option value="g">g</option>
-                                <option value="kg">kg</option>
-                                <option value="mL">mL</option>
-                                <option value="L">L</option>
-                                <option value="units">units</option>
-                                <option value="vials">vials</option>
-                                <option value="plates">plates</option>
-                                <option value="bulk">bulk</option>
-                              </select>
+
+                              {/* SKU Variants - shown after pricing */}
+                              <SKUVariantsForm
+                                register={registerEdit}
+                                watch={watchEdit}
+                                setValue={setValueEdit}
+                                fields={editFields}
+                                append={editAppend}
+                                remove={editRemove}
+                                onCalculatePricing={() => {}}
+                                onGenerateStandardSKUs={() => {}}
+                                onSKUTypeChange={() => {}}
+                                onPackageUnitChange={() => {}}
+                                onPackageValueChange={() => {}}
+                                readOnly={false}
+                                showActionButtons={false}
+                                errors={editErrors}
+                              />
+                            </React.Fragment>
+                          );
+
+                        case 'corpbase':
+                          return (
+                            <div key={section.sectionKey} id="corpbase-section">
+                              <CorpBaseDataForm
+                                register={registerEdit}
+                                setValue={setValueEdit}
+                                watch={watchEdit}
+                                onGenerateDescription={() => {}}
+                                readOnly={false}
+                                showGenerateButton={false}
+                                isGenerating={false}
+                                fieldsLoading={{}}
+                              />
                             </div>
-                          </div>
+                          );
 
-                          {/* Physical Dimensions - Only for PREPACK */}
-                          {field.type === 'PREPACK' && (
-                            <>
-                              {/* Gross Weight */}
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Gross Weight
-                                </label>
-                                <div className="flex space-x-2">
-                                  <input
-                                    {...registerEdit(`skuVariants.${index}.grossWeight.value`)}
-                                    type="number"
-                                    step="0.001"
-                                    className="form-input flex-1"
-                                    placeholder="0.0"
-                                    defaultValue={field.grossWeight?.value}
-                                  />
-                                  <select
-                                    {...registerEdit(`skuVariants.${index}.grossWeight.unit`)}
-                                    className="form-select w-20"
-                                    defaultValue={field.grossWeight?.unit || 'g'}
-                                  >
-                                    <option value="mg">mg</option>
-                                    <option value="g">g</option>
-                                    <option value="kg">kg</option>
-                                    <option value="lb">lb</option>
-                                    <option value="oz">oz</option>
-                                  </select>
-                                </div>
-                              </div>
+                        // For all other sections (productionType, basic, vendor, custom sections), use DynamicFormSection
+                        default:
+                          return (
+                            <DynamicFormSection
+                              key={section.sectionKey}
+                              section={section}
+                              register={registerEdit}
+                              errors={editErrors}
+                              watch={watchEdit}
+                              setValue={setValueEdit}
+                              readOnly={false}
+                            />
+                          );
+                      }
+                    })}
+                </>
+              ) : (
+                // Fallback: use full dynamic renderer if template not loaded
+                <DynamicFormRenderer
+                  register={registerEdit}
+                  errors={editErrors}
+                  watch={watchEdit}
+                  setValue={setValueEdit}
+                  readOnly={false}
+                  formConfiguration={template?.formConfiguration}
+                />
+              )}
 
-                              {/* Net Weight */}
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Net Weight
-                                </label>
-                                <div className="flex space-x-2">
-                                  <input
-                                    {...registerEdit(`skuVariants.${index}.netWeight.value`)}
-                                    type="number"
-                                    step="0.001"
-                                    className="form-input flex-1"
-                                    placeholder="0.0"
-                                    defaultValue={field.netWeight?.value}
-                                  />
-                                  <select
-                                    {...registerEdit(`skuVariants.${index}.netWeight.unit`)}
-                                    className="form-select w-20"
-                                    defaultValue={field.netWeight?.unit || 'g'}
-                                  >
-                                    <option value="mg">mg</option>
-                                    <option value="g">g</option>
-                                    <option value="kg">kg</option>
-                                    <option value="lb">lb</option>
-                                    <option value="oz">oz</option>
-                                  </select>
-                                </div>
-                              </div>
-
-                              {/* Volume */}
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Volume
-                                </label>
-                                <div className="flex space-x-2">
-                                  <input
-                                    {...registerEdit(`skuVariants.${index}.volume.value`)}
-                                    type="number"
-                                    step="0.001"
-                                    className="form-input flex-1"
-                                    placeholder="0.0"
-                                    defaultValue={field.volume?.value}
-                                  />
-                                  <select
-                                    {...registerEdit(`skuVariants.${index}.volume.unit`)}
-                                    className="form-select w-20"
-                                    defaultValue={field.volume?.unit || 'mL'}
-                                  >
-                                    <option value="µL">µL</option>
-                                    <option value="mL">mL</option>
-                                    <option value="L">L</option>
-                                    <option value="gal">gal</option>
-                                    <option value="fl oz">fl oz</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </>
-                          )}
-
-                          {/* Only show pricing for non-VAR/SPEC/CONF types */}
-                          {!['VAR', 'SPEC', 'CONF'].includes(field.type) && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                List Price ($)
-                              </label>
-                              {canEditPricing() ? (
-                                <input
-                                  {...registerEdit(`skuVariants.${index}.pricing.listPrice`)}
-                                  type="number"
-                                  step="0.01"
-                                  className="form-input"
-                                  placeholder="0.00"
-                                  defaultValue={field.pricing?.listPrice}
-                                  onChange={(e) => {
-                                    const listPrice = e.target.value;
-                                    const currentStandardCost = watchEdit(`skuVariants.${index}.pricing.standardCost`) || field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : 0);
-                                    const calculatedMargin = calculateMargin(currentStandardCost, listPrice);
-                                    setValueEdit(`skuVariants.${index}.pricing.margin`, calculatedMargin);
-                                  }}
-                                />
-                              ) : (
-                                <div className="form-input bg-gray-50 border-gray-200 text-gray-700">
-                                  {field.pricing?.listPrice ? `$${field.pricing.listPrice}` : 'Not set'}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Additional pricing fields - Only for non-VAR/SPEC/CONF types */}
-                        {!['VAR', 'SPEC', 'CONF'].includes(field.type) && (
-                          <div className="mt-4 pt-4 border-t border-gray-100">
-                            <div className="flex items-center justify-between mb-3">
-                              <h5 className="text-xs font-medium text-gray-700">Advanced Pricing (Optional)</h5>
-                              {!canEditPricing() && (
-                                <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                                  Pricing preserved from Product Manager
-                                </span>
-                              )}
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                              <div>
-                                <label className="block text-xs font-medium text-green-700 mb-1">
-                                  Standard Cost ($)
-                                  {field.type === 'BULK' && <span className="text-green-600 ml-1">(from Raw Material Cost)</span>}
-                                </label>
-                                {canEditPricing() ? (
-                                  <input
-                                    {...registerEdit(`skuVariants.${index}.pricing.standardCost`)}
-                                    type="number"
-                                    step="0.01"
-                                    className="form-input text-sm bg-green-50 border-green-200 font-medium"
-                                    placeholder="0.00"
-                                    defaultValue={field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : undefined)}
-                                    onChange={(e) => {
-                                      const standardCost = e.target.value;
-                                      const currentMargin = watchEdit(`skuVariants.${index}.pricing.margin`) || 50;
-                                      const calculatedPrice = calculateListPrice(standardCost, currentMargin);
-                                      setValueEdit(`skuVariants.${index}.pricing.listPrice`, calculatedPrice);
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="form-input text-sm bg-green-50 border-green-200 text-green-700 font-medium">
-                                    {field.pricing?.standardCost ? `$${field.pricing.standardCost}` : (field.type === 'BULK' && ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit ? `$${ticket.pricingData.standardCosts.rawMaterialCostPerUnit}` : 'Not set')}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div>
-                                <label className="block text-xs font-medium text-blue-700 mb-1">
-                                  Margin (%)
-                                </label>
-                                {canEditPricing() ? (
-                                  <input
-                                    {...registerEdit(`skuVariants.${index}.pricing.margin`)}
-                                    type="number"
-                                    step="1"
-                                    className="form-input text-sm bg-blue-50 border-blue-200"
-                                    placeholder="50"
-                                    defaultValue={field.pricing?.margin || 50}
-                                    onChange={(e) => {
-                                      const margin = e.target.value;
-                                      const currentStandardCost = watchEdit(`skuVariants.${index}.pricing.standardCost`) || field.pricing?.standardCost || (field.type === 'BULK' ? ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit : 0);
-                                      const calculatedPrice = calculateListPrice(currentStandardCost, margin);
-                                      setValueEdit(`skuVariants.${index}.pricing.listPrice`, calculatedPrice);
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="form-input text-sm bg-gray-50 border-gray-200 text-gray-700">
-                                    {field.pricing?.margin ? `${field.pricing.margin}%` : 'Not set'}
-                                  </div>
-                                )}
-                              </div>
-
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                  Currency
-                                </label>
-                                <select
-                                  {...registerEdit(`skuVariants.${index}.pricing.currency`)}
-                                  className="form-select text-sm"
-                                  defaultValue={field.pricing?.currency || 'USD'}
-                                >
-                                  <option value="USD">USD</option>
-                                  <option value="EUR">EUR</option>
-                                  <option value="GBP">GBP</option>
-                                  <option value="JPY">JPY</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Forecasted Sales Volume - Only for PREPACK */}
-                        {watchEdit(`skuVariants.${index}.type`) === 'PREPACK' && (
-                          <div className="mt-4 pt-4 border-t border-gray-200">
-                            <h5 className="text-sm font-medium text-gray-900 mb-3">Forecasted Sales Volume (Containers)</h5>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                  Year 1
-                                </label>
-                                <input
-                                  {...registerEdit(`skuVariants.${index}.forecastedSalesVolume.year1`)}
-                                  type="number"
-                                  step="1"
-                                  min="0"
-                                  className="form-input text-sm"
-                                  placeholder="0"
-                                  defaultValue={field.forecastedSalesVolume?.year1}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                  Year 2
-                                </label>
-                                <input
-                                  {...registerEdit(`skuVariants.${index}.forecastedSalesVolume.year2`)}
-                                  type="number"
-                                  step="1"
-                                  min="0"
-                                  className="form-input text-sm"
-                                  placeholder="0"
-                                  defaultValue={field.forecastedSalesVolume?.year2}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">
-                                  Year 3
-                                </label>
-                                <input
-                                  {...registerEdit(`skuVariants.${index}.forecastedSalesVolume.year3`)}
-                                  type="number"
-                                  step="1"
-                                  min="0"
-                                  className="form-input text-sm"
-                                  placeholder="0"
-                                  defaultValue={field.forecastedSalesVolume?.year3}
-                                />
-                              </div>
-                            </div>
-                            <p className="mt-2 text-xs text-gray-500">
-                              Enter forecasted number of containers to be sold annually
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+              {/* Submit Buttons - Enhanced Styling */}
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    <p className="font-medium">Ready to save your changes?</p>
+                    <p>Your changes will be {ticket.status === 'DRAFT' ? 'saved as a draft or submitted for review' : 'saved immediately'}.</p>
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* CorpBase Website Information */}
-            <div className="card">
-              <div className="card-header">
-                <h3 className="text-lg font-medium text-gray-900">CorpBase Website Information</h3>
-              </div>
-              <div className="card-body space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Product Description
-                  </label>
-                  <textarea
-                    {...registerEdit('corpbaseData.productDescription')}
-                    rows="4"
-                    className="form-input"
-                    placeholder="Product description..."
-                    defaultValue={ticket.corpbaseData?.productDescription}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Website Title
-                    </label>
-                    <input
-                      {...registerEdit('corpbaseData.websiteTitle')}
-                      type="text"
-                      className="form-input"
-                      placeholder="SEO-optimized title for website"
-                      defaultValue={ticket.corpbaseData?.websiteTitle}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Meta Description
-                    </label>
-                    <textarea
-                      {...registerEdit('corpbaseData.metaDescription')}
-                      rows="2"
-                      className="form-input"
-                      placeholder="Brief description for search engines (150-160 characters)"
-                      defaultValue={ticket.corpbaseData?.metaDescription}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Key Features & Benefits
-                  </label>
-                  <textarea
-                    {...registerEdit('corpbaseData.keyFeatures')}
-                    rows="3"
-                    className="form-input"
-                    placeholder="• High purity and quality&#10;• Suitable for research applications&#10;• Available in multiple sizes"
-                    defaultValue={Array.isArray(ticket.corpbaseData?.keyFeatures) ?
-                      ticket.corpbaseData.keyFeatures.join('\n') :
-                      ticket.corpbaseData?.keyFeatures}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Applications
-                    </label>
-                    <textarea
-                      {...registerEdit('corpbaseData.applications')}
-                      rows="3"
-                      className="form-input"
-                      placeholder="List key applications..."
-                      defaultValue={Array.isArray(ticket.corpbaseData?.applications) ?
-                        ticket.corpbaseData.applications.join('\n') :
-                        ticket.corpbaseData?.applications}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Target Industries
-                    </label>
-                    <textarea
-                      {...registerEdit('corpbaseData.targetIndustries')}
-                      rows="3"
-                      className="form-input"
-                      placeholder="Pharmaceutical, Biotechnology, Research..."
-                      defaultValue={ticket.corpbaseData?.targetIndustries}
-                    />
-                  </div>
-                </div>
-
-                {/* UNSPSC Code */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    UNSPSC Code
-                    <span className="text-xs text-gray-500 ml-2">(United Nations Standard Products and Services Code)</span>
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      {...registerEdit('corpbaseData.unspscCode')}
-                      type="text"
-                      className="form-input flex-1"
-                      placeholder="e.g., 12141512 - Sodium hydroxide"
-                      defaultValue={ticket.corpbaseData?.unspscCode}
-                      readOnly
-                    />
+                  <div className="flex items-center space-x-3">
                     <button
                       type="button"
-                      onClick={() => setIsUNSPSCSelectorOpen(true)}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      onClick={() => setEditMode(false)}
+                      className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                     >
-                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      Browse
+                      Cancel
                     </button>
-                  </div>
-                  {watchEdit('corpbaseData.unspscCode') && (
-                    <p className="mt-1 text-sm text-gray-600">
-                      Selected: <span className="font-medium">{watchEdit('corpbaseData.unspscCode')}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
 
-            {/* Dynamic Custom Sections (added by admin via Form Configuration) */}
-            <DynamicCustomSections
-              register={registerEdit}
-              errors={editErrors}
-              watch={watchEdit}
-              readOnly={!editMode}
-            />
+                    {ticket.status === 'DRAFT' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const data = watchEdit();
+                            setUpdateLoading(true);
+                            try {
+                              await productAPI.updateTicket(id, { ...data, status: 'DRAFT' });
+                              toast.success('Draft saved successfully!');
+                              setEditMode(false);
+                              fetchTicket();
+                            } catch (error) {
+                              toast.error('Failed to save draft');
+                            } finally {
+                              setUpdateLoading(false);
+                            }
+                          }}
+                          disabled={updateLoading}
+                          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                          <span>{updateLoading ? 'Saving...' : 'Save Draft'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const data = watchEdit();
+                            setUpdateLoading(true);
+                            try {
+                              const submitData = { ...data, status: 'SUBMITTED' };
+                              await productAPI.updateTicket(id, submitData);
+                              toast.success('Ticket submitted successfully!');
+                              setEditMode(false);
+                              fetchTicket();
+                            } catch (error) {
+                              toast.error('Failed to submit ticket');
+                            } finally {
+                              setUpdateLoading(false);
+                            }
+                          }}
+                          disabled={updateLoading}
+                          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center space-x-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                          <span>{updateLoading ? 'Submitting...' : 'Submit Ticket'}</span>
+                        </button>
+                      </>
+                    )}
 
-            {/* Submit Buttons - Enhanced Styling */}
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  <p className="font-medium">Ready to save your changes?</p>
-                  <p>Your changes will be {ticket.status === 'DRAFT' ? 'saved as a draft or submitted for review' : 'saved immediately'}.</p>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setEditMode(false)}
-                    className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  
-                  {ticket.status === 'DRAFT' && (
-                    <>
+                    {ticket.status !== 'DRAFT' && (
                       <button
-                        type="button"
-                        onClick={async () => {
-                          const data = watchEdit();
-                          setUpdateLoading(true);
-                          try {
-                            await productAPI.updateTicket(id, { ...data, status: 'DRAFT' });
-                            toast.success('Draft saved successfully!');
-                            setEditMode(false);
-                            fetchTicket();
-                          } catch (error) {
-                            toast.error('Failed to save draft');
-                          } finally {
-                            setUpdateLoading(false);
-                          }
-                        }}
-                        disabled={updateLoading}
-                        className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center space-x-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        <span>{updateLoading ? 'Saving...' : 'Save Draft'}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const data = watchEdit();
-                          setUpdateLoading(true);
-                          try {
-                            const submitData = { ...data, status: 'SUBMITTED' };
-                            await productAPI.updateTicket(id, submitData);
-                            toast.success('Ticket submitted successfully!');
-                            setEditMode(false);
-                            fetchTicket();
-                          } catch (error) {
-                            toast.error('Failed to submit ticket');
-                          } finally {
-                            setUpdateLoading(false);
-                          }
-                        }}
+                        type="submit"
                         disabled={updateLoading}
                         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center space-x-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span>{updateLoading ? 'Submitting...' : 'Submit Ticket'}</span>
+                        <span>{updateLoading ? 'Saving...' : 'Save Changes'}</span>
                       </button>
-                    </>
-                  )}
-                  
-                  {ticket.status !== 'DRAFT' && (
-                    <button
-                      type="submit"
-                      disabled={updateLoading}
-                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center space-x-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>{updateLoading ? 'Saving...' : 'Save Changes'}</span>
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
             </form>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+        <>
+          {/* PMOps Tabbed View */}
+          {isPMOPS || isAdmin ? (
+            <div className="space-y-6">
+              {/* Ticket Info - Full Width, Compact Horizontal Layout */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="text-lg font-medium text-gray-900">Ticket Information</h3>
+                </div>
+                <div className="card-body">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+                    <div className="flex items-center space-x-2">
+                      <UserIcon className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-xs text-gray-500">Created by</p>
+                        <p className="text-sm text-gray-900 font-medium">
+                          {(() => {
+                            // First check if createdBy is populated
+                            if (ticket.createdBy?.firstName && ticket.createdBy?.lastName) {
+                              return `${ticket.createdBy.firstName} ${ticket.createdBy.lastName}`;
+                            }
+                            if (ticket.createdBy?.name) return ticket.createdBy.name;
+                            if (ticket.createdBy?.email) return ticket.createdBy.email;
+
+                            // Fall back to statusHistory for creator info
+                            const creationEntry = ticket.statusHistory?.find(h => h.action === 'TICKET_CREATED');
+                            if (creationEntry?.userInfo?.firstName && creationEntry?.userInfo?.lastName) {
+                              return `${creationEntry.userInfo.firstName} ${creationEntry.userInfo.lastName}`;
+                            }
+                            if (creationEntry?.userInfo?.name) return creationEntry.userInfo.name;
+
+                            return 'Unknown User';
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <CalendarIcon className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-xs text-gray-500">Created</p>
+                        <p className="text-sm text-gray-900">
+                          {new Date(ticket.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <CalendarIcon className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-xs text-gray-500">Last Updated</p>
+                        <p className="text-sm text-gray-900">
+                          {new Date(ticket.updatedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <TagIcon className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-xs text-gray-500">Status</p>
+                        <StatusBadge status={ticket.status} />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <div>
+                        <p className="text-xs text-gray-500">Priority</p>
+                        <PriorityBadge priority={ticket.priority} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main Tabbed Content - Full Width */}
+              <PMOpsTabView ticket={ticket} onTicketUpdate={fetchTicket} />
+
+              {/* Comments - Full Width, Below Content */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="text-lg font-medium text-gray-900">Comments</h3>
+                </div>
+                <div className="card-body space-y-6">
+                  {/* Add Comment Form */}
+                  <form
+                    onSubmit={handleSubmit(handleAddComment)}
+                    onKeyDown={(e) => {
+                      // Allow Enter in textarea for multi-line comments
+                      // Prevent Enter from submitting form accidentally
+                      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="space-y-4"
+                  >
+                    <div>
+                      <textarea
+                        {...register('content', { required: 'Comment is required' })}
+                        rows="3"
+                        className="form-input"
+                        placeholder="Add a comment..."
+                      />
+                      {errors.content && (
+                        <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+                      )}
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="submit"
+                        disabled={commentLoading}
+                        className="btn btn-primary"
+                      >
+                        {commentLoading ? 'Adding...' : 'Add Comment'}
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Comments List */}
+                  {ticket.comments && ticket.comments.length > 0 ? (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {ticket.comments.map((comment, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="h-6 w-6 bg-millipore-blue rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-medium">
+                                {comment.userInfo?.firstName?.[0]}{comment.userInfo?.lastName?.[0]}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-900">
+                                {comment.userInfo?.firstName} {comment.userInfo?.lastName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(comment.timestamp).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-900">{comment.content}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-4">
+                      No comments yet.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Activity History - Full Width, Below Comments */}
+              {ticket.statusHistory && ticket.statusHistory.length > 0 && (
+                <div className="card">
+                  <div className="card-header">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium text-gray-900">Activity History</h3>
+                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        {ticket.statusHistory.length} activities
+                      </span>
+                    </div>
+                  </div>
+                  <div className="card-body">
+                    <div className="space-y-4">
+                      {ticket.statusHistory.slice().reverse().map((history, index) => {
+                        const getActionIcon = (action) => {
+                          // Icons removed - using color-coded backgrounds instead
+                          return null;
+                        };
+
+                        const getActionColor = (action) => {
+                          switch(action) {
+                            case 'TICKET_CREATED':
+                              return 'text-blue-600 bg-blue-50 border-blue-200';
+                            case 'STATUS_CHANGE':
+                              return 'text-purple-600 bg-purple-50 border-purple-200';
+                            case 'SKU_ASSIGNMENT':
+                              return 'text-green-600 bg-green-50 border-green-200';
+                            case 'TICKET_EDIT':
+                              return 'text-orange-600 bg-orange-50 border-orange-200';
+                            case 'COMMENT_ADDED':
+                              return 'text-gray-600 bg-gray-50 border-gray-200';
+                            case 'NPDI_INITIATED':
+                              return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+                            default:
+                              return 'text-gray-600 bg-gray-50 border-gray-200';
+                          }
+                        };
+
+                        return (
+                          <div key={index} className={`border rounded-lg p-3 ${getActionColor(history.action)}`}>
+                            <div className="flex items-start">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
+                                  <div className="flex items-center space-x-2">
+                                    <StatusBadge status={history.status} />
+                                    <span className="text-xs font-medium text-gray-700 capitalize">
+                                      {(history.action || 'status_change').replace('_', ' ').toLowerCase()}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {new Date(history.changedAt).toLocaleDateString()} at{' '}
+                                    {new Date(history.changedAt).toLocaleTimeString([], {
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </div>
+                                  {(history.changedBy || history.userInfo) && (
+                                    <div className="text-xs text-gray-600 font-medium">
+                                      by {history.changedBy?.firstName || history.userInfo?.firstName}{' '}
+                                      {history.changedBy?.lastName || history.userInfo?.lastName}
+                                      {history.userInfo?.role && (
+                                        <span className="text-xs text-gray-500 ml-1">
+                                          ({history.userInfo.role})
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                {history.reason && (
+                                  <p className="text-sm text-gray-700 mt-1 leading-relaxed break-words overflow-wrap-anywhere">
+                                    {history.reason}
+                                  </p>
+                                )}
+
+                                {/* Special display for NPDI Initiation */}
+                                {history.action === 'NPDI_INITIATED' && history.details && (
+                                  <div className="mt-3 bg-white rounded-lg border border-emerald-200 p-3">
+                                    <div className="text-xs font-semibold text-emerald-800 mb-2">Ticket Number Change:</div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                      <div>
+                                        <span className="text-gray-500 font-medium">Original Number:</span>
+                                        <div className="text-gray-900 font-mono font-semibold mt-1">
+                                          {history.details.previousTicketNumber}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="text-emerald-600 font-medium">NPDI Number:</span>
+                                        <div className="text-emerald-700 font-mono font-semibold mt-1">
+                                          {history.details.newTicketNumber}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {history.details.initiatedAt && (
+                                      <div className="mt-2 pt-2 border-t border-emerald-100 text-xs text-gray-600">
+                                        <span className="font-medium">Initiated:</span> {new Date(history.details.initiatedAt).toLocaleString()}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Generic details display for other actions */}
+                                {history.action !== 'NPDI_INITIATED' && history.details && (
+                                  <div className="mt-2 text-xs text-gray-600 bg-white/50 rounded p-2 break-words overflow-wrap-anywhere">
+                                    <strong>Details:</strong>
+                                    {typeof history.details === 'object'
+                                      ? Object.entries(history.details).map(([key, value]) => (
+                                          <span key={key} className="ml-2 inline-block">
+                                            {key}: {JSON.stringify(value)}
+                                          </span>
+                                        ))
+                                      : history.details
+                                    }
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Content */}
+              <div className="lg:col-span-2 space-y-6">
           {/* Basic Information */}
           <div className="card">
             <div className="card-header">
@@ -2909,6 +2191,78 @@ const TicketDetails = () => {
             </div>
           )}
 
+          {/* Base Unit Size - Only visible to Product Managers in edit mode */}
+          {isProductManager && editMode && canEdit() && (
+            <div className="card">
+              <div className="card-header">
+                <h3 className="text-lg font-medium text-gray-900">Base Unit Size</h3>
+              </div>
+              <div className="card-body">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm text-gray-700 mb-4">
+                    Define the base unit size for this product. This will be used for:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
+                    <li>Calculating standard costs and pricing</li>
+                    <li>Default package size for BULK SKU variants</li>
+                    <li>Standard reference for all SKU variants</li>
+                  </ul>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex-1 max-w-md">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Base Unit
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          {...registerEdit('baseUnit.value')}
+                          type="number"
+                          step="0.01"
+                          className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                          placeholder="Value"
+                          defaultValue={ticket.baseUnit?.value || 1}
+                        />
+                        <select
+                          {...registerEdit('baseUnit.unit')}
+                          className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                          defaultValue={ticket.baseUnit?.unit || 'kg'}
+                        >
+                          <option value="mg">mg</option>
+                          <option value="g">g</option>
+                          <option value="kg">kg</option>
+                          <option value="mL">mL</option>
+                          <option value="L">L</option>
+                        </select>
+                      </div>
+                      <p className="mt-2 text-xs text-gray-500">
+                        Example: Set to "1 kg" if this product's base packaging is 1 kilogram
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Base Unit Size Display - View mode for Product Managers */}
+          {isProductManager && !editMode && ticket.baseUnit && (
+            <div className="card">
+              <div className="card-header">
+                <h3 className="text-lg font-medium text-gray-900">Base Unit Size</h3>
+              </div>
+              <div className="card-body">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">Base Unit</label>
+                    <p className="text-lg font-semibold text-gray-900">
+                      {ticket.baseUnit?.value || 1} {ticket.baseUnit?.unit || 'kg'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">Used for cost calculations and BULK SKU sizing</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Pricing Information - Only visible to Product Managers */}
           {(ticket.standardCost || ticket.pricingData) && isProductManager && (
             <div className="card">
@@ -3468,22 +2822,8 @@ const TicketDetails = () => {
                 <div className="space-y-4">
                   {ticket.statusHistory.slice().reverse().map((history, index) => {
                     const getActionIcon = (action) => {
-                      switch(action) {
-                        case 'TICKET_CREATED':
-                          return '🎫';
-                        case 'STATUS_CHANGE':
-                          return '🔄';
-                        case 'SKU_ASSIGNMENT':
-                          return '🏷️';
-                        case 'TICKET_EDIT':
-                          return '✏️';
-                        case 'COMMENT_ADDED':
-                          return '💬';
-                        case 'NPDI_INITIATED':
-                          return '🚀';
-                        default:
-                          return '📝';
-                      }
+                      // Icons removed - using color-coded backgrounds instead
+                      return null;
                     };
 
                     const getActionColor = (action) => {
@@ -3507,10 +2847,7 @@ const TicketDetails = () => {
 
                     return (
                       <div key={index} className={`border rounded-lg p-3 ${getActionColor(history.action)}`}>
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0 text-lg">
-                            {getActionIcon(history.action)}
-                          </div>
+                        <div className="flex items-start">
                           <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
                               <div className="flex items-center space-x-2">
@@ -3547,7 +2884,7 @@ const TicketDetails = () => {
                             {/* Special display for NPDI Initiation */}
                             {history.action === 'NPDI_INITIATED' && history.details && (
                               <div className="mt-3 bg-white rounded-lg border border-emerald-200 p-3">
-                                <div className="text-xs font-semibold text-emerald-800 mb-2">📋 Ticket Number Change:</div>
+                                <div className="text-xs font-semibold text-emerald-800 mb-2">Ticket Number Change:</div>
                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                   <div>
                                     <span className="text-gray-500 font-medium">Original Number:</span>
@@ -3601,7 +2938,17 @@ const TicketDetails = () => {
             </div>
             <div className="card-body space-y-6">
               {/* Add Comment Form */}
-              <form onSubmit={handleSubmit(handleAddComment)} className="space-y-4">
+              <form
+                onSubmit={handleSubmit(handleAddComment)}
+                onKeyDown={(e) => {
+                  // Allow Enter in textarea for multi-line comments
+                  // Prevent Enter from submitting form accidentally
+                  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                    e.preventDefault();
+                  }
+                }}
+                className="space-y-4"
+              >
                 <div>
                   <textarea
                     {...register('content', { required: 'Comment is required' })}
@@ -3659,6 +3006,8 @@ const TicketDetails = () => {
           </div>
           </div>
         </div>
+          )}
+        </>
       )}
 
       {/* UNSPSC Selector Modal */}

@@ -194,6 +194,20 @@ const ChemicalPropertiesForm = ({
               className={`form-input ${getSAPImportedClass('chemicalProperties.casNumber')}`}
               placeholder="e.g., 64-17-5"
               readOnly={readOnly}
+              onChange={(e) => {
+                // Automatically trim leading and trailing spaces
+                const trimmedValue = e.target.value.trim();
+                if (trimmedValue !== e.target.value) {
+                  setValue('chemicalProperties.casNumber', trimmedValue, { shouldDirty: true });
+                }
+              }}
+              onPaste={(e) => {
+                // Handle paste events to trim immediately
+                e.preventDefault();
+                const pastedText = e.clipboardData.getData('text');
+                const trimmedText = pastedText.trim();
+                setValue('chemicalProperties.casNumber', trimmedText, { shouldDirty: true });
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { productAPI } from '../services/api';
 import { DocumentIcon, EyeIcon, PlusIcon } from '@heroicons/react/24/outline';
@@ -12,6 +12,8 @@ const TicketList = () => {
   const [tickets, setTickets] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const searchTimeoutRef = useRef(null);
 
   // Initialize filters from URL params
   const getFiltersFromURL = () => ({
@@ -44,6 +46,21 @@ const TicketList = () => {
     }
   };
 
+  // Debounced search handler
+  const handleSearchChange = (value) => {
+    setSearchInput(value);
+
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout to update filters after 500ms of no typing
+    searchTimeoutRef.current = setTimeout(() => {
+      handleFilterChange('search', value);
+    }, 500);
+  };
+
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value, page: 1 };
     setFilters(newFilters);
@@ -56,6 +73,23 @@ const TicketList = () => {
     if (newFilters.page > 1) params.set('page', newFilters.page.toString());
     setSearchParams(params);
   };
+
+  // Sync searchInput with URL params when they change (e.g., browser back/forward)
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') || '';
+    if (urlSearch !== searchInput) {
+      setSearchInput(urlSearch);
+    }
+  }, [searchParams]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handlePageChange = (newPage) => {
     const newFilters = { ...filters, page: newPage };
@@ -107,8 +141,8 @@ const TicketList = () => {
               <input
                 type="text"
                 placeholder="Search tickets..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
+                value={searchInput}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="form-input"
               />
             </div>
@@ -145,8 +179,12 @@ const TicketList = () => {
             <div>
               <button
                 onClick={() => {
+                  setSearchInput('');
                   setFilters({ status: '', priority: '', search: '', page: 1 });
                   setSearchParams(new URLSearchParams());
+                  if (searchTimeoutRef.current) {
+                    clearTimeout(searchTimeoutRef.current);
+                  }
                 }}
                 className="btn btn-secondary w-full"
               >
