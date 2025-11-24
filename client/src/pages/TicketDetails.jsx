@@ -874,6 +874,54 @@ const TicketDetails = () => {
                         case 'pricing':
                           return (
                             <React.Fragment key={section.sectionKey}>
+                              {/* Base Unit Section - appears before pricing */}
+                              <div className="card">
+                                <div className="card-header">
+                                  <h3 className="text-lg font-medium text-gray-900">Base Unit Size</h3>
+                                </div>
+                                <div className="card-body">
+                                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <p className="text-sm text-gray-700 mb-4">
+                                      Define the base unit size for this product. This will be used for:
+                                    </p>
+                                    <ul className="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
+                                      <li>BULK SKU package size (automatically set to this value)</li>
+                                      <li>Pricing calculations (cost per base unit)</li>
+                                      <li>Standard reference for all SKU variants</li>
+                                    </ul>
+                                    <div className="flex items-center space-x-3">
+                                      <div className="flex-1 max-w-md">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                          Base Unit
+                                        </label>
+                                        <div className="flex items-center space-x-2">
+                                          <input
+                                            {...registerEdit('baseUnit.value')}
+                                            type="number"
+                                            step="0.01"
+                                            className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                                            placeholder="Value"
+                                          />
+                                          <select
+                                            {...registerEdit('baseUnit.unit')}
+                                            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                                          >
+                                            <option value="mg">mg</option>
+                                            <option value="g">g</option>
+                                            <option value="kg">kg</option>
+                                            <option value="mL">mL</option>
+                                            <option value="L">L</option>
+                                          </select>
+                                        </div>
+                                        <p className="mt-2 text-xs text-gray-500">
+                                          Example: Set to "100 g" if your bulk product comes in 100 gram units
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
                               <PricingCalculationForm
                                 register={registerEdit}
                                 watch={watchEdit}
