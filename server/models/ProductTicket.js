@@ -6,6 +6,11 @@ const skuVariantSchema = new mongoose.Schema({
     enum: ['BULK', 'CONF', 'SPEC', 'VAR', 'PREPACK'],
     required: true
   },
+  suffix: {
+    type: String,
+    required: false
+    // Part number suffix (e.g., "100G", "1KG" for PREPACK, or "BULK", "VAR", "CONF", "SPEC" for other types)
+  },
   sku: {
     type: String,
     required: false
@@ -17,11 +22,11 @@ const skuVariantSchema = new mongoose.Schema({
   packageSize: {
     value: {
       type: Number,
-      required: true
+      required: false
     },
     unit: {
       type: String,
-      required: true,
+      required: false,
       enum: ['mg', 'g', 'kg', 'mL', 'L', 'EA', 'units', 'vials', 'plates', 'bulk']
     }
   },
@@ -492,6 +497,13 @@ const productTicketSchema = new mongoose.Schema({
       type: String  // Email address from profile
     },
     assignedAt: Date
+  },
+  baseUnit: {
+    value: Number,
+    unit: {
+      type: String,
+      enum: ['mg', 'g', 'kg', 'mL', 'L']
+    }
   },
   npdiTracking: {
     trackingNumber: String,  // Official NPDI tracking number from external NPDI system

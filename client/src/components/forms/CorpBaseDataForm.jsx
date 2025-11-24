@@ -405,15 +405,29 @@ const CorpBaseDataForm = ({
               <div className="px-6 py-4">
                 {/* Preview Section */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                      <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                    </svg>
-                    Rendered HTML Preview
-                  </h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                      </svg>
+                      Rendered HTML Preview
+                    </h4>
+                    <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">
+                      ✓ Accurate website rendering
+                    </span>
+                  </div>
                   <div
-                    className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm prose prose-sm max-w-none min-h-[100px] [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:my-2 [&_li]:my-1"
+                    className="p-4 bg-white border-2 border-blue-200 rounded-lg shadow-sm min-h-[100px]
+                               [&_p]:mb-3 [&_p]:leading-relaxed [&_p]:text-gray-800
+                               [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:my-3 [&_ul]:space-y-1.5
+                               [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:my-3 [&_ol]:space-y-1.5
+                               [&_li]:text-gray-700 [&_li]:leading-relaxed
+                               [&_strong]:font-semibold [&_strong]:text-gray-900
+                               [&_em]:italic [&_em]:text-gray-700
+                               [&_sub]:text-xs [&_sub]:align-sub
+                               [&_sup]:text-xs [&_sup]:align-super
+                               text-base"
                     dangerouslySetInnerHTML={{ __html: fixOrphanedListItems(editedHtml) }}
                   />
                 </div>
@@ -474,73 +488,73 @@ const CorpBaseDataForm = ({
                       <span className="text-xs text-gray-600 font-medium self-center mr-2">Symbols:</span>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('°')}
+                        onClick={() => insertSymbol('&deg;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
-                        title="Degree symbol (°)"
+                        title="Degree symbol (&deg;)"
                       >
                         °
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('±')}
+                        onClick={() => insertSymbol('&plusmn;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
-                        title="Plus-minus symbol (±)"
+                        title="Plus-minus symbol (&plusmn;)"
                       >
                         ±
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('≥')}
+                        onClick={() => insertSymbol('&ge;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
-                        title="Greater than or equal to (≥)"
+                        title="Greater than or equal to (&ge;)"
                       >
                         ≥
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('≤')}
+                        onClick={() => insertSymbol('&le;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
-                        title="Less than or equal to (≤)"
+                        title="Less than or equal to (&le;)"
                       >
                         ≤
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('™')}
+                        onClick={() => insertSymbol('&trade;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
-                        title="Trademark symbol (™)"
+                        title="Trademark symbol (&trade;)"
                       >
                         ™
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('®')}
+                        onClick={() => insertSymbol('&reg;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium"
-                        title="Registered trademark (®)"
+                        title="Registered trademark (&reg;)"
                       >
                         ®
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('α')}
+                        onClick={() => insertSymbol('&alpha;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium italic"
-                        title="Greek letter alpha (α)"
+                        title="Greek letter alpha (&alpha;)"
                       >
                         α
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('β')}
+                        onClick={() => insertSymbol('&beta;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium italic"
-                        title="Greek letter beta (β)"
+                        title="Greek letter beta (&beta;)"
                       >
                         β
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertSymbol('μ')}
+                        onClick={() => insertSymbol('&mu;')}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm font-medium italic"
-                        title="Greek letter mu / micro (μ)"
+                        title="Greek letter mu / micro (&mu;)"
                       >
                         μ
                       </button>
@@ -557,7 +571,7 @@ const CorpBaseDataForm = ({
                     placeholder="Enter or edit HTML here..."
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    <strong>Format:</strong> Select text and click a button to wrap with tags. <strong>Symbols:</strong> Click to insert at cursor position.
+                    <strong>Format:</strong> Select text and click a button to wrap with tags. <strong>Symbols:</strong> Click to insert HTML entity codes (e.g., &amp;deg;, &amp;plusmn;) - guaranteed to work across all systems and browsers.
                   </p>
                 </div>
               </div>

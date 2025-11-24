@@ -70,7 +70,8 @@
       "WebFetch(domain:www.palantir.com)",
       "Bash(npm run lint:*)",
       "Read(///**)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": []
   }
