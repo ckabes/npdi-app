@@ -12,7 +12,7 @@ router.get('/stats', adminController.getAdminStats);
 // Get maintenance guide (dynamically reads from file)
 router.get('/maintenance-guide', async (req, res) => {
   try {
-    const guidePath = path.join(__dirname, '../../MAINTENANCE_GUIDE.md');
+    const guidePath = path.join(__dirname, '../../docs/MAINTENANCE_GUIDE.md');
     const content = await fs.readFile(guidePath, 'utf8');
     res.type('text/markdown').send(content);
   } catch (error) {

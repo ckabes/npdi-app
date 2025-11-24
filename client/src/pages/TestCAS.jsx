@@ -64,7 +64,12 @@ const TestCAS = () => {
               <input
                 type="text"
                 value={casNumber}
-                onChange={(e) => setCasNumber(e.target.value)}
+                onChange={(e) => setCasNumber(e.target.value.trim())}
+                onPaste={(e) => {
+                  e.preventDefault();
+                  const pastedText = e.clipboardData.getData('text');
+                  setCasNumber(pastedText.trim());
+                }}
                 className="form-input"
                 placeholder="64-17-5"
               />
