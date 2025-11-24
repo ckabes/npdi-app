@@ -62,3 +62,24 @@ unspsc.csv
 /*.xls
 MARA_Export.csv
 Weight_Matrix_CSV.csv
+
+# Development and testing scripts
+/scripts/
+server/scripts/test*.js
+server/scripts/seed*Tickets.js
+server/scripts/seedRealistic*.js
+server/scripts/seedAll.js
+server/scripts/seedData.js
+server/scripts/seedUsers.js
+server/scripts/seedApiKey.js
+server/scripts/clean*.js
+server/scripts/configure*.js
+server/scripts/diagnoseVPN.*
+server/scripts/discover*.js
+server/scripts/assign*.js
+server/scripts/fix*.js
+server/scripts/migrate*.js
+server/scripts/update*.js
+server/scripts/clear*.js
+server/scripts/*README.md
+server/scripts/VPN*.md
