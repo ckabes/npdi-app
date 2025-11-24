@@ -19,6 +19,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - [Architecture Overview](architecture/ARCHITECTURE.md) - System design and components
 
 ### Features
+- [PMOps SKU Workflow](features/PMOPS_SKU_WORKFLOW.md) - Part number assignment and SKU management guide
 - [AI Content Generation](features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration for content generation
 - [AI Content Fields Reference](features/AI_CONTENT_FIELDS.md) - Complete field mapping and configuration
 - [AI Generation Improvements](features/AI_GENERATION_IMPROVEMENTS.md) - Recent enhancements to AI features
@@ -99,6 +100,7 @@ docs/
 ├── architecture/                 # System architecture
 │   └── ARCHITECTURE.md           # Architecture overview
 ├── features/                     # Feature documentation
+│   ├── PMOPS_SKU_WORKFLOW.md    # PMOps SKU and part number workflow
 │   ├── AI_CONTENT_GENERATION.md # AI content features
 │   ├── AI_CONTENT_FIELDS.md     # Field mapping reference
 │   ├── AI_GENERATION_IMPROVEMENTS.md # Recent AI improvements
@@ -166,6 +168,9 @@ A: Check [Recent Improvements](features/RECENT_IMPROVEMENTS_2025_11.md)
 
 **Q: How do I maintain and troubleshoot the system?**
 A: See the comprehensive [Maintenance Guide](MAINTENANCE_GUIDE.md)
+
+**Q: How does PMOps manage SKUs and part numbers?**
+A: See [PMOps SKU Workflow](features/PMOPS_SKU_WORKFLOW.md)
 
 ---
 
