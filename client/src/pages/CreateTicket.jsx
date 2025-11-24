@@ -43,7 +43,7 @@ const CreateTicket = () => {
     defaultValues: {
       productName: '',
       priority: 'MEDIUM',
-      sbu: isProductManager ? user?.sbu : 'P90',
+      sbu: '',
       productionType: 'Produced', // Default to Produced
       skuVariants: [],
       primaryPlant: '',
