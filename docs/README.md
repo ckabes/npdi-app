@@ -7,6 +7,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 ### Getting Started
 - [Main README](../README.md) - Project overview and quick start
 - [Setup Guide](guides/SETUP_GUIDE.md) - Installation and configuration
+- [Maintenance Guide](MAINTENANCE_GUIDE.md) - System maintenance and operations guide
 
 ### API Documentation
 - [API Documentation](api/API_DOCUMENTATION.md) - Complete API reference
@@ -59,8 +60,9 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 4. **Palantir SAP Integration**: Setup guide in [Palantir SQL Query API Integration](Palantir-SQL-Query-API-Integration-Guide.md)
 
 ### For IT/Infrastructure
-1. **API Key Security**: [API Key Storage](security/API_KEY_STORAGE.md)
-2. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
+1. **System Maintenance**: [Maintenance Guide](MAINTENANCE_GUIDE.md) - Complete operations and troubleshooting guide
+2. **API Key Security**: [API Key Storage](security/API_KEY_STORAGE.md)
+3. **Security Review**: [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md)
 
 ---
 
@@ -88,6 +90,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 ```
 docs/
 ├── README.md (this file)
+├── MAINTENANCE_GUIDE.md          # System maintenance and operations guide
 ├── api/                          # API documentation
 │   ├── API_DOCUMENTATION.md      # Complete API reference
 │   ├── API_QUICKSTART.md         # Quick start guide
@@ -161,6 +164,9 @@ A: See [Similar Products Search](features/SIMILAR_PRODUCTS_SEARCH.md)
 **Q: What are the latest improvements?**
 A: Check [Recent Improvements](features/RECENT_IMPROVEMENTS_2025_11.md)
 
+**Q: How do I maintain and troubleshoot the system?**
+A: See the comprehensive [Maintenance Guide](MAINTENANCE_GUIDE.md)
+
 ---
 
 ## Contributing to Documentation
@@ -199,11 +205,12 @@ When adding new documentation:
 - **Development issues**: Check [Architecture Documentation](architecture/ARCHITECTURE.md)
 - **API questions**: See [API Documentation](api/API_DOCUMENTATION.md)
 - **Setup problems**: Follow [Setup Guide](guides/SETUP_GUIDE.md)
+- **System maintenance & troubleshooting**: Refer to [Maintenance Guide](MAINTENANCE_GUIDE.md)
 - **Entra ID questions**: Review [Implementation Plan](integrations/ENTRA_ID_IMPLEMENTATION_PLAN.md)
 
 For additional support, contact the NPDI development team.
 
 ---
 
-**Last Updated:** 2025-11-22
+**Last Updated:** 2025-11-23
 **Maintained by:** NPDI Development Team
