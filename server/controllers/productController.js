@@ -355,9 +355,23 @@ const updateTicket = async (req, res) => {
     let filter = { _id: id };
 
     const ticket = await ProductTicket.findOne(filter);
-    
+
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found or access denied' });
+    }
+
+    // Prevent editing completed or canceled tickets unless status is being changed to an editable status
+    const isLockedStatus = ticket.status === 'COMPLETED' || ticket.status === 'CANCELED';
+    const isChangingToEditableStatus = req.body.status &&
+      req.body.status !== 'COMPLETED' &&
+      req.body.status !== 'CANCELED';
+
+    if (isLockedStatus && !isChangingToEditableStatus) {
+      return res.status(403).json({
+        message: `Cannot edit ${ticket.status.toLowerCase()} tickets. Change the ticket status first to make edits.`,
+        error: 'Ticket is locked',
+        ticketStatus: ticket.status
+      });
     }
 
     let updateData = { ...req.body };

@@ -7,6 +7,11 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('basic');
 
+  // Check if ticket is locked (completed or canceled)
+  const isTicketLocked = () => {
+    return ticket.status === 'COMPLETED' || ticket.status === 'CANCELED';
+  };
+
   // Expose method to change tabs from parent component
   useImperativeHandle(ref, () => ({
     navigateToTab: (tabId) => {
@@ -805,12 +810,14 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
       return (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button
-              onClick={handleEditSKUs}
-              className="px-4 py-2 text-sm font-medium text-white bg-millipore-blue border border-transparent rounded-md hover:bg-millipore-blue-dark"
-            >
-              Add SKU Variants
-            </button>
+            {!isTicketLocked() && (
+              <button
+                onClick={handleEditSKUs}
+                className="px-4 py-2 text-sm font-medium text-white bg-millipore-blue border border-transparent rounded-md hover:bg-millipore-blue-dark"
+              >
+                Add SKU Variants
+              </button>
+            )}
           </div>
           <p className="text-gray-500 text-sm italic">No SKU variants available</p>
         </div>
@@ -934,12 +941,14 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
               </button>
             </>
           ) : (
-            <button
-              onClick={handleEditSKUs}
-              className="px-4 py-2 text-sm font-medium text-white bg-millipore-blue border border-transparent rounded-md hover:bg-millipore-blue-dark"
-            >
-              Edit SKUs
-            </button>
+            !isTicketLocked() && (
+              <button
+                onClick={handleEditSKUs}
+                className="px-4 py-2 text-sm font-medium text-white bg-millipore-blue border border-transparent rounded-md hover:bg-millipore-blue-dark"
+              >
+                Edit SKUs
+              </button>
+            )
           )}
         </div>
 
@@ -982,10 +991,10 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
               </div>
               <button
                 onClick={handleSaveBaseUnit}
-                disabled={savingBaseUnit || !baseUnit.value || baseUnit.value <= 0}
+                disabled={savingBaseUnit || !baseUnit.value || baseUnit.value <= 0 || isTicketLocked()}
                 className="bg-millipore-blue text-white px-4 py-2 rounded-md hover:bg-millipore-blue-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-colors"
               >
-                {savingBaseUnit ? 'Saving...' : (ticket.baseUnit?.value ? 'Update Base Unit' : 'Set Base Unit')}
+                {savingBaseUnit ? 'Saving...' : isTicketLocked() ? 'Ticket Locked' : (ticket.baseUnit?.value ? 'Update Base Unit' : 'Set Base Unit')}
               </button>
             </div>
           </div>
@@ -1005,7 +1014,7 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                 onChange={(e) => setPartNumber(e.target.value)}
                 placeholder="e.g., 1234567"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
-                disabled={savingPartNumber || (!!ticket.partNumber?.baseNumber && !editingSKUs)}
+                disabled={savingPartNumber || (!!ticket.partNumber?.baseNumber && !editingSKUs) || isTicketLocked()}
               />
               {ticket.partNumber?.baseNumber && (
                 <p className="text-xs text-green-600 mt-1">
@@ -1013,7 +1022,7 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                 </p>
               )}
             </div>
-            {(!ticket.partNumber?.baseNumber || editingSKUs) && (
+            {(!ticket.partNumber?.baseNumber || editingSKUs) && !isTicketLocked() && (
               <button
                 onClick={handleSavePartNumber}
                 disabled={savingPartNumber || !partNumber.trim()}

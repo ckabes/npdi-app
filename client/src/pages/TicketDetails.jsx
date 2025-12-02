@@ -277,11 +277,11 @@ const TicketDetails = () => {
   };
 
   const canEdit = () => {
-    // Ticket cannot be edited once NPDI is initiated
-    if (ticket.status === 'NPDI_INITIATED') {
+    // Ticket cannot be edited if completed, canceled, or NPDI initiated
+    if (ticket.status === 'COMPLETED' || ticket.status === 'CANCELED' || ticket.status === 'NPDI_INITIATED') {
       return false;
     }
-    // PMOps and Admin can edit tickets in any status (except NPDI_INITIATED)
+    // PMOps and Admin can edit tickets in any status (except COMPLETED, CANCELED, or NPDI_INITIATED)
     if (isPMOPS || isAdmin) {
       return true;
     }
