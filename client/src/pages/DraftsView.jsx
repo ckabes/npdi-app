@@ -223,7 +223,11 @@ const DraftsView = () => {
                         <span>•</span>
                         <span className="flex items-center">
                           <span className="font-medium text-gray-700">Created by:</span>
-                          <span className="ml-1">{draft.createdBy || 'Unknown'}</span>
+                          <span className="ml-1">
+                            {draft.createdByUser
+                              ? `${draft.createdByUser.firstName} ${draft.createdByUser.lastName}`
+                              : (draft.createdBy || 'Unknown')}
+                          </span>
                         </span>
                         <span>•</span>
                         <span>Created {new Date(draft.createdAt).toLocaleDateString()}</span>

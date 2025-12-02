@@ -96,9 +96,9 @@ export const productAPI = {
   },
   searchSimilarProducts: (casNumber, options = {}) => {
     console.log('API: Starting similar products search for CAS', casNumber);
-    const { maxResults = 3, maxSearchTime = 20000 } = options;
+    const { maxResults = 3, maxSearchTime = 20000, filterSixDigit = true } = options;
     return apiClient.get(`/products/similar-products/${casNumber}`, {
-      params: { maxResults, maxSearchTime },
+      params: { maxResults, maxSearchTime, filterSixDigit },
       timeout: maxSearchTime + 5000 // Add 5 seconds buffer to API timeout
     }).then(response => {
       console.log('API: Similar products search successful', response.data);
@@ -219,6 +219,26 @@ export const weightMatrixAPI = {
   create: (data) => apiClient.post('/weight-matrix', data),
   update: (id, data) => apiClient.put(`/weight-matrix/${id}`, data),
   delete: (id) => apiClient.delete(`/weight-matrix/${id}`)
+};
+
+export const plantCodeAPI = {
+  getAll: () => apiClient.get('/plant-codes'),
+  getActive: () => apiClient.get('/plant-codes/active'),
+  getMetadata: () => apiClient.get('/plant-codes/metadata'),
+  create: (data) => apiClient.post('/plant-codes', data),
+  update: (id, data) => apiClient.put(`/plant-codes/${id}`, data),
+  delete: (id) => apiClient.delete(`/plant-codes/${id}`),
+  rebuild: () => apiClient.post('/plant-codes/rebuild')
+};
+
+export const businessLineAPI = {
+  getAll: () => apiClient.get('/business-lines'),
+  getActive: () => apiClient.get('/business-lines/active'),
+  getMetadata: () => apiClient.get('/business-lines/metadata'),
+  create: (data) => apiClient.post('/business-lines', data),
+  update: (id, data) => apiClient.put(`/business-lines/${id}`, data),
+  delete: (id) => apiClient.delete(`/business-lines/${id}`),
+  rebuild: () => apiClient.post('/business-lines/rebuild')
 };
 
 // Default export for convenience

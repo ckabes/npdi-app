@@ -643,9 +643,20 @@ productTicketSchema.pre('validate', function(next) {
   // Normalize weight and volume units to lowercase (g, kg, mg, mL, L, etc.)
   if (this.skuVariants && Array.isArray(this.skuVariants)) {
     this.skuVariants.forEach(variant => {
-      // Normalize packageSize unit
+      // Normalize packageSize unit (special case: mL, L need capital L)
       if (variant.packageSize && variant.packageSize.unit) {
-        variant.packageSize.unit = variant.packageSize.unit.toLowerCase();
+        const packageUnit = variant.packageSize.unit;
+        const lowerUnit = packageUnit.toLowerCase();
+
+        // Map common variations to correct enum values
+        if (lowerUnit === 'ml') {
+          variant.packageSize.unit = 'mL';
+        } else if (lowerUnit === 'l') {
+          variant.packageSize.unit = 'L';
+        } else {
+          // For other units (g, kg, mg, EA, units, vials, plates, bulk), lowercase is fine
+          variant.packageSize.unit = lowerUnit;
+        }
       }
       // Normalize grossWeight unit
       if (variant.grossWeight && variant.grossWeight.unit) {

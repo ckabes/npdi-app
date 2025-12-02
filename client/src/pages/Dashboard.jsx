@@ -314,7 +314,7 @@ const Dashboard = () => {
                 <div>
                   <p className="text-xs font-medium text-green-600 uppercase">Completed</p>
                   <p className="text-3xl font-bold text-green-900 mt-1">{statusCounts.completed}</p>
-                  <p className="text-xs text-green-600 mt-1">{performance.completionRate}% success rate</p>
+                  <p className="text-xs text-green-600 mt-1">Completed tickets</p>
                 </div>
                 <div className="p-3 bg-green-200 rounded-full">
                   <CheckCircleIcon className="h-8 w-8 text-green-700" />
@@ -501,7 +501,8 @@ const Dashboard = () => {
           </div>
           <div className="card-body p-0">
             {recentlySubmitted && recentlySubmitted.length > 0 ? (
-              <table className="min-w-full divide-y divide-gray-200">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
@@ -515,9 +516,10 @@ const Dashboard = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {recentlySubmitted.map((ticket) => {
+                    // Use createdByUser for name, fallback to email from createdBy if user not found
                     const submitterName = ticket.createdByUser
                       ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
-                      : ticket.createdBy || 'Unknown';
+                      : (ticket.createdBy || 'Unknown');
 
                     return (
                       <tr key={ticket._id} className="hover:bg-gray-50">
@@ -525,7 +527,7 @@ const Dashboard = () => {
                           {ticket.ticketNumber || 'N/A'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900">
-                          <div className="max-w-xs truncate" title={ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}>
+                          <div className="max-w-[200px] truncate" title={ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}>
                             {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
                           </div>
                         </td>
@@ -561,6 +563,7 @@ const Dashboard = () => {
                   })}
                 </tbody>
               </table>
+              </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <ClockIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
@@ -1170,9 +1173,13 @@ const Dashboard = () => {
                             {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
                           </p>
                           <div className="flex items-center space-x-3 text-xs text-gray-500">
-                            {ticket.createdBy && (
+                            {(ticket.createdByUser || ticket.createdBy) && (
                               <>
-                                <span className="font-medium">{ticket.createdBy}</span>
+                                <span className="font-medium">
+                                  {ticket.createdByUser
+                                    ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
+                                    : ticket.createdBy}
+                                </span>
                                 <span>•</span>
                               </>
                             )}

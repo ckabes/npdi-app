@@ -16,6 +16,7 @@ import {
 } from '../components/forms';
 import MARASearchPopup from '../components/admin/MARASearchPopup';
 import SimilarProductsPopup from '../components/admin/SimilarProductsPopup';
+import ProductHierarchySelector from '../components/forms/ProductHierarchySelector';
 
 const CreateTicket = () => {
   const [loading, setLoading] = useState(false);
@@ -37,6 +38,8 @@ const CreateTicket = () => {
   const [sapImportedFields, setSapImportedFields] = useState(new Set());
   const [sapMetadata, setSapMetadata] = useState({});
   const [showSimilarProductsPopup, setShowSimilarProductsPopup] = useState(false);
+  const [showGPHSelector, setShowGPHSelector] = useState(false);
+  const [sialFieldGlow, setSialFieldGlow] = useState(false);
   const { user, isProductManager, isPMOPS } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, control, setValue, watch, formState: { errors, isDirty } } = useForm({
@@ -1169,6 +1172,58 @@ const CreateTicket = () => {
   };
 
   /**
+   * Open Product Hierarchy (GPH) selector popup
+   */
+  const handleOpenGPHSelector = () => {
+    setShowGPHSelector(true);
+  };
+
+  /**
+   * Handle Product Hierarchy (GPH) selection
+   * Populates the materialGroup field with the selected GPH code
+   * Auto-populates SIAL Product Hierarchy if empty
+   */
+  const handleGPHSelect = (gphData) => {
+    console.log('[GPH Selector] Selected GPH data:', gphData);
+
+    // Handle both old format (string) and new format (object)
+    let prodh12, prodhSBU;
+    if (typeof gphData === 'string') {
+      // Legacy format - just the code
+      prodh12 = gphData;
+      setValue('materialGroup', gphData, { shouldDirty: true });
+    } else {
+      // New format - full object with SBU
+      prodh12 = gphData.prodh12;
+      prodhSBU = gphData.prodhSBU;
+      setValue('materialGroup', prodh12, { shouldDirty: true });
+
+      // Auto-populate SIAL Product Hierarchy if it's empty
+      const currentSialHierarchy = watch('sialProductHierarchy');
+      if (!currentSialHierarchy && prodhSBU && prodh12) {
+        // First 3 digits of SBU + first 3 characters of PRODH_12
+        const sbuPrefix = prodhSBU.substring(0, 3);
+        const prodhPrefix = prodh12.substring(0, 3);
+        const sialCode = sbuPrefix + prodhPrefix;
+
+        console.log('[GPH Selector] Auto-populating SIAL Product Hierarchy:', sialCode);
+        setValue('sialProductHierarchy', sialCode, { shouldDirty: true });
+
+        // Trigger green glow effect
+        setSialFieldGlow(true);
+        setTimeout(() => {
+          setSialFieldGlow(false);
+        }, 3000); // Remove glow after 3 seconds
+
+        toast.success(`GPH code added! SIAL Product Hierarchy auto-populated: ${sialCode}`);
+        return;
+      }
+    }
+
+    toast.success('Product Hierarchy (GPH) code added to the form!');
+  };
+
+  /**
    * Get CSS class for SAP-imported fields (green highlight)
    */
   const getSAPImportedClass = (fieldPath) => {
@@ -1512,7 +1567,6 @@ const CreateTicket = () => {
                               <ul className="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
                                 <li>BULK SKU package size (automatically set to this value)</li>
                                 <li>Pricing calculations (cost per base unit)</li>
-                                <li>Standard reference for all SKU variants</li>
                               </ul>
                               <div className="flex items-center space-x-3">
                                 <div className="flex-1 max-w-md">
@@ -1604,7 +1658,9 @@ const CreateTicket = () => {
                         getSAPImportedClass={getSAPImportedClass}
                         sapMetadata={sapMetadata}
                         onOpenSimilarProducts={handleOpenSimilarProducts}
+                        onOpenGPHSelector={handleOpenGPHSelector}
                         onFieldEdit={handleFieldEdit}
+                        glowFields={sialFieldGlow ? new Set(['sialProductHierarchy']) : new Set()}
                       />
                     );
                 }
@@ -1674,6 +1730,16 @@ const CreateTicket = () => {
           casNumber={casNumber}
           onClose={() => setShowSimilarProductsPopup(false)}
           onApprove={handleSimilarProductsApprove}
+        />
+      )}
+
+      {/* Product Hierarchy (GPH) Selector */}
+      {showGPHSelector && (
+        <ProductHierarchySelector
+          isOpen={showGPHSelector}
+          onClose={() => setShowGPHSelector(false)}
+          onSelect={handleGPHSelect}
+          currentValue={watch('materialGroup')}
         />
       )}
     </div>

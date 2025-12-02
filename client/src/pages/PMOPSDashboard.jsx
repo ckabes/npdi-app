@@ -306,11 +306,15 @@ const PMOPSDashboard = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {ticket.createdBy?.firstName} {ticket.createdBy?.lastName}
+                          {ticket.createdByUser
+                            ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
+                            : ticket.createdBy || 'Unknown'}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {ticket.createdBy?.email}
-                        </div>
+                        {ticket.createdByUser?.email && (
+                          <div className="text-sm text-gray-500">
+                            {ticket.createdByUser.email}
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <PriorityBadge priority={ticket.priority} />

@@ -16,6 +16,8 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
   const [timedOut, setTimedOut] = useState(false);
   const [maxResults, setMaxResults] = useState(3);
   const [hasMoreResults, setHasMoreResults] = useState(false);
+  const [filterSixDigit, setFilterSixDigit] = useState(true);
+  const [showFilterInfo, setShowFilterInfo] = useState(false);
 
   useEffect(() => {
     // Auto-start search when popup opens
@@ -42,7 +44,8 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
       // Start the search with polling logic
       const response = await productAPI.searchSimilarProducts(casNumber, {
         maxResults: resultsToFetch,
-        maxSearchTime: maxSearchTime
+        maxSearchTime: maxSearchTime,
+        filterSixDigit: filterSixDigit
       });
 
       const elapsed = Date.now() - startTime;
@@ -58,7 +61,7 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
 
         if (products.length === 0) {
           setTimedOut(true);
-          toast.info(`No similar products found in ${Math.round(elapsed / 1000)} seconds`);
+          toast(`No similar products found in ${Math.round(elapsed / 1000)} seconds`);
         } else if (products.length < 3) {
           toast.success(`Found ${products.length} similar product${products.length === 1 ? '' : 's'}`);
         } else {
@@ -91,6 +94,18 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
     const newMaxResults = maxResults + 3;
     setMaxResults(newMaxResults);
     await handleSearch(newMaxResults);
+  };
+
+  const handleFilterToggle = async () => {
+    const newFilterValue = !filterSixDigit;
+    setFilterSixDigit(newFilterValue);
+    // Reset to initial state and re-search
+    setMaxResults(3);
+    setFoundProducts([]);
+    setSelectedProducts(new Set());
+    setSearchComplete(false);
+    // Re-run search with new filter setting
+    setTimeout(() => handleSearch(3), 100);
   };
 
   const handleApprove = () => {
@@ -130,6 +145,48 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
+            </div>
+
+            {/* Filter Options */}
+            <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filterSixDigit}
+                      onChange={handleFilterToggle}
+                      className="h-4 w-4 text-millipore-blue focus:ring-millipore-blue border-gray-300 rounded"
+                    />
+                    <span className="ml-2 text-sm font-medium text-gray-700">
+                      Filter to 6-digit part numbers only
+                    </span>
+                  </label>
+                  <button
+                    type="button"
+                    onMouseEnter={() => setShowFilterInfo(true)}
+                    onMouseLeave={() => setShowFilterInfo(false)}
+                    className="relative text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                    {showFilterInfo && (
+                      <div className="absolute left-0 top-6 z-10 w-72 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg">
+                        <div className="mb-2 font-semibold">6-Digit Filtering (Recommended)</div>
+                        <p className="mb-2">
+                          When enabled, only shows products with 6-digit part numbers (e.g., 459844, 100967).
+                          This excludes older 5-digit products (e.g., 02483, 02851) for cleaner results.
+                        </p>
+                        <p className="text-gray-300">
+                          Disable to include all products regardless of part number length.
+                        </p>
+                        <div className="absolute -top-1 left-4 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                      </div>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

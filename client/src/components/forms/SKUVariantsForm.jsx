@@ -189,7 +189,8 @@ const SKUVariantsForm = ({
 
         // Set gross weight values
         setValue(`skuVariants.${index}.grossWeight.value`, grossWeight);
-        setValue(`skuVariants.${index}.grossWeight.unit`, weightUnit);
+        // Convert unit to lowercase to match form select options
+        setValue(`skuVariants.${index}.grossWeight.unit`, weightUnit.toLowerCase());
 
         // Show success message with match type
         if (response.data.match === 'exact') {
@@ -240,7 +241,8 @@ const SKUVariantsForm = ({
       if (response.data.match !== 'none' && response.data.data) {
         const { grossWeight, weightUnit } = response.data.data;
         setValue(`skuVariants.${index}.grossWeight.value`, grossWeight);
-        setValue(`skuVariants.${index}.grossWeight.unit`, weightUnit);
+        // Convert unit to lowercase to match form select options
+        setValue(`skuVariants.${index}.grossWeight.unit`, weightUnit.toLowerCase());
         results.grossWeight = true;
 
         if (response.data.match === 'exact') {
@@ -373,7 +375,7 @@ const SKUVariantsForm = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Package Size * {field.type === 'BULK' && <span className="text-amber-600 font-semibold ml-1">(Base Unit)</span>}
+                    Package Size *
                   </label>
                   <div className="flex">
                     <input

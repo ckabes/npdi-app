@@ -46,6 +46,7 @@ const TicketDetails = () => {
   const [template, setTemplate] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const formInitializedRef = useRef(false);
+  const pmopsTabViewRef = useRef(null);
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
   // Initialize form with proper defaults based on ticket data
   const getDefaultFormValues = () => {
@@ -217,6 +218,55 @@ const TicketDetails = () => {
       } else {
         toast.error('Failed to update ticket. Please check your input and try again.');
       }
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleAddBulkSKU = async () => {
+    // Check if BULK SKU already exists
+    if (ticket.skuVariants && ticket.skuVariants.some(sku => sku.type === 'BULK')) {
+      toast.error('A BULK SKU already exists. Only one BULK SKU is allowed per product.');
+      return;
+    }
+
+    setUpdateLoading(true);
+    try {
+      const baseUnitValue = ticket.baseUnit?.value || 1;
+      const baseUnitUnit = ticket.baseUnit?.unit || 'g';
+      const partNumber = ticket.partNumber?.baseNumber;
+
+      // Generate SKU code
+      const skuCode = partNumber ? `${partNumber}-BULK` : 'BULK';
+
+      // Create new BULK SKU variant
+      const newBulkSKU = {
+        type: 'BULK',
+        sku: skuCode,
+        description: `${ticket.requestInfo?.productName || 'Product'} - Bulk packaging`,
+        packageSize: {
+          value: baseUnitValue,
+          unit: baseUnitUnit
+        },
+        pricing: {
+          standardCost: ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || 0,
+          calculatedCost: 0,
+          margin: ticket.margin || 50,
+          limitPrice: 0,
+          listPrice: 0,
+          currency: 'USD'
+        }
+      };
+
+      // Add the new BULK SKU to existing variants
+      const updatedSkuVariants = [...(ticket.skuVariants || []), newBulkSKU];
+
+      await productAPI.updateTicket(id, { skuVariants: updatedSkuVariants });
+      toast.success('BULK SKU added successfully');
+      fetchTicket();
+    } catch (error) {
+      console.error('Failed to add BULK SKU:', error);
+      toast.error('Failed to add BULK SKU. Please try again.');
     } finally {
       setUpdateLoading(false);
     }
@@ -491,10 +541,20 @@ const TicketDetails = () => {
               </div>
             </div>
             <div className="text-white text-right">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3">
-                <p className="text-sm font-medium">Action Required</p>
-                <p className="text-2xl font-bold">⚠️</p>
-              </div>
+              <button
+                onClick={() => {
+                  if (pmopsTabViewRef.current) {
+                    pmopsTabViewRef.current.navigateToTab('skus');
+                  }
+                }}
+                className="bg-white/10 backdrop-blur-sm hover:bg-white/30 hover:scale-105 active:scale-95 transition-all duration-200 rounded-lg p-4 cursor-pointer border border-white/20 hover:border-white/40"
+                title="Navigate to SKUs tab to assign part number"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-bold">Go to SKUs</span>
+                  <span className="text-2xl">→</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -512,12 +572,26 @@ const TicketDetails = () => {
               </div>
               <div className="text-white">
                 <h3 className="text-lg font-bold">⚠️ Missing BULK SKU</h3>
-                <p className="text-blue-100 text-sm">This product does not have a BULK SKU variant. Consider adding one with default size of 1 {ticket.pricingData?.baseUnit || 'unit'}.</p>
+                {ticket.baseUnit ? (
+                  <p className="text-blue-100 text-sm">Would you like me to add one with a base unit of {ticket.baseUnit.value} {ticket.baseUnit.unit}?</p>
+                ) : (
+                  <p className="text-blue-100 text-sm">Please set a base unit in the pricing section before adding a BULK SKU.</p>
+                )}
               </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
-              <p className="text-white text-xs font-medium">To-Do</p>
-            </div>
+            {ticket.baseUnit ? (
+              <button
+                onClick={handleAddBulkSKU}
+                disabled={updateLoading}
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-4 py-2 text-white font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {updateLoading ? 'Adding...' : 'Add Bulk SKU'}
+              </button>
+            ) : (
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2">
+                <p className="text-white text-xs font-medium">To-Do</p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -887,7 +961,6 @@ const TicketDetails = () => {
                                     <ul className="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
                                       <li>BULK SKU package size (automatically set to this value)</li>
                                       <li>Pricing calculations (cost per base unit)</li>
-                                      <li>Standard reference for all SKU variants</li>
                                     </ul>
                                     <div className="flex items-center space-x-3">
                                       <div className="flex-1 max-w-md">
@@ -1099,12 +1172,14 @@ const TicketDetails = () => {
                         <p className="text-xs text-gray-500">Created by</p>
                         <p className="text-sm text-gray-900 font-medium">
                           {(() => {
-                            // First check if createdBy is populated
-                            if (ticket.createdBy?.firstName && ticket.createdBy?.lastName) {
-                              return `${ticket.createdBy.firstName} ${ticket.createdBy.lastName}`;
+                            // First check if createdByUser is populated (ObjectId reference)
+                            if (ticket.createdByUser?.firstName && ticket.createdByUser?.lastName) {
+                              return `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`;
                             }
-                            if (ticket.createdBy?.name) return ticket.createdBy.name;
-                            if (ticket.createdBy?.email) return ticket.createdBy.email;
+                            if (ticket.createdByUser?.name) return ticket.createdByUser.name;
+
+                            // Fall back to createdBy email string
+                            if (ticket.createdBy) return ticket.createdBy;
 
                             // Fall back to statusHistory for creator info
                             const creationEntry = ticket.statusHistory?.find(h => h.action === 'TICKET_CREATED');
@@ -1161,7 +1236,7 @@ const TicketDetails = () => {
               </div>
 
               {/* Main Tabbed Content - Full Width */}
-              <PMOpsTabView ticket={ticket} onTicketUpdate={fetchTicket} />
+              <PMOpsTabView ref={pmopsTabViewRef} ticket={ticket} onTicketUpdate={fetchTicket} />
 
               {/* Comments - Full Width, Below Content */}
               <div className="card">
@@ -2205,7 +2280,6 @@ const TicketDetails = () => {
                   <ul className="list-disc list-inside text-sm text-gray-600 mb-4 space-y-1">
                     <li>Calculating standard costs and pricing</li>
                     <li>Default package size for BULK SKU variants</li>
-                    <li>Standard reference for all SKU variants</li>
                   </ul>
                   <div className="flex items-center space-x-3">
                     <div className="flex-1 max-w-md">
@@ -2746,12 +2820,14 @@ const TicketDetails = () => {
                   <p className="text-xs text-gray-500">Created by</p>
                   <p className="text-sm text-gray-900 font-medium">
                     {(() => {
-                      // First check if createdBy is populated
-                      if (ticket.createdBy?.firstName && ticket.createdBy?.lastName) {
-                        return `${ticket.createdBy.firstName} ${ticket.createdBy.lastName}`;
+                      // First check if createdByUser is populated (ObjectId reference)
+                      if (ticket.createdByUser?.firstName && ticket.createdByUser?.lastName) {
+                        return `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`;
                       }
-                      if (ticket.createdBy?.name) return ticket.createdBy.name;
-                      if (ticket.createdBy?.email) return ticket.createdBy.email;
+                      if (ticket.createdByUser?.name) return ticket.createdByUser.name;
+
+                      // Fall back to createdBy email string
+                      if (ticket.createdBy) return ticket.createdBy;
 
                       // Fall back to statusHistory for creator info
                       const creationEntry = ticket.statusHistory?.find(h => h.action === 'TICKET_CREATED');
@@ -2769,8 +2845,8 @@ const TicketDetails = () => {
                     if (creationEntry?.userInfo?.role) {
                       return <p className="text-xs text-gray-500">{creationEntry.userInfo.role}</p>;
                     }
-                    if (ticket.createdBy?.email && ticket.createdBy?.firstName) {
-                      return <p className="text-xs text-gray-500">{ticket.createdBy.email}</p>;
+                    if (ticket.createdByUser?.email && ticket.createdByUser?.firstName) {
+                      return <p className="text-xs text-gray-500">{ticket.createdByUser.email}</p>;
                     }
                     return null;
                   })()}

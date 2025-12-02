@@ -420,6 +420,17 @@ const updateTicket = async (req, res) => {
       significantChanges.push(`CAS number changed from "${ticket.chemicalProperties?.casNumber}" to "${updateData.chemicalProperties.casNumber}"`);
     }
 
+    // Validate SKU variants - ensure only one BULK SKU exists
+    if (updateData.skuVariants && Array.isArray(updateData.skuVariants)) {
+      const bulkSKUs = updateData.skuVariants.filter(sku => sku.type === 'BULK');
+      if (bulkSKUs.length > 1) {
+        return res.status(400).json({
+          message: 'Only one BULK SKU is allowed per product.',
+          validationErrors: ['Only one BULK SKU is allowed per product. Please remove extra BULK SKUs.']
+        });
+      }
+    }
+
     // Apply updates
     Object.assign(ticket, updateData);
 
@@ -1492,10 +1503,14 @@ const searchMARA = async (req, res) => {
 const searchSimilarProducts = async (req, res) => {
   try {
     const { casNumber } = req.params;
-    const { maxResults = 3, maxSearchTime = 20000 } = req.query;
+    const { maxResults = 3, maxSearchTime = 20000, filterSixDigit = 'true' } = req.query;
+
+    // Convert filterSixDigit to boolean (query params are strings)
+    const shouldFilterSixDigit = filterSixDigit === 'true' || filterSixDigit === true;
 
     console.log(`[Similar Products] Starting search for CAS: ${casNumber}`);
     console.log(`[Similar Products] Max results: ${maxResults}, Max time: ${maxSearchTime}ms`);
+    console.log(`[Similar Products] Filter to 6-digit parts: ${shouldFilterSixDigit}`);
 
     if (!casNumber) {
       return res.status(400).json({
@@ -1528,14 +1543,20 @@ const searchSimilarProducts = async (req, res) => {
     // Build SQL query to find products with the same CAS
     // Select only MATNR (material number) and TEXT_SHORT (product name)
     // Filter by CAS number and exclude products without material numbers
+    // Optionally filter to only 6-digit part numbers (filters out 5-digit legacy parts)
+    const sixDigitFilter = shouldFilterSixDigit
+      ? "AND REGEXP_LIKE(MATNR, '^[0-9]{6}')"
+      : "";
+
     const query = `
       SELECT DISTINCT MATNR, TEXT_SHORT
       FROM \`${config.datasetRID}\`
       WHERE YYD_CASNR = '${casNumber}'
         AND MATNR IS NOT NULL
         AND MATNR != ''
+        ${sixDigitFilter}
       ORDER BY MATNR
-      LIMIT ${parseInt(maxResults) * 10}
+      LIMIT ${parseInt(maxResults) * 50}
     `;
 
     const startTime = Date.now();
@@ -1558,6 +1579,16 @@ const searchSimilarProducts = async (req, res) => {
           if (row.MATNR) {
             // Extract first 6 characters from MATNR (e.g., "176036" from "176036-BULK")
             const prefix = row.MATNR.substring(0, 6);
+
+            // Only include products with at least 6 digits in the prefix if filter is enabled
+            // Skip entries like "02483-" which have only 5 digits
+            if (shouldFilterSixDigit) {
+              const digitCount = (prefix.match(/\d/g) || []).length;
+              if (digitCount < 6) {
+                console.log(`[Similar Products] Skipping ${row.MATNR}: prefix "${prefix}" has only ${digitCount} digits (need 6+)`);
+                continue;
+              }
+            }
 
             // Only include this product if we haven't seen this prefix before
             if (!seenPrefixes.has(prefix)) {

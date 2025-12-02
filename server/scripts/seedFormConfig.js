@@ -65,7 +65,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Enter commercial/marketing product name',
-          helpText: 'The commercial or marketing name for this product (different from chemical name)',
           gridColumn: 'full',
           order: 1,
           isCustom: false
@@ -78,7 +77,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Enter SBU code (e.g., P90, 775, P87)',
-          helpText: 'Business unit responsible for this product',
           gridColumn: 'half',
           order: 2,
           isCustom: false
@@ -91,7 +89,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           defaultValue: 'MEDIUM',
-          helpText: 'Priority level for development',
           gridColumn: 'half',
           order: 3,
           isCustom: false,
@@ -110,7 +107,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Enter primary manufacturing plant',
-          helpText: 'Primary manufacturing location',
           gridColumn: 'half',
           order: 4,
           isCustom: false
@@ -123,7 +119,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Select brand...',
-          helpText: 'Product brand',
           gridColumn: 'half',
           order: 5,
           isCustom: false,
@@ -139,6 +134,18 @@ const defaultFormConfig = {
           ]
         },
         {
+          fieldKey: 'countryOfOrigin',
+          label: 'Country of Origin',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter country of origin',
+          gridColumn: 'half',
+          order: 6,
+          isCustom: false
+        },
+        {
           fieldKey: 'productScope.scope',
           label: 'Product Scope',
           type: 'select',
@@ -146,9 +153,8 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Select product scope...',
-          helpText: 'Geographic scope for product distribution',
           gridColumn: 'half',
-          order: 6,
+          order: 7,
           isCustom: false,
           options: [
             { value: 'Worldwide', label: 'Worldwide' },
@@ -166,9 +172,8 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Specify product scope details',
-          helpText: 'Provide details for other product scope',
           gridColumn: 'half',
-          order: 7,
+          order: 8,
           isCustom: false,
           visibleWhen: {
             fieldKey: 'productScope.scope',
@@ -183,9 +188,8 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Select distribution type...',
-          helpText: 'How the product will be distributed',
           gridColumn: 'half',
-          order: 8,
+          order: 9,
           isCustom: false,
           options: [
             { value: 'Standard', label: 'Standard' },
@@ -201,7 +205,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Select...',
-          helpText: 'Specify who is responsible for creating Certificates of Analysis',
           gridColumn: 'half',
           order: 9,
           isCustom: false,
@@ -222,7 +225,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Select...',
-          helpText: 'Type of label to be used',
           gridColumn: 'half',
           order: 10,
           isCustom: false,
@@ -242,7 +244,6 @@ const defaultFormConfig = {
           required: false,
           visible: true,
           editable: true,
-          helpText: 'Specify who will apply the labels',
           gridColumn: 'half',
           order: 11,
           isCustom: false,
@@ -263,7 +264,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Describe how vendor obtains SIAL labels',
-          helpText: 'If vendor is labeling with SIAL labels, explain how they obtain them',
           gridColumn: 'full',
           order: 12,
           isCustom: false,
@@ -273,16 +273,28 @@ const defaultFormConfig = {
           }
         },
         {
+          fieldKey: 'materialGroup',
+          label: 'Main Group (GPH)',
+          type: 'text',
+          required: false,
+          visible: true,
+          editable: true,
+          placeholder: 'Enter main group/GPH code',
+          gridColumn: 'half',
+          order: 13,
+          isCustom: false
+        },
+        {
           fieldKey: 'sialProductHierarchy',
           label: 'SIAL Product Hierarchy',
           type: 'text',
           required: false,
           visible: true,
           editable: true,
-          placeholder: 'Enter SIAL product hierarchy code',
-          helpText: 'SIAL product hierarchy classification code',
+          placeholder: 'Auto-populated from GPH or enter manually',
+          helpText: 'Auto-populated from GPH selection (first 3 digits of SBU + first 3 chars of PRODH_12)',
           gridColumn: 'half',
-          order: 13,
+          order: 14,
           isCustom: false
         },
         {
@@ -293,9 +305,8 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'e.g., Biochemistry, Chemical Synthesis, Production Materials, etc.',
-          helpText: 'Business line categorization for the product (common: Biochemistry, Chemical Synthesis, Discovery Chemistry, Lab Classics, Material Science, Production Materials)',
           gridColumn: 'half',
-          order: 14,
+          order: 15,
           isCustom: false
         },
         {
@@ -306,20 +317,6 @@ const defaultFormConfig = {
           visible: false,  // Hidden since businessLine.line is now free text
           editable: true,
           placeholder: 'Specify business line details',
-          helpText: 'Provide details for other business line',
-          gridColumn: 'half',
-          order: 15,
-          isCustom: false
-        },
-        {
-          fieldKey: 'materialGroup',
-          label: 'Main Group (GPH)',
-          type: 'text',
-          required: false,
-          visible: true,
-          editable: true,
-          placeholder: 'Enter main group/GPH code',
-          helpText: 'Main product group or GPH classification',
           gridColumn: 'half',
           order: 16,
           isCustom: false
@@ -332,7 +329,6 @@ const defaultFormConfig = {
           visible: true,
           editable: true,
           placeholder: 'Comma-separated material numbers (search by CAS)',
-          helpText: 'List of similar products (material numbers) with the same CAS number',
           gridColumn: 'full',
           order: 17,
           isCustom: false

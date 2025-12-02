@@ -1,11 +1,25 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { productAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuth } from '../utils/AuthContext';
 
-const PMOpsTabView = ({ ticket, onTicketUpdate }) => {
+const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('basic');
+
+  // Expose method to change tabs from parent component
+  useImperativeHandle(ref, () => ({
+    navigateToTab: (tabId) => {
+      setActiveTab(tabId);
+      // Scroll to top of the tab view
+      setTimeout(() => {
+        const tabElement = document.querySelector('[data-tab-view="pmops"]');
+        if (tabElement) {
+          tabElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }));
   const [partNumber, setPartNumber] = useState(ticket.partNumber?.baseNumber || '');
   const [savingPartNumber, setSavingPartNumber] = useState(false);
   const [editingSKUs, setEditingSKUs] = useState(false);
@@ -179,15 +193,25 @@ const PMOpsTabView = ({ ticket, onTicketUpdate }) => {
   };
 
   const handleAddSKU = () => {
+    // Check if BULK SKU already exists
+    const bulkExists = editedSKUs.some(sku => sku.type === 'BULK');
+
     // Use base unit for BULK type, otherwise blank
     const effectiveBaseUnit = ticket.baseUnit || baseUnit;
 
-    const newSKU = {
-      type: 'BULK',
-      suffix: 'BULK', // Default to BULK suffix
-      packageSize: effectiveBaseUnit.value
+    // If BULK already exists, default to PREPACK instead
+    const defaultType = bulkExists ? 'PREPACK' : 'BULK';
+    const defaultSuffix = bulkExists ? '100G' : 'BULK';
+    const defaultPackageSize = bulkExists
+      ? { value: 100, unit: 'g' }
+      : effectiveBaseUnit.value
         ? { value: effectiveBaseUnit.value, unit: effectiveBaseUnit.unit }
-        : { value: '', unit: 'g' },
+        : { value: '', unit: 'g' };
+
+    const newSKU = {
+      type: defaultType,
+      suffix: defaultSuffix,
+      packageSize: defaultPackageSize,
       netWeight: { value: '', unit: 'g' },
       grossWeight: { value: '', unit: 'g' },
       volume: { value: '', unit: 'mL' },
@@ -203,6 +227,11 @@ const PMOpsTabView = ({ ticket, onTicketUpdate }) => {
         year3: ''
       }
     };
+
+    if (bulkExists) {
+      toast.info('A BULK SKU already exists. Adding PREPACK SKU instead.');
+    }
+
     setEditedSKUs([...editedSKUs, newSKU]);
   };
 
@@ -250,6 +279,13 @@ const PMOpsTabView = ({ ticket, onTicketUpdate }) => {
       const effectiveBaseUnit = ticket.baseUnit || baseUnit;
 
       if (value === 'BULK') {
+        // Check if another BULK SKU already exists (excluding the current one)
+        const bulkExists = updated.some((sku, idx) => idx !== index && sku.type === 'BULK');
+        if (bulkExists) {
+          toast.error('Only one BULK SKU is allowed per product. Another BULK SKU already exists.');
+          return; // Don't update if another BULK exists
+        }
+
         // Changed to BULK - set to base unit and clear other fields
         variant.suffix = 'BULK';
         variant.packageSize = effectiveBaseUnit.value
@@ -1070,14 +1106,11 @@ const PMOpsTabView = ({ ticket, onTicketUpdate }) => {
                       <span className="text-gray-400 italic">N/A</span>
                     ) : variant.type === 'BULK' ? (
                       // BULK uses base unit and is locked
-                      <div className="flex items-center space-x-2">
-                        <span className="font-medium">
-                          {variant.packageSize?.value && variant.packageSize?.unit
-                            ? `${variant.packageSize.value} ${variant.packageSize.unit}`
-                            : '—'}
-                        </span>
-                        <span className="text-xs text-gray-500 italic">(Base Unit)</span>
-                      </div>
+                      <span className="font-medium">
+                        {variant.packageSize?.value && variant.packageSize?.unit
+                          ? `${variant.packageSize.value} ${variant.packageSize.unit}`
+                          : '—'}
+                      </span>
                     ) : editingSKUs ? (
                       // PREPACK can be edited
                       <div className="flex items-center space-x-1">
@@ -1529,7 +1562,7 @@ const PMOpsTabView = ({ ticket, onTicketUpdate }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow flex min-h-[600px]">
+    <div className="bg-white rounded-lg shadow flex min-h-[600px]" data-tab-view="pmops">
       {/* Vertical Navigation */}
       <nav className="w-56 border-r border-gray-200 flex-shrink-0" aria-label="Sections">
         <div className="py-4">
@@ -1810,6 +1843,8 @@ const PMOpsTabView = ({ ticket, onTicketUpdate }) => {
       )}
     </div>
   );
-};
+});
+
+PMOpsTabView.displayName = 'PMOpsTabView';
 
 export default PMOpsTabView;

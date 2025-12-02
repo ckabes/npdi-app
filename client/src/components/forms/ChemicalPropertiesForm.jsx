@@ -32,7 +32,8 @@ const ChemicalPropertiesForm = ({
   getSAPImportedClass = () => '',
   onFieldEdit = null
 }) => {
-  const casNumber = watch('chemicalProperties.casNumber');
+  // Use watch with default empty string to ensure reactivity
+  const casNumber = watch('chemicalProperties.casNumber', '');
   const visibleProperties = watch('chemicalProperties.additionalProperties.visibleProperties') || [];
   const additionalProps = watch('chemicalProperties.additionalProperties') || {};
   const [showAddPropertyMenu, setShowAddPropertyMenu] = useState(false);
@@ -175,8 +176,9 @@ const ChemicalPropertiesForm = ({
                 <button
                   type="button"
                   onClick={onCASLookup}
-                  disabled={casLookupLoading || !casNumber || readOnly}
-                  className="text-sm bg-millipore-blue text-white px-3 py-1 rounded hover:bg-millipore-blue-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={casLookupLoading || !casNumber || !casNumber.trim() || readOnly}
+                  className="text-sm bg-millipore-blue text-white px-3 py-1 rounded hover:bg-millipore-blue-dark disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  title={!casNumber || !casNumber.trim() ? 'Enter a CAS number first' : 'Fetch data from PubChem'}
                 >
                   {casLookupLoading ? 'Loading...' : 'Auto-populate'}
                 </button>
@@ -188,30 +190,31 @@ const ChemicalPropertiesForm = ({
                 pattern: {
                   value: /^\d+-\d{2}-\d$/,
                   message: 'Please enter a valid CAS number (e.g., 64-17-5 or 1234567-89-0)'
+                },
+                onChange: (e) => {
+                  // Automatically trim leading and trailing spaces
+                  const trimmedValue = e.target.value.trim();
+                  if (trimmedValue !== e.target.value) {
+                    setValue('chemicalProperties.casNumber', trimmedValue, { shouldDirty: true, shouldValidate: true });
+                  }
                 }
               })}
               type="text"
               className={`form-input ${getSAPImportedClass('chemicalProperties.casNumber')}`}
               placeholder="e.g., 64-17-5"
               readOnly={readOnly}
-              onChange={(e) => {
-                // Automatically trim leading and trailing spaces
-                const trimmedValue = e.target.value.trim();
-                if (trimmedValue !== e.target.value) {
-                  setValue('chemicalProperties.casNumber', trimmedValue, { shouldDirty: true });
-                }
-              }}
               onPaste={(e) => {
                 // Handle paste events to trim immediately
                 e.preventDefault();
                 const pastedText = e.clipboardData.getData('text');
                 const trimmedText = pastedText.trim();
-                setValue('chemicalProperties.casNumber', trimmedText, { shouldDirty: true });
+                setValue('chemicalProperties.casNumber', trimmedText, { shouldDirty: true, shouldValidate: true });
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  if (onCASLookup && !casLookupLoading && casNumber && !readOnly) {
+                  const currentCAS = watch('chemicalProperties.casNumber');
+                  if (onCASLookup && !casLookupLoading && currentCAS && currentCAS.trim() && !readOnly) {
                     onCASLookup();
                   }
                 }

@@ -155,6 +155,7 @@ const TicketList = () => {
               >
                 <option value="">All Statuses</option>
                 <option value="DRAFT">Draft</option>
+                <option value="SUBMITTED">Submitted</option>
                 <option value="IN_PROCESS">In Process</option>
                 <option value="NPDI_INITIATED">NPDI Initiated</option>
                 <option value="COMPLETED">Completed</option>

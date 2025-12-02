@@ -1,4 +1,6 @@
 import React from 'react';
+import PlantCodeAutocomplete from './PlantCodeAutocomplete';
+import BusinessLineAutocomplete from './BusinessLineAutocomplete';
 
 const DynamicFormSection = ({
   section,
@@ -13,7 +15,9 @@ const DynamicFormSection = ({
   getSAPImportedClass = () => '',  // Function to get CSS class for SAP-imported fields
   sapMetadata = {},  // Metadata from SAP import (e.g., descriptions)
   onOpenSimilarProducts = null,  // Handler for similar products search button
-  onFieldEdit = null  // Handler for when SAP-imported field is edited (removes green highlight)
+  onOpenGPHSelector = null,  // Handler for Product Hierarchy (GPH) selector button
+  onFieldEdit = null,  // Handler for when SAP-imported field is edited (removes green highlight)
+  glowFields = new Set()  // Set of field keys that should have a green glow effect
 }) => {
   if (!section || !section.visible) return null;
 
@@ -150,9 +154,13 @@ const DynamicFormSection = ({
 
     // Add green highlight for SAP-imported fields
     const sapHighlight = getSAPImportedClass(fieldPath);
+
+    // Add glow effect for auto-populated fields
+    const glowEffect = glowFields.has(field.fieldKey) ? 'animate-glow-green' : '';
+
     const baseInputClass = isReadOnly
-      ? `form-input bg-gray-50 cursor-not-allowed ${sapHighlight}`
-      : `form-input ${sapHighlight}`;
+      ? `form-input bg-gray-50 cursor-not-allowed ${sapHighlight} ${glowEffect}`
+      : `form-input ${sapHighlight} ${glowEffect}`;
 
     // Check if there's metadata description for this field
     const metadataKey = `${field.fieldKey}Description`;
@@ -417,6 +425,32 @@ const DynamicFormSection = ({
             );
           }
 
+          // Special handling for materialGroup - show input with GPH selector button
+          if (fieldPath === 'materialGroup' && onOpenGPHSelector) {
+            return (
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  {...register(fieldPath)}
+                  className={`${baseInputClass} flex-1`}
+                  placeholder="Enter main group/GPH code"
+                  readOnly={false}
+                />
+                <button
+                  type="button"
+                  onClick={onOpenGPHSelector}
+                  className="btn btn-sm btn-secondary flex items-center space-x-2 whitespace-nowrap"
+                  title="Browse Product Hierarchy (GPH) codes"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  <span>Browse</span>
+                </button>
+              </div>
+            );
+          }
+
           // Special handling for productName - using controlled input with manual onChange
           // This works around an issue with react-hook-form's register
           if (fieldPath === 'productName') {
@@ -433,6 +467,52 @@ const DynamicFormSection = ({
                     setValue('productName', e.target.value, { shouldDirty: true, shouldValidate: true });
                   }
                 }}
+              />
+            );
+          }
+
+          // Special handling for primaryPlant - use autocomplete component
+          if (fieldPath === 'primaryPlant') {
+            const currentValue = watch ? watch('primaryPlant') : '';
+            return (
+              <PlantCodeAutocomplete
+                value={currentValue || ''}
+                onChange={(e) => {
+                  if (setValue) {
+                    setValue('primaryPlant', e.target.value, { shouldDirty: true, shouldValidate: true });
+                  }
+                  handleFieldEdit(field.fieldKey);
+                }}
+                onBlur={() => {
+                  // Trigger validation on blur if needed
+                }}
+                placeholder={field.placeholder || 'Search plant code or description...'}
+                disabled={false}
+                className={sapHighlight}
+                required={field.required}
+              />
+            );
+          }
+
+          // Special handling for businessLine.line - use autocomplete component
+          if (fieldPath === 'businessLine.line') {
+            const currentValue = watch ? watch('businessLine.line') : '';
+            return (
+              <BusinessLineAutocomplete
+                value={currentValue || ''}
+                onChange={(e) => {
+                  if (setValue) {
+                    setValue('businessLine.line', e.target.value, { shouldDirty: true, shouldValidate: true });
+                  }
+                  handleFieldEdit(field.fieldKey);
+                }}
+                onBlur={() => {
+                  // Trigger validation on blur if needed
+                }}
+                placeholder={field.placeholder || 'Search business line or description...'}
+                disabled={false}
+                className={sapHighlight}
+                required={field.required}
               />
             );
           }

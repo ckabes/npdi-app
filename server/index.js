@@ -16,6 +16,9 @@ const templateRoutes = require('./routes/templates');
 const adminRoutes = require('./routes/admin');
 const ticketApiRoutes = require('./routes/ticketApi');
 const weightMatrixRoutes = require('./routes/weightMatrix');
+const plantCodeRoutes = require('./routes/plantCodes');
+const productHierarchyRoutes = require('./routes/productHierarchy');
+const businessLineRoutes = require('./routes/businessLines');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -135,6 +138,9 @@ app.use('/api/user-preferences', userPreferencesRoutes);
 app.use('/api/templates', templateRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/weight-matrix', weightMatrixRoutes);
+app.use('/api/plant-codes', plantCodeRoutes);
+app.use('/api/business-lines', businessLineRoutes);
+app.use('/api/product-hierarchy', productHierarchyRoutes);
 
 // Public API v1 for external applications
 app.use('/api/v1/tickets', ticketApiRoutes);

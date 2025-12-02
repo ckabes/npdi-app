@@ -88,4 +88,19 @@
   .priority-urgent {
     @apply bg-red-100 text-red-800;
   }
+
+  @keyframes glow-green {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(34, 197, 94, 0.3), 0 0 10px rgba(34, 197, 94, 0.2);
+      border-color: rgba(34, 197, 94, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.5), 0 0 25px rgba(34, 197, 94, 0.3);
+      border-color: rgba(34, 197, 94, 0.8);
+    }
+  }
+
+  .animate-glow-green {
+    animation: glow-green 1.5s ease-in-out 2;
+  }
 }

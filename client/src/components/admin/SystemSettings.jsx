@@ -4,10 +4,16 @@ import {
   ServerIcon,
   CircleStackIcon,
   DocumentTextIcon,
-  SparklesIcon
+  SparklesIcon,
+  BuildingOfficeIcon,
+  RectangleStackIcon,
+  BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { systemSettingsAPI, adminAPI } from '../../services/api';
+import PlantCodesManager from './PlantCodesManager';
+import GPHManagement from './GPHManagement';
+import BusinessLineManager from './BusinessLineManager';
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState({});
@@ -80,6 +86,9 @@ const SystemSettings = () => {
     { id: 'tickets', name: 'Ticket Configuration', icon: DocumentTextIcon },
     { id: 'integrations', name: 'Integrations', icon: ServerIcon },
     { id: 'ai', name: 'AI Content Generation', icon: SparklesIcon },
+    { id: 'plant-codes', name: 'Plant Codes', icon: BuildingOfficeIcon },
+    { id: 'business-lines', name: 'Business Lines', icon: BuildingLibraryIcon },
+    { id: 'product-hierarchy', name: 'Product Hierarchy', icon: RectangleStackIcon },
     { id: 'performance', name: 'Performance', icon: CircleStackIcon }
   ];
 
@@ -1552,6 +1561,12 @@ const SystemSettings = () => {
         return renderIntegrationsSettings();
       case 'ai':
         return renderAISettings();
+      case 'plant-codes':
+        return <PlantCodesManager />;
+      case 'business-lines':
+        return <BusinessLineManager />;
+      case 'product-hierarchy':
+        return <GPHManagement />;
       case 'performance':
         return renderPerformanceSettings();
       default:

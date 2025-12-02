@@ -180,7 +180,7 @@ const AdminDashboard = () => {
             <StatCard
               title="Completed Tickets"
               value={tickets.completed}
-              subtitle={`${performance.completionRate}% success rate`}
+              subtitle="Total completed tickets"
               icon={CheckCircleIcon}
               color="green"
             />
@@ -467,7 +467,7 @@ const AdminDashboard = () => {
       {/* Navigation Tabs */}
       <div className="bg-white shadow">
         <div className="px-4 sm:px-6 lg:px-8">
-          <nav className="-mb-px flex space-x-8">
+          <nav className="-mb-px flex flex-wrap gap-x-4 sm:gap-x-6 lg:gap-x-8">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -478,10 +478,10 @@ const AdminDashboard = () => {
                     activeTab === tab.id
                       ? 'border-millipore-blue text-millipore-blue'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+                  } flex items-center py-4 px-2 border-b-2 font-medium text-sm transition-colors flex-shrink-0`}
                 >
-                  <Icon className="h-5 w-5 mr-2" />
-                  {tab.name}
+                  <Icon className="h-5 w-5 mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">{tab.name}</span>
                 </button>
               );
             })}
