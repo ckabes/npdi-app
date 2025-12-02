@@ -59,6 +59,11 @@ VPN_DIAGNOSTIC_REPORT_*.txt
 
 unspsc.csv
 
+# Testing plans and reports (internal use only)
+TESTING_PLAN_*.md
+TEST_RESULTS_*.md
+BUG_REPORT_*.md
+
 # Data files (CSV, Excel exports should not be committed)
 /*.csv
 /*.xlsx
