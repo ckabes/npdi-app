@@ -3,11 +3,18 @@
  *
  * Parses natural language quality specifications into structured data
  *
- * Supported formats:
+ * Supported formats (method can appear in any position, with or without "by"):
  * - "Purity ≥99.9% by GC" → { testAttribute: "Purity", valueRange: "≥99.9%", comments: "GC" }
+ * - "Purity 99.8% by NMR" → { testAttribute: "Purity", valueRange: "99.8%", comments: "NMR" }
+ * - "Purity 99.8% GC" → { testAttribute: "Purity", valueRange: "99.8%", comments: "GC" }
+ * - "Purity of 99.8% by GC" → { testAttribute: "Purity", valueRange: "99.8%", comments: "GC" }
+ * - "Purity by GC 99.8%" → { testAttribute: "Purity", valueRange: "99.8%", comments: "GC" }
+ * - "Purity GC 99.8%" → { testAttribute: "Purity", valueRange: "99.8%", comments: "GC" }
  * - "pH 6.5-7.5" → { testAttribute: "pH", valueRange: "6.5-7.5", comments: "" }
  * - "Appearance: White powder" → { testAttribute: "Appearance", valueRange: "White powder", comments: "" }
  * - "Moisture ≤0.5% by Karl Fischer" → { testAttribute: "Moisture", valueRange: "≤0.5%", comments: "Karl Fischer" }
+ * - "Water Karl Fischer 0.5%" → { testAttribute: "Water", valueRange: "0.5%", comments: "Karl Fischer" }
+ * - "Water 0.5% Karl Fischer" → { testAttribute: "Water", valueRange: "0.5%", comments: "Karl Fischer" }
  */
 
 import { parserConfigService } from '../services/parserConfigService';
@@ -133,6 +140,73 @@ export function parseQualitySpec(text) {
           comments: match[4].trim(),
           dataSource: 'QC'
         };
+      }
+    }
+  }
+
+  // Pattern 2c: "Test by/via/using Method Value" (method before value)
+  // Examples: "purity by gc 99.8%", "assay by hplc 98-102%", "water by karl fischer 0.5%"
+  if (!parsedResult) {
+    const pattern2c = /^([^≥≤><=%]+?)\s+(?:by|via|using)\s+(.+?)\s+([≥≤><=%].+)$/i;
+    match = trimmed.match(pattern2c);
+
+    if (match) {
+      const testAttr = match[1].trim();
+      const potentialMethodAndValue = match[2].trim();
+      const remainingValue = match[3].trim();
+
+      // Try to find where the method ends and value begins
+      // Split and check combinations from longest to shortest
+      const words = potentialMethodAndValue.split(/\s+/);
+
+      for (let i = words.length; i >= 1; i--) {
+        const methodCandidate = words.slice(0, i).join(' ');
+        const valueCandidate = words.slice(i).join(' ') + ' ' + remainingValue;
+
+        // Check if this is a known method
+        if (isKnownTestMethod(methodCandidate)) {
+          parsedResult = {
+            testAttribute: testAttr,
+            valueRange: valueCandidate.trim(),
+            comments: methodCandidate,
+            dataSource: 'QC'
+          };
+          break;
+        }
+      }
+    }
+  }
+
+  // Pattern 2d: "Test Method Value" (method without 'by', before value)
+  // Examples: "purity gc 99.8%", "assay hplc 98-102%", "water karl fischer 0.5%"
+  if (!parsedResult) {
+    // Try to match with potentially multi-word method
+    const pattern2d = /^([a-z\s]+?)\s+([a-z0-9-\s]+?)\s+([≥≤><=%]?.+)$/i;
+    match = trimmed.match(pattern2d);
+
+    if (match) {
+      const testAttr = match[1].trim();
+      const potentialMethodAndValue = match[2].trim();
+      const remainingValue = match[3].trim();
+
+      // Try to find where the method ends and value begins
+      // Split the potential method part and check combinations
+      const words = potentialMethodAndValue.split(/\s+/);
+
+      for (let i = 1; i <= words.length; i++) {
+        const methodCandidate = words.slice(0, i).join(' ');
+        const valueCandidate = words.slice(i).join(' ') + ' ' + remainingValue;
+
+        // Check if this is a known method
+        if (methodCandidate.length >= 2 && isKnownTestMethod(methodCandidate)) {
+          parsedResult = {
+            testAttribute: testAttr,
+            valueRange: valueCandidate.trim(),
+            comments: methodCandidate,
+            dataSource: 'QC'
+          };
+          break;
+        }
       }
     }
   }
@@ -285,6 +359,45 @@ export function parseQualitySpec(text) {
     }
   }
 
+  // Pattern 5b: "Test NumericValue by/via/using Method" (simple numeric value with method)
+  // Examples: "purity 99.8% by nmr", "assay 98-102% by hplc", "water 0.5% by karl fischer"
+  if (!parsedResult) {
+    const pattern5b = /^([A-Za-z\s]+?)\s+([\d.%≥≤><=-]+(?:\s*[\d.%°℃℉CF-]+)*)\s+(?:by|via|using)\s+(.+)$/i;
+    match = trimmed.match(pattern5b);
+
+    if (match) {
+      parsedResult = {
+        testAttribute: match[1].trim(),
+        valueRange: match[2].trim(),
+        comments: match[3].trim(),
+        dataSource: 'QC'
+      };
+    }
+  }
+
+  // Pattern 5c: "Test NumericValue Method" (simple numeric value with method, no "by")
+  // Examples: "purity 99.8% gc", "assay 98-102% hplc", "water 0.5% karl fischer"
+  if (!parsedResult) {
+    const pattern5c = /^([A-Za-z\s]+?)\s+([\d.%≥≤><=-]+(?:\s*[\d.%°℃℉CF-]+)*)\s+([a-z0-9\s-]+)$/i;
+    match = trimmed.match(pattern5c);
+
+    if (match) {
+      const testAttr = match[1].trim();
+      const value = match[2].trim();
+      const potentialMethod = match[3].trim();
+
+      // Verify it's a known test method (to avoid false positives)
+      if (isKnownTestMethod(potentialMethod)) {
+        parsedResult = {
+          testAttribute: testAttr,
+          valueRange: value,
+          comments: potentialMethod,
+          dataSource: 'QC'
+        };
+      }
+    }
+  }
+
   // Pattern 6: Simple "Test Value" format (no connector, with optional method)
   // Examples: "Solubility Soluble in water", "Form Powder", "structure Conforms by 1HNMR"
   if (!parsedResult) {
@@ -306,15 +419,57 @@ export function parseQualitySpec(text) {
           dataSource: 'QC'
         };
       } else {
-        // Don't parse if it looks like a sentence (too many words)
-        const valueWords = valueAndMethod.split(/\s+/).length;
-        if (valueWords <= 5) {
-          parsedResult = {
-            testAttribute: testAttr,
-            valueRange: valueAndMethod,
-            comments: '',
-            dataSource: 'QC'
-          };
+        const words = valueAndMethod.split(/\s+/);
+        let foundMethod = false;
+
+        // Check if FIRST word(s) is a known test method (e.g., "purity gc 99.8%")
+        for (let i = Math.min(2, words.length - 1); i >= 1; i--) {
+          const potentialMethod = words.slice(0, i).join(' ');
+          const potentialValue = words.slice(i).join(' ');
+
+          if (potentialMethod.length >= 2 && isKnownTestMethod(potentialMethod)) {
+            parsedResult = {
+              testAttribute: testAttr,
+              valueRange: potentialValue,
+              comments: potentialMethod,
+              dataSource: 'QC'
+            };
+            foundMethod = true;
+            break;
+          }
+        }
+
+        // Check if LAST word(s) is a known test method (e.g., "purity 99.8% gc")
+        if (!foundMethod) {
+          for (let i = Math.max(1, words.length - 2); i < words.length; i++) {
+            const potentialValue = words.slice(0, i).join(' ');
+            const potentialMethod = words.slice(i).join(' ');
+
+            if (potentialMethod.length >= 2 && isKnownTestMethod(potentialMethod)) {
+              parsedResult = {
+                testAttribute: testAttr,
+                valueRange: potentialValue,
+                comments: potentialMethod,
+                dataSource: 'QC'
+              };
+              foundMethod = true;
+              break;
+            }
+          }
+        }
+
+        // If no method found, treat entire thing as value
+        if (!foundMethod) {
+          // Don't parse if it looks like a sentence (too many words)
+          const valueWords = valueAndMethod.split(/\s+/).length;
+          if (valueWords <= 5) {
+            parsedResult = {
+              testAttribute: testAttr,
+              valueRange: valueAndMethod,
+              comments: '',
+              dataSource: 'QC'
+            };
+          }
         }
       }
     }
@@ -398,6 +553,116 @@ export function parseQualitySpecsBatch(text) {
     successCount: results.length,
     errorCount: errors.length
   };
+}
+
+/**
+ * Check if a word is a known test method
+ * Used to disambiguate patterns where method appears before value
+ * @param {string} word - Potential test method
+ * @returns {boolean} True if it's a known test method
+ */
+function isKnownTestMethod(word) {
+  if (!word || typeof word !== 'string') {
+    return false;
+  }
+
+  const lower = word.toLowerCase().trim();
+
+  // Check against database configuration if loaded
+  const methodCasing = configCache.loaded ? configCache.testMethods : {
+    // Chromatography
+    'gc': 'GC',
+    'hplc': 'HPLC',
+    'tlc': 'TLC',
+    'gc-ms': 'GC-MS',
+    'lc-ms': 'LC-MS',
+    'uplc': 'UPLC',
+    'uhplc': 'UHPLC',
+    'hplc-uv': 'HPLC-UV',
+    'hplc-dad': 'HPLC-DAD',
+    'hplc-ms': 'HPLC-MS',
+    'lc-ms/ms': 'LC-MS/MS',
+    'gc-fid': 'GC-FID',
+    'gc-tcd': 'GC-TCD',
+    'hptlc': 'HPTLC',
+    'sfc': 'SFC',
+
+    // Spectroscopy - NMR
+    'nmr': 'NMR',
+    '1h nmr': '1H NMR',
+    '1hnmr': '1H NMR',
+    '13c nmr': '13C NMR',
+    '13cnmr': '13C NMR',
+    '31p nmr': '31P NMR',
+    '19f nmr': '19F NMR',
+    '2d nmr': '2D NMR',
+
+    // Spectroscopy - IR/UV/Vis
+    'ir': 'IR',
+    'ftir': 'FTIR',
+    'nir': 'NIR',
+    'atr-ftir': 'ATR-FTIR',
+    'raman': 'Raman',
+    'uv': 'UV',
+    'uv-vis': 'UV-Vis',
+    'vis': 'Vis',
+    'fluorescence': 'Fluorescence',
+
+    // Mass Spectrometry
+    'ms': 'MS',
+    'maldi': 'MALDI',
+    'maldi-tof': 'MALDI-TOF',
+    'esi-ms': 'ESI-MS',
+    'tof-ms': 'TOF-MS',
+
+    // Elemental & Metals Analysis
+    'icp-ms': 'ICP-MS',
+    'icp-oes': 'ICP-OES',
+    'icp-aes': 'ICP-AES',
+    'aas': 'AAS',
+    'faas': 'FAAS',
+    'gfaas': 'GFAAS',
+    'xrf': 'XRF',
+
+    // Thermal Analysis
+    'dsc': 'DSC',
+    'tga': 'TGA',
+    'dta': 'DTA',
+    'tma': 'TMA',
+    'dma': 'DMA',
+
+    // Microscopy
+    'sem': 'SEM',
+    'tem': 'TEM',
+    'afm': 'AFM',
+
+    // Other common methods
+    'lal': 'LAL',
+    'pcr': 'PCR',
+    'qpcr': 'qPCR',
+    'elisa': 'ELISA',
+    'kf': 'Karl Fischer',
+    'karl fischer': 'Karl Fischer',
+    'lod': 'LOD',
+    'visual': 'Visual',
+    'titration': 'Titration',
+    'xrd': 'XRD',
+    'xrpd': 'XRPD'
+  };
+
+  // Check for exact match
+  if (methodCasing[lower]) {
+    return true;
+  }
+
+  // Check for multi-word methods (e.g., "karl fischer")
+  for (const key of Object.keys(methodCasing)) {
+    if (key === lower) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -986,6 +1251,10 @@ export function suggestTestMethods(testAttribute) {
  */
 export const EXAMPLE_SPECS = [
   'purity ≥99.9% by gc, ph 6.5-7.5, appearance: white powder',
+  'purity 99.8% by nmr, assay 98-102% by hplc',
+  'purity by gc 99.8%, assay by hplc 98-102%',
+  'purity gc 99.8%, water karl fischer 0.5%',
+  'purity 99.8% gc, assay 98-102% hplc',
   'water content is less than or equal to 50 ppm, melting point is 100-102°C',
   'purity of 99.8% by 1hnmr and assay 98.0-102.0% by hplc',
   'conforms to structure by 1hnmr, confirms identity by ir',
