@@ -15,6 +15,7 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 
 ### Chemical Data Management
 - **Chemical Properties**: CAS numbers, molecular formulas, physical states, purity ranges
+- **Quality Specifications Parser**: Natural language input for quality specs with automatic formatting and smart capitalization
 - **Hazard Classification**: GHS classes, signal words, transport classifications, UN numbers
 - **Storage Conditions**: Temperature, humidity, light, and atmosphere requirements
 - **Regulatory Information**: FDA, EPA, REACH, TSCA compliance tracking
