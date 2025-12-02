@@ -79,42 +79,53 @@ export function parseQualitySpec(text) {
     }
   }
 
-  // Pattern 2: "Test ≥/≤/>/</= Value by/via/using Method"
+  // Pattern 2: "Test ≥/≤/>/</= Value by/via/using Method" (no "of")
   // Examples: "Purity ≥99.9% by GC", "Moisture ≤0.5% via Karl Fischer"
+  // Note: Skip if test attribute ends with " of" (should be handled by Pattern 2a)
   if (!parsedResult) {
     const pattern2 = /^([^≥≤><=%]+?)\s*(?:is|was|must\s+be|should\s+be)?\s*(≥|≤|>|<|=|>=|<=)\s*([^by\s][^\s]*(?:\s+[^\s]+)*?)\s*(?:by|via|using|with|\()\s*(.+?)(?:\)|$)/i;
     match = trimmed.match(pattern2);
 
     if (match) {
-      parsedResult = {
-        testAttribute: match[1].trim(),
-        valueRange: `${match[2]}${match[3].trim()}`,
-        comments: match[4].trim(),
-        dataSource: 'QC'
-      };
+      const testAttr = match[1].trim();
+      // Skip if test attribute ends with "of" (should be handled by "of" patterns)
+      if (!testAttr.toLowerCase().endsWith(' of')) {
+        parsedResult = {
+          testAttribute: testAttr,
+          valueRange: `${match[2]}${match[3].trim()}`,
+          comments: match[4].trim(),
+          dataSource: 'QC'
+        };
+      }
     }
   }
 
-  // Pattern 2: "Test ≥/≤/>/</= Value" (no method)
+  // Pattern 2: "Test ≥/≤/>/</= Value" (no method, no "of")
   // Examples: "Purity ≥99.9%", "pH >5", "Water content is ≤50 ppm"
+  // Note: Skip if test attribute ends with " of" or value contains "by/via/using" (handled by other patterns)
   if (!parsedResult) {
     const pattern2 = /^([^≥≤><=%]+?)\s*(?:is|was|must\s+be|should\s+be)?\s*(≥|≤|>|<|=|>=|<=)\s*(.+)$/i;
     match = trimmed.match(pattern2);
 
     if (match) {
-      parsedResult = {
-        testAttribute: match[1].trim(),
-        valueRange: `${match[2]}${match[3].trim()}`,
-        comments: '',
-        dataSource: 'QC'
-      };
+      const testAttr = match[1].trim();
+      const value = match[3].trim();
+      // Skip if test attribute ends with "of" or value contains method keywords
+      if (!testAttr.toLowerCase().endsWith(' of') && !/\s+(by|via|using)\s+/i.test(value)) {
+        parsedResult = {
+          testAttribute: testAttr,
+          valueRange: `${match[2]}${value}`,
+          comments: '',
+          dataSource: 'QC'
+        };
+      }
     }
   }
 
   // Pattern 2a: "Test of Value by Method"
   // Examples: "Purity of 99.8% by 1H NMR", "Content of 98-102% by HPLC"
   if (!parsedResult) {
-    const pattern2a = /^([^of]+?)\s+of\s+([^by]+?)\s+(?:by|via|using)\s+(.+)$/i;
+    const pattern2a = /^(.+?)\s+of\s+(.+?)\s+(?:by|via|using)\s+(.+)$/i;
     match = trimmed.match(pattern2a);
 
     if (match) {
@@ -127,19 +138,34 @@ export function parseQualitySpec(text) {
     }
   }
 
-  // Pattern 2b: "Test of Value" (no method)
-  // Examples: "Purity of 99.8%", "Content of 98-102%"
+  // Pattern 2b: "Test of Value" (with optional method)
+  // Examples: "Purity of 99.8%", "water content of 50 ppm", "purity of 99% by hplc"
   if (!parsedResult) {
-    const pattern2b = /^([^of]+?)\s+of\s+(.+)$/i;
+    const pattern2b = /^(.+?)\s+of\s+(.+)$/i;
     match = trimmed.match(pattern2b);
 
     if (match) {
-      parsedResult = {
-        testAttribute: match[1].trim(),
-        valueRange: match[2].trim(),
-        comments: '',
-        dataSource: 'QC'
-      };
+      const testAttr = match[1].trim();
+      const valueAndMethod = match[2].trim();
+
+      // Check if value contains "by/via/using" to separate method
+      const methodMatch = valueAndMethod.match(/^(.+?)\s+(?:by|via|using)\s+(.+)$/i);
+
+      if (methodMatch) {
+        parsedResult = {
+          testAttribute: testAttr,
+          valueRange: methodMatch[1].trim(),
+          comments: methodMatch[2].trim(),
+          dataSource: 'QC'
+        };
+      } else {
+        parsedResult = {
+          testAttribute: testAttr,
+          valueRange: valueAndMethod,
+          comments: '',
+          dataSource: 'QC'
+        };
+      }
     }
   }
 
