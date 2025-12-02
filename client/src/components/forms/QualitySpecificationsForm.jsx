@@ -237,6 +237,10 @@ const QualitySpecificationsForm = ({
 
             {showSeparatorInfo && (
               <div className="mb-3 p-3 bg-white rounded border border-purple-200">
+                <p className="text-sm text-gray-700 mb-3">
+                  Just type your quality specs in plain language and click <strong>Decipher</strong>. The parser will automatically format them into structured table entries.
+                  For example, type something like <span className="italic">"purity ≥99% by gc, appearance is clear, ph 6.5-7.5"</span> and watch it transform into proper quality attributes!
+                </p>
                 <p className="text-xs font-medium text-gray-700 mb-2">How to separate specifications:</p>
                 <ul className="text-xs text-gray-600 space-y-1 mb-3">
                   <li>• <strong>Comma (,)</strong> - Most common separator</li>
