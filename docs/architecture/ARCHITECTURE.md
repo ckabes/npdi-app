@@ -3,8 +3,8 @@
 ## Document Information
 
 **Application:** MilliporeSigma NPDI Application
-**Version:** 1.0.0
-**Last Updated:** 2025-10-21
+**Version:** 1.1.0
+**Last Updated:** 2025-12-02
 **Purpose:** Comprehensive architectural overview for stakeholders and technical teams
 
 ---
@@ -83,9 +83,12 @@ The NPDI application facilitates the interface between Product Managers and Prod
 │                   MongoDB Database                              │
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │  Collections:                                              │ │
-│  │  - producttickets  - users         - permissions           │ │
-│  │  - apikeys         - formconfigs   - systemsettings        │ │
-│  │  - userpreferences - templates     - weightmatrices        │ │
+│  │  - producttickets       - users              - permissions │ │
+│  │  - apikeys              - formconfigs        - templates   │ │
+│  │  - systemsettings       - userpreferences                  │ │
+│  │  - parserconfigurations - weightmatrices                   │ │
+│  │  - plantcodes           - businesslines                    │ │
+│  │  - producthierarchies                                      │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
                               ↕
@@ -817,6 +820,78 @@ The application uses MongoDB, a document-oriented NoSQL database, chosen for:
 - Shipping cost estimation
 - Inventory management
 - Package dimension planning
+
+#### 5.2.10 ParserConfiguration Collection
+
+**Purpose:** Database-backed knowledge base for Quality Specifications Natural Language Parser
+
+**Key Fields:**
+- `configType` - Configuration type (enum: 'testAttribute', 'testMethod', 'defaultMethod')
+- `entries[]` - Array of knowledge entries
+  - `key` - Lowercase search key (e.g., 'purity', 'hplc')
+  - `value` - Properly formatted value (e.g., 'Purity', 'HPLC')
+  - `category` - Entry category (e.g., 'chemical', 'biological', 'microbiological')
+  - `description` - Optional context for admin users
+  - `isCustom` - Boolean flag for user-added vs seeded defaults
+  - `createdAt`, `updatedAt` - Entry timestamps
+- `version` - Version number for cache invalidation
+- `totalEntries` - Metadata: count of all entries
+- `customEntriesCount` - Metadata: count of custom entries
+- `lastModifiedBy` - User email who made last change
+
+**Configuration Types:**
+1. **testAttribute** (87 default entries): Test/attribute normalization
+   - Categories: chemical, biological, physical, thermal, microbiological
+   - Examples: 'purity' → 'Purity', 'endotoxin' → 'Endotoxin', 'ph' → 'pH'
+
+2. **testMethod** (126 default entries): Test method normalization
+   - Categories: chromatography, spectroscopy, mass_spectrometry, microbiological, biological
+   - Examples: 'hplc' → 'HPLC', 'lal' → 'LAL', 'pcr' → 'PCR'
+
+3. **defaultMethod** (90 default entries): Test → Method mappings
+   - Maps test attributes to default analytical methods
+   - Examples: 'purity' → 'HPLC', 'endotoxin' → 'LAL', 'sterility' → 'Membrane Filtration'
+
+**Use Cases:**
+- Parser normalization of quality specification text
+- Admin management of test standards and methods
+- Adding new USP/EP methods without code deployment
+- Company-specific test method customization
+- Cache invalidation on updates
+
+**Performance:**
+- Frontend caching (memory + localStorage)
+- Zero runtime performance impact
+- Version-based cache invalidation
+- Background sync for updates
+
+**Admin UI Access:** Admin Dashboard → System Settings → Quality Tests
+
+#### 5.2.11 PlantCode, BusinessLine, ProductHierarchy Collections
+
+**PlantCode Collection:**
+- `code` - 4-digit plant code
+- `name` - Plant name
+- `location` - Geographic location
+- `isActive` - Active status flag
+
+**BusinessLine Collection:**
+- `code` - Business line code
+- `name` - Business line name
+- `description` - Detailed description
+- `isActive` - Active status flag
+
+**ProductHierarchy Collection:**
+- `sbu` - Strategic Business Unit
+- `gph` - Global Product Hierarchy
+- `productLine` - Product line designation
+- `isActive` - Active status flag
+
+**Purpose:**
+- Centralized management of organizational structures
+- Dropdown population in forms
+- Product categorization and filtering
+- Reporting and analytics grouping
 
 ### 5.3 Data Relationships
 

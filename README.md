@@ -16,6 +16,7 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 ### Chemical Data Management
 - **Chemical Properties**: CAS numbers, molecular formulas, physical states, purity ranges
 - **Quality Specifications Parser**: Natural language input for quality specs with automatic formatting and smart capitalization
+- **Quality Tests Configuration**: Database-backed parser knowledge base (303 entries) manageable via admin UI - test attributes, methods, and default mappings
 - **Hazard Classification**: GHS classes, signal words, transport classifications, UN numbers
 - **Storage Conditions**: Temperature, humidity, light, and atmosphere requirements
 - **Regulatory Information**: FDA, EPA, REACH, TSCA compliance tracking
@@ -23,6 +24,7 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **SAP Data Integration**: Palantir SQL Query API v2 for MARA dataset queries with material number lookup
 - **Similar Products Search**: Find related products with the same CAS number from SAP MARA data
 - **Weight Matrix Management**: Package size to weight conversion for SKU variants
+- **Plant Codes & Business Lines**: Centralized management of plant codes, business lines, and product hierarchy
 - **UNSPSC Classification**: United Nations Standard Products and Services Code tracking
 
 ### Additional Features
@@ -77,7 +79,11 @@ npdi-app/
 │   │   └── validators.js
 │   ├── models/               # Database schemas (Mongoose)
 │   │   ├── ApiKey.js
+│   │   ├── BusinessLine.js
 │   │   ├── FormConfiguration.js
+│   │   ├── ParserConfiguration.js
+│   │   ├── PlantCode.js
+│   │   ├── ProductHierarchy.js
 │   │   ├── ProductTicket.js
 │   │   ├── SystemSettings.js
 │   │   ├── TicketTemplate.js
@@ -86,8 +92,12 @@ npdi-app/
 │   │   └── WeightMatrix.js
 │   ├── routes/               # API endpoint definitions
 │   │   ├── admin.js          # Admin panel routes
+│   │   ├── businessLines.js  # Business line management routes
 │   │   ├── formConfig.js     # Form configuration routes
+│   │   ├── parserConfig.js   # Parser knowledge base routes
 │   │   ├── permissions.js    # Permission management routes
+│   │   ├── plantCodes.js     # Plant code management routes
+│   │   ├── productHierarchy.js # Product hierarchy routes
 │   │   ├── products.js       # Product ticket routes
 │   │   ├── systemSettings.js # System settings routes
 │   │   ├── templates.js      # Template management routes
@@ -99,6 +109,8 @@ npdi-app/
 │   │   ├── generateApiKey.js
 │   │   ├── seedApiKey.js
 │   │   ├── seedFormConfig.js
+│   │   ├── seedParserConfig.js
+│   │   ├── seedProductHierarchy.js
 │   │   ├── testAzureOpenAI.js
 │   │   └── testSAPConnectivity.js
 │   ├── services/             # External service integrations

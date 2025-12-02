@@ -51,6 +51,9 @@ DEPENDENCY_MANAGEMENT.md
 # Dependency license analysis (contains licensing review)
 DEPENDENCY_LICENSE_ANALYSIS.md
 
+# Refactoring planning documents (internal reference only)
+docs/DISCRIMINATOR_PATTERN_REFACTORING_PLAN.md
+
 # VPN diagnostic reports (contains network configuration details)
 VPN_DIAGNOSTIC_REPORT_*.txt
 
