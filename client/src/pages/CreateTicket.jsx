@@ -1485,6 +1485,7 @@ const CreateTicket = () => {
                         key={section.sectionKey}
                         register={register}
                         watch={watch}
+                        setValue={setValue}
                         qualityFields={qualityFields}
                         appendQuality={appendQuality}
                         removeQuality={removeQuality}
