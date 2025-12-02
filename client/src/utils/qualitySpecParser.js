@@ -398,13 +398,85 @@ export function normalizeTestAttribute(attribute) {
     'impurities': 'Impurities',
     'residual solvents': 'Residual Solvents',
     'heavy metals': 'Heavy Metals',
+    'trace metals': 'Trace Metals',
+    'elemental impurities': 'Elemental Impurities',
 
-    // Physical
+    // Physical Properties
     'melting point': 'Melting Point',
     'mp': 'MP',
+    'boiling point': 'Boiling Point',
+    'bp': 'BP',
     'particle size': 'Particle Size',
+    'particle size distribution': 'Particle Size Distribution',
     'loss on drying': 'Loss on Drying',
-    'lod': 'LOD'
+    'lod': 'LOD',
+    'viscosity': 'Viscosity',
+    'density': 'Density',
+    'specific gravity': 'Specific Gravity',
+    'refractive index': 'Refractive Index',
+    'optical rotation': 'Optical Rotation',
+    'specific rotation': 'Specific Rotation',
+    'crystallinity': 'Crystallinity',
+    'polymorphic form': 'Polymorphic Form',
+    'surface area': 'Surface Area',
+    'bulk density': 'Bulk Density',
+    'tapped density': 'Tapped Density',
+    'true density': 'True Density',
+
+    // Thermal Properties
+    'glass transition': 'Glass Transition',
+    'tg': 'Tg',
+    'decomposition temperature': 'Decomposition Temperature',
+
+    // Dissolution & Release
+    'dissolution': 'Dissolution',
+    'dissolution rate': 'Dissolution Rate',
+    'disintegration': 'Disintegration',
+    'disintegration time': 'Disintegration Time',
+    'drug release': 'Drug Release',
+    'release rate': 'Release Rate',
+
+    // Electrical Properties
+    'conductivity': 'Conductivity',
+    'resistivity': 'Resistivity',
+
+    // Microbiological Tests
+    'bioburden': 'Bioburden',
+    'sterility': 'Sterility',
+    'microbial limits': 'Microbial Limits',
+    'total aerobic count': 'Total Aerobic Count',
+    'tamc': 'TAMC',
+    'total yeast mold count': 'Total Yeast Mold Count',
+    'tymc': 'TYMC',
+    'total viable count': 'Total Viable Count',
+    'endotoxin': 'Endotoxin',
+    'bacterial endotoxin': 'Bacterial Endotoxin',
+    'pyrogen': 'Pyrogen',
+    'mycoplasma': 'Mycoplasma',
+    'specified microorganisms': 'Specified Microorganisms',
+
+    // Biological Tests
+    'potency': 'Potency',
+    'biological activity': 'Biological Activity',
+    'cell viability': 'Cell Viability',
+    'viability': 'Viability',
+    'viral safety': 'Viral Safety',
+    'viral clearance': 'Viral Clearance',
+    'adventitious agents': 'Adventitious Agents',
+    'host cell proteins': 'Host Cell Proteins',
+    'hcp': 'HCP',
+    'host cell dna': 'Host Cell DNA',
+    'residual dna': 'Residual DNA',
+    'protein content': 'Protein Content',
+    'protein a': 'Protein A',
+
+    // Chromatographic Purity
+    'single impurity': 'Single Impurity',
+    'total impurities': 'Total Impurities',
+    'chromatographic purity': 'Chromatographic Purity',
+    'enantiomeric purity': 'Enantiomeric Purity',
+    'optical purity': 'Optical Purity',
+    'chiral purity': 'Chiral Purity'
   };
 
   const lower = attribute.toLowerCase().trim();
@@ -441,38 +513,153 @@ export function normalizeTestMethod(method) {
     'gc-ms': 'GC-MS',
     'lc-ms': 'LC-MS',
     'uplc': 'UPLC',
+    'uhplc': 'UHPLC',
+    'hplc-uv': 'HPLC-UV',
+    'hplc-dad': 'HPLC-DAD',
+    'hplc-ms': 'HPLC-MS',
+    'lc-ms/ms': 'LC-MS/MS',
+    'gc-fid': 'GC-FID',
+    'gc-tcd': 'GC-TCD',
+    'hptlc': 'HPTLC',
+    'sfc': 'SFC',
 
-    // Spectroscopy
+    // Spectroscopy - NMR
     'nmr': 'NMR',
     '1h nmr': '1H NMR',
     '1hnmr': '1H NMR',
     '13c nmr': '13C NMR',
     '13cnmr': '13C NMR',
+    '31p nmr': '31P NMR',
+    '19f nmr': '19F NMR',
+    '2d nmr': '2D NMR',
+
+    // Spectroscopy - IR/UV/Vis
     'ir': 'IR',
+    'ftir': 'FTIR',
+    'nir': 'NIR',
+    'atr-ftir': 'ATR-FTIR',
+    'raman': 'Raman',
     'uv': 'UV',
     'uv-vis': 'UV-Vis',
-    'ms': 'MS',
-    'ftir': 'FTIR',
+    'vis': 'Vis',
+    'fluorescence': 'Fluorescence',
 
-    // Metals analysis
+    // Mass Spectrometry
+    'ms': 'MS',
+    'maldi': 'MALDI',
+    'maldi-tof': 'MALDI-TOF',
+    'esi-ms': 'ESI-MS',
+    'tof-ms': 'TOF-MS',
+
+    // Elemental & Metals Analysis
     'icp-ms': 'ICP-MS',
     'icp-oes': 'ICP-OES',
+    'icp-aes': 'ICP-AES',
     'aas': 'AAS',
+    'faas': 'FAAS',
+    'gfaas': 'GFAAS',
+    'xrf': 'XRF',
+    'ed-xrf': 'ED-XRF',
+    'wdxrf': 'WDXRF',
 
-    // Other
+    // Structural Analysis
+    'xrd': 'XRD',
+    'xrpd': 'XRPD',
+    'pxrd': 'PXRD',
+    'scxrd': 'SCXRD',
+    'saxs': 'SAXS',
+    'waxs': 'WAXS',
+
+    // Thermal Analysis
     'dsc': 'DSC',
     'tga': 'TGA',
-    'lod': 'LOD',
-    'sem': 'SEM',
+    'dta': 'DTA',
+    'tma': 'TMA',
+    'dma': 'DMA',
 
-    // Full names
+    // Microscopy
+    'sem': 'SEM',
+    'tem': 'TEM',
+    'afm': 'AFM',
+    'optical microscopy': 'Optical microscopy',
+    'polarized light microscopy': 'Polarized light microscopy',
+
+    // Microbiological Methods
+    'lal': 'LAL',
+    'lal assay': 'LAL Assay',
+    'lal test': 'LAL Test',
+    'membrane filtration': 'Membrane Filtration',
+    'plate count': 'Plate Count',
+    'pour plate': 'Pour Plate',
+    'spread plate': 'Spread Plate',
+    'mpn': 'MPN',
+    'most probable number': 'Most Probable Number',
+    'pcr': 'PCR',
+    'qpcr': 'qPCR',
+    'rt-pcr': 'RT-PCR',
+    'elisa': 'ELISA',
+    'gel clot': 'Gel Clot',
+    'kinetic turbidimetric': 'Kinetic Turbidimetric',
+    'kinetic chromogenic': 'Kinetic Chromogenic',
+    'chromogenic': 'Chromogenic',
+    'turbidimetric': 'Turbidimetric',
+
+    // Biological Assays
+    'cell culture': 'Cell Culture',
+    'cell-based assay': 'Cell-Based Assay',
+    'bioassay': 'Bioassay',
+    'elisa': 'ELISA',
+    'western blot': 'Western Blot',
+    'sds-page': 'SDS-PAGE',
+    'ce-sds': 'CE-SDS',
+    'ihc': 'IHC',
+    'immunohistochemistry': 'Immunohistochemistry',
+    'flow cytometry': 'Flow Cytometry',
+    'facs': 'FACS',
+
+    // Particle Characterization
+    'laser diffraction': 'Laser Diffraction',
+    'dynamic light scattering': 'Dynamic Light Scattering',
+    'dls': 'DLS',
+    'static light scattering': 'Static Light Scattering',
+    'sls': 'SLS',
+    'nta': 'NTA',
+    'coulter counter': 'Coulter Counter',
+    'bet': 'BET',
+
+    // Dissolution & Physical
+    'usp apparatus 1': 'USP Apparatus 1',
+    'usp apparatus 2': 'USP Apparatus 2',
+    'usp apparatus 3': 'USP Apparatus 3',
+    'usp apparatus 4': 'USP Apparatus 4',
+    'paddle': 'Paddle',
+    'basket': 'Basket',
+    'rotating cylinder': 'Rotating Cylinder',
+    'flow-through cell': 'Flow-Through Cell',
+
+    // Electrochemical
+    'hplc-ec': 'HPLC-EC',
+    'ise': 'ISE',
+    'potentiometry': 'Potentiometry',
+
+    // Other Methods
+    'lod': 'LOD',
     'karl fischer': 'Karl Fischer',
+    'kf': 'Karl Fischer',
     'visual': 'Visual',
+    'visual inspection': 'Visual Inspection',
     'organoleptic': 'Organoleptic',
     'titration': 'Titration',
-    'ph meter': 'pH meter',
-    'laser diffraction': 'Laser diffraction',
-    'melting point apparatus': 'Melting point apparatus'
+    'potentiometric titration': 'Potentiometric Titration',
+    'ph meter': 'pH Meter',
+    'melting point apparatus': 'Melting Point Apparatus',
+    'capillary melting point': 'Capillary Melting Point',
+    'polarimeter': 'Polarimeter',
+    'refractometer': 'Refractometer',
+    'viscometer': 'Viscometer',
+    'densitometer': 'Densitometer',
+    'conductivity meter': 'Conductivity Meter',
+    'osmometer': 'Osmometer'
   };
 
   const lower = method.toLowerCase().trim();
@@ -596,35 +783,110 @@ export function getDefaultTestMethod(testAttribute) {
     'purity': 'HPLC',
     'assay': 'HPLC',
     'content': 'HPLC',
+    'chromatographic purity': 'HPLC',
 
-    // Physical properties
+    // Physical Properties - Visual
     'appearance': 'Visual',
     'color': 'Visual',
     'colour': 'Visual',
     'form': 'Visual',
+    'solubility': 'Visual',
+    'crystallinity': 'Optical Microscopy',
+
+    // Physical Properties - Sensory
     'odor': 'Organoleptic',
     'odour': 'Organoleptic',
-    'solubility': 'Visual',
+
+    // Physical Properties - Instrumental
+    'viscosity': 'Viscometer',
+    'density': 'Densitometer',
+    'specific gravity': 'Densitometer',
+    'refractive index': 'Refractometer',
+    'optical rotation': 'Polarimeter',
+    'specific rotation': 'Polarimeter',
+    'conductivity': 'Conductivity Meter',
 
     // pH
-    'ph': 'pH meter',
+    'ph': 'pH Meter',
 
-    // Impurities
+    // Impurities - Chromatographic
     'related substances': 'HPLC',
     'impurities': 'HPLC',
+    'single impurity': 'HPLC',
+    'total impurities': 'HPLC',
     'residual solvents': 'GC',
     'solvents': 'GC',
+    'enantiomeric purity': 'HPLC',
+    'chiral purity': 'HPLC',
 
-    // Metals
+    // Elemental/Metals
     'heavy metals': 'ICP-MS',
     'metals': 'ICP-MS',
+    'trace metals': 'ICP-MS',
+    'elemental impurities': 'ICP-MS',
 
-    // Other
-    'melting point': 'Melting point apparatus',
-    'mp': 'Melting point apparatus',
-    'particle size': 'Laser diffraction',
+    // Thermal Properties
+    'melting point': 'Melting Point Apparatus',
+    'mp': 'Melting Point Apparatus',
+    'boiling point': 'Distillation Apparatus',
+    'bp': 'Distillation Apparatus',
+    'glass transition': 'DSC',
+    'tg': 'DSC',
+    'decomposition temperature': 'TGA',
+
+    // Particle Characterization
+    'particle size': 'Laser Diffraction',
+    'particle size distribution': 'Laser Diffraction',
+    'surface area': 'BET',
+    'bulk density': 'Densitometer',
+    'tapped density': 'Densitometer',
+    'true density': 'Helium Pycnometry',
+
+    // Structural Analysis
+    'polymorphic form': 'XRPD',
+    'crystallinity': 'XRPD',
+
+    // Dissolution/Disintegration
+    'dissolution': 'USP Apparatus 2',
+    'dissolution rate': 'USP Apparatus 2',
+    'disintegration': 'Disintegration Tester',
+    'disintegration time': 'Disintegration Tester',
+    'drug release': 'USP Apparatus 2',
+    'release rate': 'USP Apparatus 2',
+
+    // Loss on Drying
     'loss on drying': 'LOD',
-    'lod': 'LOD'
+    'lod': 'LOD',
+
+    // Microbiological Tests
+    'bioburden': 'Membrane Filtration',
+    'sterility': 'Membrane Filtration',
+    'microbial limits': 'Membrane Filtration',
+    'total aerobic count': 'Plate Count',
+    'tamc': 'Plate Count',
+    'total yeast mold count': 'Plate Count',
+    'tymc': 'Plate Count',
+    'total viable count': 'Plate Count',
+    'endotoxin': 'LAL',
+    'bacterial endotoxin': 'LAL',
+    'pyrogen': 'LAL',
+    'mycoplasma': 'PCR',
+    'specified microorganisms': 'Membrane Filtration',
+
+    // Biological Tests
+    'potency': 'Bioassay',
+    'biological activity': 'Bioassay',
+    'cell viability': 'Flow Cytometry',
+    'viability': 'Flow Cytometry',
+    'viral safety': 'PCR',
+    'viral clearance': 'PCR',
+    'adventitious agents': 'PCR',
+    'host cell proteins': 'ELISA',
+    'hcp': 'ELISA',
+    'host cell dna': 'qPCR',
+    'residual dna': 'qPCR',
+    'protein content': 'UV-Vis',
+    'protein a': 'ELISA'
   };
 
   const lowerAttr = testAttribute.toLowerCase().trim();
