@@ -75,6 +75,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - **Palantir Foundry SQL Query API v2 integration for SAP MARA data access**
 - **Similar Products Search - Find related products by CAS number with progressive loading**
 - **Quality Specifications Natural Language Parser - Convert free-text specs to structured data**
+- **Quality Tests Configuration System - Database-backed parser knowledge base manageable via admin UI**
 - **Weight Matrix Management for package size to weight conversions**
 - Dynamic form configuration with live preview editor
 - Profile-based access control (Product Manager, PM-OPS, Admin)
@@ -85,6 +86,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - **UNSPSC code tracking for product classification**
 - **Enhanced user attribution with full name display**
 - **Automatic data normalization (units, enums) for data quality**
+- **Plant Codes, Business Lines, and Product Hierarchy management**
 
 ---
 

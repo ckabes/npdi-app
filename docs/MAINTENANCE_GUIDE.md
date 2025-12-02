@@ -1,7 +1,7 @@
 # NPDI Portal Maintenance Guide
 
-**Version:** 1.0
-**Last Updated:** November 2025
+**Version:** 1.1
+**Last Updated:** December 2025
 **Author:** Connor Kabes
 
 ---
@@ -83,7 +83,10 @@
 - 9.6 UserPreferences Model
 - 9.7 Permission Model
 - 9.8 ApiKey Model
-- 9.9 Model Relationships
+- 9.9 ParserConfiguration Model
+- 9.10 WeightMatrix Model
+- 9.11 PlantCode, BusinessLine, ProductHierarchy Models
+- 9.12 Model Relationships
 
 **10. API Endpoints**
 - 10.1 Product/Ticket Endpoints
@@ -2392,7 +2395,165 @@ Pre-defined templates for common ticket types:
 }
 ```
 
-#### **9.6 Model Relationships**
+#### **9.9 ParserConfiguration Model**
+
+**Location:** `server/models/ParserConfiguration.js`
+
+**Purpose:** Stores knowledge tables for the Quality Specification Natural Language Parser, enabling admins to manage test attributes, methods, and default mappings through the UI.
+
+**Schema:**
+```javascript
+{
+  configType: {
+    type: String,
+    required: true,
+    unique: true,
+    enum: ['testAttribute', 'testMethod', 'defaultMethod']
+    // testAttribute: Normalizes test/attribute names (e.g., 'purity' -> 'Purity')
+    // testMethod: Normalizes test method names (e.g., 'hplc' -> 'HPLC')
+    // defaultMethod: Maps test attributes to default methods (e.g., 'purity' -> 'HPLC')
+  },
+  entries: [{
+    key: {
+      type: String,
+      required: true,
+      lowercase: true  // Always stored lowercase for case-insensitive matching
+    },
+    value: {
+      type: String,
+      required: true  // Properly formatted/capitalized version
+    },
+    category: String,  // e.g., 'chemical', 'biological', 'physical', 'thermal'
+    description: String,  // Optional context for admin users
+    isCustom: Boolean,  // Tracks user-added vs seeded defaults
+    createdAt: Date,
+    updatedAt: Date
+  }],
+
+  // Version for cache invalidation
+  version: {
+    type: Number,
+    default: 1
+  },
+
+  // Metadata
+  totalEntries: Number,
+  customEntriesCount: Number,
+  lastModifiedBy: String,  // Email from profile
+
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**Key Features:**
+- **Three Configuration Types:**
+  - `testAttribute`: 87 default entries (chemical, biological, physical, thermal, microbiological)
+  - `testMethod`: 126 default entries (chromatography, spectroscopy, mass spec, microbiological, biological)
+  - `defaultMethod`: 90 default mappings (test → method assignments)
+
+- **Version Tracking:** Automatic cache invalidation when admins update entries
+- **Custom Tracking:** Separates user-added entries from seeded defaults
+- **Category Organization:** Groups entries by type for easier management
+
+**Indexes:**
+- `configType`: Fast lookup by configuration type
+- `entries.key`: Fast entry searches
+- `entries.category`: Category-based filtering
+
+**Static Methods:**
+- `getConfigByType(configType)`: Get configuration by type
+- `getAllConfigs()`: Get all three configuration types
+
+**Instance Methods:**
+- `upsertEntry(key, value, category, description, isCustom)`: Add or update entry
+- `removeEntry(key)`: Delete entry by key
+- `bulkImport(entries, replaceAll)`: Bulk import entries
+
+**Usage:**
+```javascript
+// Get test attribute configuration
+const config = await ParserConfiguration.getConfigByType('testAttribute');
+
+// Add custom entry
+config.upsertEntry('viscosity', 'Viscosity', 'physical', 'Kinematic viscosity', true);
+await config.save();
+
+// Search for entries
+const entries = config.entries.filter(e => e.category === 'biological');
+```
+
+**Seeded Data (303 total entries):**
+- Test Attributes: purity, assay, pH, viscosity, density, sterility, endotoxin, potency, etc.
+- Test Methods: HPLC, GC, NMR, FTIR, LAL, PCR, ELISA, Flow Cytometry, etc.
+- Default Mappings: purity→HPLC, endotoxin→LAL, cell viability→Flow Cytometry, etc.
+
+**Admin UI Access:** Admin Dashboard → System Settings → Quality Tests
+
+#### **9.10 WeightMatrix Model**
+
+**Location:** `server/models/WeightMatrix.js`
+
+Stores gross weight mappings for package sizes (SAP MARA fields: BRGEW, GEWEI).
+
+```javascript
+{
+  size: String (unique, e.g., "100G", "1L", "500MG"),
+  grossWeight: Number,
+  weightUnit: String (enum: ['MG', 'G', 'KG', 'UG']),
+  normalizedSize: {
+    value: Number,
+    unit: String
+  },
+  normalizedGrossWeight: {
+    value: Number,  // Converted to grams
+    unit: String (default: 'G')
+  },
+  createdBy: String,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+#### **9.11 PlantCode, BusinessLine, ProductHierarchy Models**
+
+**PlantCode Model** (`server/models/PlantCode.js`):
+```javascript
+{
+  code: String (unique, 4-digit),
+  name: String,
+  location: String,
+  isActive: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**BusinessLine Model** (`server/models/BusinessLine.js`):
+```javascript
+{
+  code: String (unique),
+  name: String,
+  description: String,
+  isActive: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+**ProductHierarchy Model** (`server/models/ProductHierarchy.js`):
+```javascript
+{
+  sbu: String,
+  gph: String,
+  productLine: String,
+  isActive: Boolean,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+#### **9.12 Model Relationships**
 
 **Entity Relationship Diagram:**
 
