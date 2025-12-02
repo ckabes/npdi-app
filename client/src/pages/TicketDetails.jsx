@@ -937,6 +937,7 @@ const TicketDetails = () => {
                               key={section.sectionKey}
                               register={registerEdit}
                               watch={watchEdit}
+                              setValue={setValueEdit}
                               qualityFields={editQualityFields}
                               appendQuality={editAppendQuality}
                               removeQuality={editRemoveQuality}

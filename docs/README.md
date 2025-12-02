@@ -20,6 +20,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 
 ### Features
 - [PMOps SKU Workflow](features/PMOPS_SKU_WORKFLOW.md) - Part number assignment and SKU management guide
+- [Quality Spec Parser](features/QUALITY_SPEC_PARSER.md) - Natural language parser for quality specifications with automatic formatting
 - [AI Content Generation](features/AI_CONTENT_GENERATION.md) - Azure OpenAI integration for content generation
 - [AI Content Fields Reference](features/AI_CONTENT_FIELDS.md) - Complete field mapping and configuration
 - [AI Generation Improvements](features/AI_GENERATION_IMPROVEMENTS.md) - Recent enhancements to AI features
@@ -73,6 +74,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - PubChem integration for automatic chemical data population
 - **Palantir Foundry SQL Query API v2 integration for SAP MARA data access**
 - **Similar Products Search - Find related products by CAS number with progressive loading**
+- **Quality Specifications Natural Language Parser - Convert free-text specs to structured data**
 - **Weight Matrix Management for package size to weight conversions**
 - Dynamic form configuration with live preview editor
 - Profile-based access control (Product Manager, PM-OPS, Admin)
@@ -101,6 +103,7 @@ docs/
 │   └── ARCHITECTURE.md           # Architecture overview
 ├── features/                     # Feature documentation
 │   ├── PMOPS_SKU_WORKFLOW.md    # PMOps SKU and part number workflow
+│   ├── QUALITY_SPEC_PARSER.md   # Natural language quality spec parser
 │   ├── AI_CONTENT_GENERATION.md # AI content features
 │   ├── AI_CONTENT_FIELDS.md     # Field mapping reference
 │   ├── AI_GENERATION_IMPROVEMENTS.md # Recent AI improvements
@@ -172,6 +175,9 @@ A: See the comprehensive [Maintenance Guide](MAINTENANCE_GUIDE.md)
 **Q: How does PMOps manage SKUs and part numbers?**
 A: See [PMOps SKU Workflow](features/PMOPS_SKU_WORKFLOW.md)
 
+**Q: How do I use the Quality Specifications parser?**
+A: See [Quality Spec Parser](features/QUALITY_SPEC_PARSER.md)
+
 ---
 
 ## Contributing to Documentation
@@ -217,5 +223,5 @@ For additional support, contact the NPDI development team.
 
 ---
 
-**Last Updated:** 2025-11-23
+**Last Updated:** 2025-12-01
 **Maintained by:** NPDI Development Team
