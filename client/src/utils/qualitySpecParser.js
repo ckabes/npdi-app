@@ -191,41 +191,68 @@ export function parseQualitySpec(text) {
     }
   }
 
-  // Pattern 5: "Test is/are/was/were Value" format
-  // Examples: "Appearance is clear", "Color is white", "Purity is 99%"
+  // Pattern 5: "Test is/are/was/were Value" format (with optional method)
+  // Examples: "Appearance is clear", "Color is white", "structure is Conforms by 1HNMR"
   if (!parsedResult) {
     const pattern5 = /^([A-Za-z\s]+?)\s+(?:is|are|was|were)\s+(.+)$/i;
     match = trimmed.match(pattern5);
 
     if (match) {
-      parsedResult = {
-        testAttribute: match[1].trim(),
-        valueRange: match[2].trim(),
-        comments: '',
-        dataSource: 'QC'
-      };
+      const testAttr = match[1].trim();
+      const valueAndMethod = match[2].trim();
+
+      // Check if value contains "by/via/using" to separate method
+      const methodMatch = valueAndMethod.match(/^(.+?)\s+(?:by|via|using)\s+(.+)$/i);
+
+      if (methodMatch) {
+        parsedResult = {
+          testAttribute: testAttr,
+          valueRange: methodMatch[1].trim(),
+          comments: methodMatch[2].trim(),
+          dataSource: 'QC'
+        };
+      } else {
+        parsedResult = {
+          testAttribute: testAttr,
+          valueRange: valueAndMethod,
+          comments: '',
+          dataSource: 'QC'
+        };
+      }
     }
   }
 
-  // Pattern 6: Simple "Test Value" format (no connector)
-  // Examples: "Solubility Soluble in water", "Form Powder"
+  // Pattern 6: Simple "Test Value" format (no connector, with optional method)
+  // Examples: "Solubility Soluble in water", "Form Powder", "structure Conforms by 1HNMR"
   if (!parsedResult) {
     const pattern6 = /^([A-Za-z\s]+?)\s+([A-Za-z].+)$/;
     match = trimmed.match(pattern6);
 
     if (match) {
       const testAttr = match[1].trim();
-      const value = match[2].trim();
+      const valueAndMethod = match[2].trim();
 
-      // Don't parse if it looks like a sentence (too many words)
-      const valueWords = value.split(/\s+/).length;
-      if (valueWords <= 5) {
+      // Check if value contains "by/via/using" to separate method
+      const methodMatch = valueAndMethod.match(/^(.+?)\s+(?:by|via|using)\s+(.+)$/i);
+
+      if (methodMatch) {
         parsedResult = {
           testAttribute: testAttr,
-          valueRange: value,
-          comments: '',
+          valueRange: methodMatch[1].trim(),
+          comments: methodMatch[2].trim(),
           dataSource: 'QC'
         };
+      } else {
+        // Don't parse if it looks like a sentence (too many words)
+        const valueWords = valueAndMethod.split(/\s+/).length;
+        if (valueWords <= 5) {
+          parsedResult = {
+            testAttribute: testAttr,
+            valueRange: valueAndMethod,
+            comments: '',
+            dataSource: 'QC'
+          };
+        }
       }
     }
   }
