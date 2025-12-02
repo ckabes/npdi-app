@@ -19,6 +19,7 @@ const weightMatrixRoutes = require('./routes/weightMatrix');
 const plantCodeRoutes = require('./routes/plantCodes');
 const productHierarchyRoutes = require('./routes/productHierarchy');
 const businessLineRoutes = require('./routes/businessLines');
+const parserConfigRoutes = require('./routes/parserConfig');
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -141,6 +142,7 @@ app.use('/api/weight-matrix', weightMatrixRoutes);
 app.use('/api/plant-codes', plantCodeRoutes);
 app.use('/api/business-lines', businessLineRoutes);
 app.use('/api/product-hierarchy', productHierarchyRoutes);
+app.use('/api/parser-config', parserConfigRoutes);
 
 // Public API v1 for external applications
 app.use('/api/v1/tickets', ticketApiRoutes);

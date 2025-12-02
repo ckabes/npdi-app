@@ -10,6 +10,43 @@
  * - "Moisture ≤0.5% by Karl Fischer" → { testAttribute: "Moisture", valueRange: "≤0.5%", comments: "Karl Fischer" }
  */
 
+import { parserConfigService } from '../services/parserConfigService';
+
+// Module-level cache for parser configuration
+let configCache = {
+  testAttributes: {},
+  testMethods: {},
+  defaultMethods: {},
+  loaded: false
+};
+
+/**
+ * Initialize parser with configuration from database
+ * This should be called once on app startup
+ */
+export async function initializeParser() {
+  try {
+    const [testAttributes, testMethods, defaultMethods] = await Promise.all([
+      parserConfigService.getLookupTable('testAttribute'),
+      parserConfigService.getLookupTable('testMethod'),
+      parserConfigService.getLookupTable('defaultMethod')
+    ]);
+
+    configCache.testAttributes = testAttributes;
+    configCache.testMethods = testMethods;
+    configCache.defaultMethods = defaultMethods;
+    configCache.loaded = true;
+
+    console.log('Parser initialized with database configuration');
+  } catch (error) {
+    console.error('Failed to initialize parser configuration:', error);
+    // Keep using fallback hard-coded values
+  }
+}
+
+// Auto-initialize on first import (lazy loading)
+initializeParser().catch(err => console.warn('Parser auto-initialization failed:', err));
+
 /**
  * Parse a single quality specification line
  * @param {string} text - Natural language specification
@@ -366,9 +403,11 @@ export function parseQualitySpecsBatch(text) {
 /**
  * Normalize capitalization for test attributes
  * Proper case for common test names
+ * Uses database configuration with hard-coded fallback
  */
 export function normalizeTestAttribute(attribute) {
-  const properCasing = {
+  // Use cached database configuration if loaded
+  const properCasing = configCache.loaded ? configCache.testAttributes : {
     // Common tests
     'purity': 'Purity',
     'assay': 'Assay',
@@ -503,9 +542,11 @@ export function normalizeTestAttribute(attribute) {
 /**
  * Normalize test method capitalization
  * Uppercase for acronyms, proper case for words
+ * Uses database configuration with hard-coded fallback
  */
 export function normalizeTestMethod(method) {
-  const methodCasing = {
+  // Use cached database configuration if loaded
+  const methodCasing = configCache.loaded ? configCache.testMethods : {
     // Chromatography
     'gc': 'GC',
     'hplc': 'HPLC',
@@ -762,9 +803,11 @@ export function validateQualitySpec(spec) {
 /**
  * Get default test method based on attribute name
  * Returns the most common method for that test type
+ * Uses database configuration with hard-coded fallback
  */
 export function getDefaultTestMethod(testAttribute) {
-  const defaultMethods = {
+  // Use cached database configuration if loaded
+  const defaultMethods = configCache.loaded ? configCache.defaultMethods : {
     // Water/Moisture
     'water': 'Karl Fischer',
     'water content': 'Karl Fischer',

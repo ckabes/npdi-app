@@ -241,5 +241,37 @@ export const businessLineAPI = {
   rebuild: () => apiClient.post('/business-lines/rebuild')
 };
 
+export const parserConfigAPI = {
+  // Get all configurations (testAttribute, testMethod, defaultMethod)
+  getAll: () => apiClient.get('/parser-config'),
+
+  // Get configuration by type
+  getByType: (configType) => apiClient.get(`/parser-config/${configType}`),
+
+  // Get version info (for cache invalidation)
+  getVersion: () => apiClient.get('/parser-config/version'),
+
+  // Add or update an entry
+  upsertEntry: (configType, data) => apiClient.post(`/parser-config/${configType}/entry`, data),
+
+  // Delete an entry
+  deleteEntry: (configType, key) => apiClient.delete(`/parser-config/${configType}/entry/${encodeURIComponent(key)}`),
+
+  // Bulk import
+  bulkImport: (configType, entries, replaceAll = false) =>
+    apiClient.post(`/parser-config/${configType}/bulk`, { entries, replaceAll }),
+
+  // Export configuration
+  exportConfig: (configType, format = 'json') =>
+    apiClient.get(`/parser-config/${configType}/export`, { params: { format }, responseType: format === 'csv' ? 'blob' : 'json' }),
+
+  // Reset to defaults
+  resetToDefaults: (configType) => apiClient.post(`/parser-config/${configType}/reset`),
+
+  // Search entries
+  search: (configType, query, category = null) =>
+    apiClient.get(`/parser-config/${configType}/search`, { params: { q: query, category } })
+};
+
 // Default export for convenience
 export default apiClient;

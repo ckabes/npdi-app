@@ -7,13 +7,15 @@ import {
   SparklesIcon,
   BuildingOfficeIcon,
   RectangleStackIcon,
-  BuildingLibraryIcon
+  BuildingLibraryIcon,
+  BeakerIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { systemSettingsAPI, adminAPI } from '../../services/api';
 import PlantCodesManager from './PlantCodesManager';
 import GPHManagement from './GPHManagement';
 import BusinessLineManager from './BusinessLineManager';
+import ParserKnowledgeManager from './ParserKnowledgeManager';
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState({});
@@ -86,6 +88,7 @@ const SystemSettings = () => {
     { id: 'tickets', name: 'Ticket Configuration', icon: DocumentTextIcon },
     { id: 'integrations', name: 'Integrations', icon: ServerIcon },
     { id: 'ai', name: 'AI Content Generation', icon: SparklesIcon },
+    { id: 'parser-knowledge', name: 'Quality Tests', icon: BeakerIcon },
     { id: 'plant-codes', name: 'Plant Codes', icon: BuildingOfficeIcon },
     { id: 'business-lines', name: 'Business Lines', icon: BuildingLibraryIcon },
     { id: 'product-hierarchy', name: 'Product Hierarchy', icon: RectangleStackIcon },
@@ -1561,6 +1564,8 @@ const SystemSettings = () => {
         return renderIntegrationsSettings();
       case 'ai':
         return renderAISettings();
+      case 'parser-knowledge':
+        return <ParserKnowledgeManager />;
       case 'plant-codes':
         return <PlantCodesManager />;
       case 'business-lines':
