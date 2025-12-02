@@ -561,7 +561,7 @@ const QualitySpecificationsForm = ({
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
           <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 my-8">
             <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
-              <h3 className="text-lg font-semibold text-gray-900">Parsed Results Preview</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Natural Language Input</h3>
               <p className="text-sm text-gray-600 mt-1">
                 Review and confirm {parsedResults.successCount} parsed specification(s)
               </p>
@@ -571,7 +571,7 @@ const QualitySpecificationsForm = ({
               {parsedResults.results.length > 0 && (
                 <div className="mb-4">
                   <h4 className="text-sm font-semibold text-green-800 mb-2">
-                    ✓ Successfully Parsed ({parsedResults.successCount})
+                    Quality Attributes to Add:
                   </h4>
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 border border-gray-200">
