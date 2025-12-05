@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../utils/AuthContext';
 
 const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
-  const { user } = useAuth();
+  const { user, isPMOPS, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('basic');
 
   // Check if ticket is locked (completed or canceled)
@@ -810,7 +810,7 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
       return (
         <div className="space-y-4">
           <div className="flex justify-end">
-            {!isTicketLocked() && (
+            {!isTicketLocked() && (isPMOPS || isAdmin) && (
               <button
                 onClick={handleEditSKUs}
                 className="px-4 py-2 text-sm font-medium text-white bg-millipore-blue border border-transparent rounded-md hover:bg-millipore-blue-dark"
@@ -941,7 +941,7 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
               </button>
             </>
           ) : (
-            !isTicketLocked() && (
+            !isTicketLocked() && (isPMOPS || isAdmin) && (
               <button
                 onClick={handleEditSKUs}
                 className="px-4 py-2 text-sm font-medium text-white bg-millipore-blue border border-transparent rounded-md hover:bg-millipore-blue-dark"

@@ -509,7 +509,7 @@ const Dashboard = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted By</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created by</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
                   </tr>
@@ -537,8 +537,10 @@ const Dashboard = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {ticket.sbu}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {submitterName}
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="max-w-[150px] truncate" title={submitterName}>
+                            {submitterName}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
@@ -1175,7 +1177,9 @@ const Dashboard = () => {
                           <div className="flex items-center space-x-3 text-xs text-gray-500">
                             {(ticket.createdByUser || ticket.createdBy) && (
                               <>
-                                <span className="font-medium">
+                                <span className="font-medium truncate max-w-[150px]" title={ticket.createdByUser
+                                    ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
+                                    : ticket.createdBy}>
                                   {ticket.createdByUser
                                     ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
                                     : ticket.createdBy}

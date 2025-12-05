@@ -11,3 +11,4 @@ export { default as DynamicFormSection } from './DynamicFormSection';
 export { default as DynamicCustomSections } from './DynamicCustomSections';
 export { default as DynamicBasicInfo } from './DynamicBasicInfo';
 export { default as DynamicFormRenderer } from './DynamicFormRenderer';
+export { default as ProductTicketForm } from './ProductTicketForm';

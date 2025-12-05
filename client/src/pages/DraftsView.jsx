@@ -223,7 +223,9 @@ const DraftsView = () => {
                         <span>•</span>
                         <span className="flex items-center">
                           <span className="font-medium text-gray-700">Created by:</span>
-                          <span className="ml-1">
+                          <span className="ml-1 truncate max-w-[150px]" title={draft.createdByUser
+                              ? `${draft.createdByUser.firstName} ${draft.createdByUser.lastName}`
+                              : (draft.createdBy || 'Unknown')}>
                             {draft.createdByUser
                               ? `${draft.createdByUser.firstName} ${draft.createdByUser.lastName}`
                               : (draft.createdBy || 'Unknown')}
