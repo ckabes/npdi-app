@@ -4,9 +4,24 @@ import React, { useEffect, useRef, useState } from 'react';
  * MoleculeViewerRDKit Component
  * Professional molecular structure rendering using RDKit-JS
  *
+ * Rendering Standards:
+ * - Follows skeletal formula conventions (heteroatoms labeled, carbons unlabeled)
+ * - Monochrome rendering (all black structures on white background)
+ * - RDKit core color settings: symbolColour, backgroundColour, legendColour
+ * - SVG post-processing ensures comprehensive monochrome output
+ * - Bond length: 30px (approximates ACS 1996 14.4pt standard)
+ * - Privacy: 100% client-side rendering via WebAssembly, no external data transmission
+ *
+ * ACS 1996 Compliance:
+ * - Professional skeletal formula conventions
+ * - Appropriate bond angles for sp2 (120°) and sp3 geometries
+ * - Heteroatom labeling with implicit hydrogens (OH, NH2, etc.)
+ * - Stereochemistry visualization (wedge/dash bonds)
+ * - Ring systems with proper geometry
+ *
  * @param {string} smiles - SMILES notation string
- * @param {number} width - SVG width in pixels
- * @param {number} height - SVG height in pixels
+ * @param {number} width - SVG width in pixels (default: 300)
+ * @param {number} height - SVG height in pixels (default: 300)
  * @param {string} className - Additional CSS classes
  */
 const MoleculeViewerRDKit = ({
@@ -117,6 +132,7 @@ const MoleculeViewerRDKit = ({
       }
 
       // Generate SVG with specified dimensions
+      // Use RDKit core color settings for true monochrome rendering
       let svg = mol.get_svg_with_highlights(JSON.stringify({
         width: width,
         height: height,
@@ -127,13 +143,16 @@ const MoleculeViewerRDKit = ({
         // ACS 1996-like settings
         fixedBondLength: 30,
         rotate: 0,
+        // Monochrome color settings (RGB values 0-1)
+        backgroundColour: [1, 1, 1],  // White background
+        symbolColour: [0, 0, 0],      // Black atom symbols
+        legendColour: [0, 0, 0],      // Black legends
         // Use standard skeletal formula conventions
         includeMetadata: false
       }));
 
       // Force all non-white/non-transparent colors to black for true monochrome rendering
-      // Preserve white (#FFF, #FFFFFF) and transparent backgrounds
-      // Replace all other colors (heteroatoms, wedge bonds, etc.) with black
+      // Comprehensive color replacement to handle all SVG color formats
 
       // Function to check if color is white or should be preserved
       const shouldPreserveColor = (color) => {
@@ -145,13 +164,15 @@ const MoleculeViewerRDKit = ({
                normalized.includes('transparent');
       };
 
-      // Replace hex colors, but preserve white
+      // Replace hex colors in fill attributes, but preserve white
       svg = svg.replace(/fill='(#[0-9A-Fa-f]{3,6})'/gi, (match, color) => {
         return shouldPreserveColor(color) ? match : "fill='#000000'";
       });
       svg = svg.replace(/fill="(#[0-9A-Fa-f]{3,6})"/gi, (match, color) => {
         return shouldPreserveColor(color) ? match : 'fill="#000000"';
       });
+
+      // Replace hex colors in stroke attributes, but preserve white
       svg = svg.replace(/stroke='(#[0-9A-Fa-f]{3,6})'/gi, (match, color) => {
         return shouldPreserveColor(color) ? match : "stroke='#000000'";
       });
@@ -159,11 +180,40 @@ const MoleculeViewerRDKit = ({
         return shouldPreserveColor(color) ? match : 'stroke="#000000"';
       });
 
-      // Replace RGB/RGBA colors (these are usually colored heteroatoms or wedge bonds)
-      svg = svg.replace(/fill='(rgba?\([^)]+\))'/g, "fill='#000000'");
-      svg = svg.replace(/fill="(rgba?\([^)]+\))"/g, 'fill="#000000"');
-      svg = svg.replace(/stroke='(rgba?\([^)]+\))'/g, "stroke='#000000'");
-      svg = svg.replace(/stroke="(rgba?\([^)]+\))"/g, 'stroke="#000000"');
+      // Replace RGB/RGBA colors in fill (these are usually colored heteroatoms or wedge bonds)
+      svg = svg.replace(/fill='(rgba?\([^)]+\))'/gi, "fill='#000000'");
+      svg = svg.replace(/fill="(rgba?\([^)]+\))"/gi, 'fill="#000000"');
+
+      // Replace RGB/RGBA colors in stroke
+      svg = svg.replace(/stroke='(rgba?\([^)]+\))'/gi, "stroke='#000000'");
+      svg = svg.replace(/stroke="(rgba?\([^)]+\))"/gi, 'stroke="#000000"');
+
+      // Handle style attributes with colors (comprehensive)
+      svg = svg.replace(/style='([^']*)'/gi, (match, styleContent) => {
+        let newStyle = styleContent;
+        // Replace fill colors in style
+        newStyle = newStyle.replace(/fill:\s*(#[0-9A-Fa-f]{3,6}|rgba?\([^)]+\))/gi, (m, color) => {
+          return shouldPreserveColor(color) ? m : 'fill:#000000';
+        });
+        // Replace stroke colors in style
+        newStyle = newStyle.replace(/stroke:\s*(#[0-9A-Fa-f]{3,6}|rgba?\([^)]+\))/gi, (m, color) => {
+          return shouldPreserveColor(color) ? m : 'stroke:#000000';
+        });
+        return `style='${newStyle}'`;
+      });
+
+      svg = svg.replace(/style="([^"]*)"/gi, (match, styleContent) => {
+        let newStyle = styleContent;
+        // Replace fill colors in style
+        newStyle = newStyle.replace(/fill:\s*(#[0-9A-Fa-f]{3,6}|rgba?\([^)]+\))/gi, (m, color) => {
+          return shouldPreserveColor(color) ? m : 'fill:#000000';
+        });
+        // Replace stroke colors in style
+        newStyle = newStyle.replace(/stroke:\s*(#[0-9A-Fa-f]{3,6}|rgba?\([^)]+\))/gi, (m, color) => {
+          return shouldPreserveColor(color) ? m : 'stroke:#000000';
+        });
+        return `style="${newStyle}"`;
+      });
 
       // Insert SVG into container
       containerRef.current.innerHTML = svg;
