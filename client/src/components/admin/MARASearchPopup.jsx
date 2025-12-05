@@ -61,6 +61,10 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
   const [multipleResults, setMultipleResults] = useState(null);
   const [selectedResult, setSelectedResult] = useState(null);
   const [detectedType, setDetectedType] = useState(null);
+  const [currentSearchType, setCurrentSearchType] = useState(null);
+  const [currentSearchValue, setCurrentSearchValue] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [offset, setOffset] = useState(0);
 
   /**
    * Auto-detect search type based on input pattern
@@ -140,19 +144,27 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
     setMetadata(null);
     setMultipleResults(null);
     setSelectedResult(null);
+    setOffset(0); // Reset pagination for new search
+    setHasMore(false);
 
     try {
       const typeLabel = searchType === 'partNumber' ? 'Part Number' :
                         searchType === 'productName' ? 'Product Name' : 'CAS Number';
       console.log(`[SAP Search] Auto-detected type: ${typeLabel}, Value: ${searchTerm.trim()}`);
 
+      // Save search parameters for "Load More"
+      setCurrentSearchType(searchType);
+      setCurrentSearchValue(searchTerm.trim());
+
       // Search Palantir Foundry for SAP material data
-      const response = await productAPI.searchMARA(searchType, searchTerm.trim());
+      const response = await productAPI.searchMARA(searchType, searchTerm.trim(), { limit: 10, offset: 0 });
 
       if (response.data.success) {
         if (response.data.multipleResults) {
           // Multiple results - show selection UI
           setMultipleResults(response.data.results);
+          setHasMore(response.data.hasMore || false);
+          setOffset(response.data.results.length); // Set offset to number of results loaded
           toast.success(response.data.message);
         } else {
           // Single result - show mapped fields
@@ -189,6 +201,36 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
     } catch (error) {
       console.error('[SAP Search] Error loading result:', error);
       toast.error('Failed to load selected result');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (!currentSearchType || !currentSearchValue) {
+      console.error('[SAP Search] No search params saved for Load More');
+      return;
+    }
+
+    setSearching(true);
+    try {
+      console.log(`[SAP Search] Loading more results - Offset: ${offset}, Type: ${currentSearchType}`);
+      const response = await productAPI.searchMARA(
+        currentSearchType,
+        currentSearchValue,
+        { limit: 10, offset: offset }
+      );
+
+      if (response.data.success && response.data.multipleResults) {
+        // Append new results to existing
+        setMultipleResults([...multipleResults, ...response.data.results]);
+        setHasMore(response.data.hasMore || false);
+        setOffset(offset + response.data.results.length);
+        toast.success(`Loaded ${response.data.results.length} more results`);
+      }
+    } catch (error) {
+      console.error('[SAP Search] Load More error:', error);
+      toast.error('Failed to load more results');
     } finally {
       setSearching(false);
     }
@@ -377,6 +419,29 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
                   </div>
                 ))}
               </div>
+
+              {/* Load More Button */}
+              {hasMore && (
+                <div className="mt-4 text-center">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={searching}
+                    className="btn btn-secondary px-6 py-2"
+                  >
+                    {searching ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Loading...
+                      </span>
+                    ) : (
+                      'Load More (10)'
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

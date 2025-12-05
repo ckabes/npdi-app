@@ -1153,7 +1153,7 @@ const generateCorpBaseContent = async (req, res) => {
  */
 const searchMARA = async (req, res) => {
   try {
-    const { type, value } = req.query;
+    const { type, value, limit, offset } = req.query;
 
     // Validate search parameters
     if (!type || !value || value.trim() === '') {
@@ -1171,7 +1171,11 @@ const searchMARA = async (req, res) => {
       });
     }
 
-    console.log(`[SAP Search] Request - Type: ${type}, Value: ${value}`);
+    // Parse pagination parameters
+    const searchLimit = parseInt(limit) || 10;
+    const searchOffset = parseInt(offset) || 0;
+
+    console.log(`[SAP Search] Request - Type: ${type}, Value: ${value}, Limit: ${searchLimit}, Offset: ${searchOffset}`);
 
     // Check if Palantir is enabled
     const isEnabled = await palantirService.isEnabled();
@@ -1197,13 +1201,15 @@ const searchMARA = async (req, res) => {
         break;
 
       case 'productName':
-        // Search in both TEXT_SHORT and TEXT_LONG using LIKE for partial matching
-        query = `SELECT * FROM \`${config.datasetRID}\` WHERE TEXT_SHORT LIKE '%${searchValue}%' OR TEXT_LONG LIKE '%${searchValue}%' LIMIT 10`;
+        // Search in both TEXT_SHORT and TEXT_LONG using case-insensitive prefix matching
+        // Matches from the beginning: "Ethanol" matches "Ethanol", "Ethanol, Reagent grade", "Ethanolamine"
+        const upperSearchValue = searchValue.toUpperCase();
+        query = `SELECT * FROM \`${config.datasetRID}\` WHERE UPPER(TEXT_SHORT) LIKE '${upperSearchValue}%' OR UPPER(TEXT_LONG) LIKE '${upperSearchValue}%' LIMIT ${searchLimit} OFFSET ${searchOffset}`;
         break;
 
       case 'casNumber':
         // Search by CAS number (YYD_CASNR field)
-        query = `SELECT * FROM \`${config.datasetRID}\` WHERE YYD_CASNR = '${searchValue}' LIMIT 10`;
+        query = `SELECT * FROM \`${config.datasetRID}\` WHERE YYD_CASNR = '${searchValue}' LIMIT ${searchLimit} OFFSET ${searchOffset}`;
         break;
     }
 
@@ -1219,8 +1225,8 @@ const searchMARA = async (req, res) => {
     }
 
     // For multiple results (product name or CAS search), return list for user selection
-    if (result.rows.length > 1) {
-      console.log(`[SAP Search] Found ${result.rows.length} results`);
+    if (type === 'productName' || type === 'casNumber') {
+      console.log(`[SAP Search] Found ${result.rows.length} results (offset: ${searchOffset}, limit: ${searchLimit})`);
 
       const results = result.rows.map(row => ({
         partNumber: row.MATNR || 'N/A',
@@ -1230,12 +1236,18 @@ const searchMARA = async (req, res) => {
         baseUnit: row.MEINS || 'N/A'
       }));
 
+      // Determine if there might be more results
+      const hasMore = result.rows.length === searchLimit;
+
       return res.json({
         success: true,
         message: `Found ${result.rows.length} results for ${type}: ${searchValue}`,
         multipleResults: true,
         results: results,
-        count: result.rows.length
+        count: result.rows.length,
+        offset: searchOffset,
+        limit: searchLimit,
+        hasMore: hasMore
       });
     }
 

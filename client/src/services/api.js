@@ -82,12 +82,15 @@ export const productAPI = {
       throw error;
     });
   },
-  searchMARA: (searchType, searchValue) => {
-    console.log(`API: Starting SAP search - Type: ${searchType}, Value: ${searchValue}`);
+  searchMARA: (searchType, searchValue, options = {}) => {
+    const { limit = 10, offset = 0 } = options;
+    console.log(`API: Starting SAP search - Type: ${searchType}, Value: ${searchValue}, Limit: ${limit}, Offset: ${offset}`);
     return apiClient.get(`/products/sap-search`, {
       params: {
         type: searchType,
-        value: searchValue
+        value: searchValue,
+        limit: limit,
+        offset: offset
       },
       timeout: 60000 // 60 second timeout for Palantir queries
     }).then(response => {
