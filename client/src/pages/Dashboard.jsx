@@ -10,12 +10,10 @@ import {
   ChartBarIcon,
   PlusIcon,
   ArrowPathIcon,
-  ChatBubbleLeftIcon,
-  PencilIcon,
-  CheckIcon,
   InformationCircleIcon,
   XMarkIcon,
-  DocumentIcon
+  DocumentIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import { StatusBadge, PriorityBadge } from '../components/badges';
 import toast from 'react-hot-toast';
@@ -28,7 +26,6 @@ const Dashboard = () => {
   const [myTickets, setMyTickets] = useState([]);
   const [allRecentTickets, setAllRecentTickets] = useState([]);
   const [draftTickets, setDraftTickets] = useState([]);
-  const [recentActivity, setRecentActivity] = useState([]);
   const [recentlySubmitted, setRecentlySubmitted] = useState([]);
   const [showMonthlyRateModal, setShowMonthlyRateModal] = useState(false);
   const [showThisWeekModal, setShowThisWeekModal] = useState(false);
@@ -140,40 +137,6 @@ const Dashboard = () => {
     return role.split('_').map(word =>
       word.charAt(0) + word.slice(1).toLowerCase()
     ).join(' ');
-  };
-
-  const getActivityIcon = (activityType) => {
-    switch (activityType) {
-      case 'STATUS_CHANGE':
-        return <ArrowPathIcon className="h-5 w-5 text-blue-600" />;
-      case 'COMMENT_ADDED':
-        return <ChatBubbleLeftIcon className="h-5 w-5 text-green-600" />;
-      case 'TICKET_EDIT':
-        return <PencilIcon className="h-5 w-5 text-orange-600" />;
-      case 'SKU_ASSIGNMENT':
-        return <CheckIcon className="h-5 w-5 text-purple-600" />;
-      case 'TICKET_CREATED':
-        return <PlusIcon className="h-5 w-5 text-gray-600" />;
-      default:
-        return <ClockIcon className="h-5 w-5 text-gray-600" />;
-    }
-  };
-
-  const getActivityBgColor = (activityType) => {
-    switch (activityType) {
-      case 'STATUS_CHANGE':
-        return 'bg-blue-50 border-blue-200';
-      case 'COMMENT_ADDED':
-        return 'bg-green-50 border-green-200';
-      case 'TICKET_EDIT':
-        return 'bg-orange-50 border-orange-200';
-      case 'SKU_ASSIGNMENT':
-        return 'bg-purple-50 border-purple-200';
-      case 'TICKET_CREATED':
-        return 'bg-gray-50 border-gray-200';
-      default:
-        return 'bg-gray-50 border-gray-200';
-    }
   };
 
   const formatTimeAgo = (timestamp) => {

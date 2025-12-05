@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 import { productAPI, templatesAPI } from '../services/api';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import SKUAssignment from '../components/SKUAssignment';
 import {
   ArrowLeftIcon,
@@ -15,22 +14,11 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   ClipboardDocumentIcon,
-  CurrencyDollarIcon,
   ArrowDownTrayIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { StatusBadge, PriorityBadge } from '../components/badges';
-import {
-  DynamicFormRenderer,
-  DynamicFormSection,
-  ChemicalPropertiesForm,
-  QualitySpecificationsForm,
-  PricingCalculationForm,
-  SKUVariantsForm,
-  CorpBaseDataForm,
-  DynamicCustomSections,
-  ProductTicketForm
-} from '../components/forms';
+import { ProductTicketForm } from '../components/forms';
 import UNSPSCSelector from '../components/forms/UNSPSCSelector';
 import PMOpsTabView from '../components/PMOpsTabView';
 

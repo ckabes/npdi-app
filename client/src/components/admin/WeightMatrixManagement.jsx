@@ -263,7 +263,6 @@ const WeightMatrixManagement = () => {
                       onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
                       className="btn btn-secondary btn-sm"
-                      disabled={currentPage === 1}
                     >
                       Previous
                     </button>

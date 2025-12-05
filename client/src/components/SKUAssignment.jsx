@@ -35,7 +35,6 @@ const SKUAssignment = ({ ticket, onUpdate }) => {
 
   const partNumber = watch('partNumber');
   const standardCost = ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit || 0;
-  const margin = ticket.margin || 50;
 
   const generateSKUFromPartNumber = (partNumber, type, packageSize = null) => {
     if (!partNumber) return '';
@@ -64,18 +63,6 @@ const SKUAssignment = ({ ticket, onUpdate }) => {
     
     // For non-PREPACK types, use the standard type suffix
     return `${partNumber}-${type}`;
-  };
-
-  const calculatePricing = (cost, marginPercent) => {
-    const costNum = parseFloat(cost) || 0;
-    const marginNum = parseFloat(marginPercent) || 50;
-    const limitPrice = costNum * (1 + marginNum / 100);
-    const listPrice = limitPrice * 1.25;
-    
-    return {
-      limitPrice: parseFloat(limitPrice.toFixed(2)),
-      listPrice: parseFloat(listPrice.toFixed(2))
-    };
   };
 
   const handlePartNumberChange = (newPartNumber) => {
@@ -242,10 +229,7 @@ const SKUAssignment = ({ ticket, onUpdate }) => {
           </div>
 
           <div className="space-y-4">
-            {fields.map((field, index) => {
-              const pricing = calculatePricing(standardCost, margin);
-              
-              return (
+            {fields.map((field, index) => (
                 <div key={field.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-4">
                     <h5 className="text-sm font-medium text-gray-900">{field.type} Variant</h5>
@@ -313,8 +297,7 @@ const SKUAssignment = ({ ticket, onUpdate }) => {
                     </div>
                   </div>
                 </div>
-              );
-            })}
+            ))}
           </div>
         </div>
       </form>

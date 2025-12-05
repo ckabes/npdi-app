@@ -1,45 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { productAPI } from '../services/api';
-import { 
-  DocumentIcon, 
-  ClockIcon, 
+import {
+  DocumentIcon,
+  ClockIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   EyeIcon,
   PencilIcon
 } from '@heroicons/react/24/outline';
+import { StatusBadge, PriorityBadge } from '../components/badges';
 import toast from 'react-hot-toast';
-
-const StatusBadge = ({ status }) => {
-  const badgeClasses = {
-    'DRAFT': 'badge-draft',
-    'IN_PROCESS': 'badge-in-process',
-    'COMPLETED': 'badge-completed',
-    'CANCELED': 'badge-canceled'
-  };
-
-  return (
-    <span className={`badge ${badgeClasses[status]}`}>
-      {status.replace('_', ' ')}
-    </span>
-  );
-};
-
-const PriorityBadge = ({ priority }) => {
-  const priorityClasses = {
-    'LOW': 'priority-low',
-    'MEDIUM': 'priority-medium',
-    'HIGH': 'priority-high',
-    'URGENT': 'priority-urgent'
-  };
-
-  return (
-    <span className={`badge ${priorityClasses[priority]}`}>
-      {priority}
-    </span>
-  );
-};
 
 const PMOPSDashboard = () => {
   const [tickets, setTickets] = useState([]);

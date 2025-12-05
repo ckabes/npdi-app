@@ -8,13 +8,6 @@ const ApiKey = require('../models/ApiKey');
  */
 
 /**
- * Generates a new API key (for administrative use)
- */
-function generateApiKey() {
-  return crypto.randomBytes(32).toString('hex');
-}
-
-/**
  * API Key authentication middleware (database-backed)
  */
 async function authenticateApiKey(req, res, next) {
@@ -94,48 +87,6 @@ async function authenticateApiKey(req, res, next) {
 }
 
 /**
- * Optional authentication - allows access but logs if authenticated
- */
-async function optionalApiAuth(req, res, next) {
-  try {
-    const apiKey = req.headers['x-api-key'];
-
-    if (!apiKey) {
-      req.authenticated = false;
-      return next();
-    }
-
-    const keyHash = crypto.createHash('sha256').update(apiKey).digest('hex');
-    const apiKeyRecord = await ApiKey.findOne({ keyHash });
-
-    if (apiKeyRecord && apiKeyRecord.isValid()) {
-      req.authenticated = true;
-      req.apiKey = {
-        id: apiKeyRecord._id,
-        name: apiKeyRecord.name,
-        permissions: apiKeyRecord.permissions,
-        application: apiKeyRecord.application
-      };
-
-      // Record usage
-      apiKeyRecord.recordUsage().catch(err => {
-        console.error('Error recording API key usage:', err);
-      });
-
-      console.log(`Authenticated API access: ${req.method} ${req.path} - Key: ${apiKeyRecord.keyPrefix}...`);
-    } else {
-      req.authenticated = false;
-    }
-
-    next();
-  } catch (error) {
-    console.error('Error in optional API authentication:', error);
-    req.authenticated = false;
-    next();
-  }
-}
-
-/**
  * Permission check middleware
  * Usage: checkPermission('write')
  */
@@ -161,7 +112,5 @@ function checkPermission(requiredPermission) {
 
 module.exports = {
   authenticateApiKey,
-  optionalApiAuth,
-  checkPermission,
-  generateApiKey
+  checkPermission
 };

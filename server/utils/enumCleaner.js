@@ -263,15 +263,9 @@ const ensureDefaultSBU = (ticketData, defaultSBU = 'P90') => {
   return ticketData;
 };
 
+// Export only the public API - internal helper functions are private
 module.exports = {
   cleanTicketData,
-  cleanEnumFields,
-  cleanChemicalPropertiesEnums,
-  cleanHazardClassificationEnums,
-  cleanTicketEnums,
-  cleanSKUVariantsEnums,
-  cleanCorpBaseDataArrays,
-  cleanChemicalPropertiesArrays,
   ensureDefaultSKU,
   ensureDefaultSBU
 };

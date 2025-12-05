@@ -480,7 +480,7 @@ const HelpDocumentation = () => {
 
         {/* Search Results or Navigation */}
         <nav className="p-4">
-          {searchQuery && searchResults.length > 0 ? (
+          {searchResults.length > 0 ? (
             // Show search results
             <div className="space-y-2">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
@@ -506,8 +506,8 @@ const HelpDocumentation = () => {
                 </p>
               )}
             </div>
-          ) : !searchQuery ? (
-            // Show normal table of contents when not searching
+          ) : (
+            // Show normal table of contents
             <>
               {tocSections.map((part) => (
                 <div key={part.id} className="mb-4">
