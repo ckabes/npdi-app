@@ -131,9 +131,10 @@ const MoleculeViewerRDKit = ({
         return;
       }
 
-      // Straighten depiction to align bonds at 30-degree multiples
-      // This ensures vertical/horizontal lines are properly aligned
-      mol.straighten_depiction();
+      // Normalize depiction to align main axis horizontally
+      // canonicalize > 0 aligns main axis along X-axis (horizontal)
+      // This ensures linear chains (like butanol) are parallel to the bottom
+      mol.normalize_depiction(1);
 
       // Generate SVG with specified dimensions
       // Use RDKit core color settings for true monochrome rendering
@@ -146,7 +147,7 @@ const MoleculeViewerRDKit = ({
         explicitMethyl: false,
         // ACS 1996-like settings
         fixedBondLength: 30,
-        rotate: 10,  // Rotate clockwise slightly for better alignment
+        rotate: 0,
         // Atom label spacing (fraction of font size, default: 0.066)
         additionalAtomLabelPadding: 0.18,
         // Monochrome color settings (RGB values 0-1)
