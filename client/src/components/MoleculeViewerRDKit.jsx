@@ -131,10 +131,26 @@ const MoleculeViewerRDKit = ({
         return;
       }
 
-      // Normalize depiction to align main axis horizontally
-      // canonicalize > 0 aligns main axis along X-axis (horizontal)
-      // This ensures linear chains (like butanol) are parallel to the bottom
-      mol.normalize_depiction(1);
+      // Apply appropriate alignment based on molecular structure
+      // Get molecular descriptors to determine if molecule has rings
+      try {
+        const descriptors = JSON.parse(mol.get_descriptors());
+        const numRings = descriptors.NumRings || 0;
+
+        if (numRings > 0) {
+          // Cyclic/complex molecules (e.g., Diphenhydramine, benzene)
+          // Use straighten_depiction to align bonds at 30-degree multiples
+          mol.straighten_depiction();
+        } else {
+          // Linear/acyclic molecules (e.g., butanol, ethanol)
+          // Use normalize_depiction(1) to align main axis horizontally
+          mol.normalize_depiction(1);
+        }
+      } catch (err) {
+        console.warn('Could not get molecular descriptors, using default alignment:', err);
+        // Fallback to straighten_depiction if descriptors fail
+        mol.straighten_depiction();
+      }
 
       // Generate SVG with specified dimensions
       // Use RDKit core color settings for true monochrome rendering
