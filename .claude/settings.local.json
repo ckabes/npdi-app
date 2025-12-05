@@ -71,7 +71,8 @@
       "Bash(npm run lint:*)",
       "Read(///**)",
       "Read(//tmp/**)",
-      "Bash(git check-ignore:*)"
+      "Bash(git check-ignore:*)",
+      "Bash(npm test:*)"
     ],
     "deny": []
   }
