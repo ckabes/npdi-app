@@ -65,8 +65,8 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
   /**
    * Auto-detect search type based on input pattern
    * - CAS Number: XXX-XX-X format (e.g., 865-50-9, 7732-18-5)
-   * - Part Number: Numeric only or ends with -BULK (e.g., 176036, 176036-BULK)
-   * - Product Name: Anything else (contains letters, not CAS format)
+   * - Part Number: Alphanumeric (e.g., 176036, Q64577, PMC9000, X87655)
+   * - Product Name: Words with only letters (e.g., Iodomethane, Vitamin B)
    */
   const detectSearchType = (value) => {
     if (!value || value.trim() === '') {
@@ -81,13 +81,22 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
       return 'casNumber';
     }
 
-    // Part Number pattern: purely numeric or numeric with -BULK suffix
-    const partNumberPattern = /^\d+(-BULK)?$/i;
+    // Part Number pattern: letters followed by numbers, or purely numeric
+    // Examples: 176036, Q64577, PMC9000, X87655
+    // No spaces allowed, optional -BULK suffix
+    const partNumberPattern = /^[A-Z]*\d+(-BULK)?$/i;
     if (partNumberPattern.test(trimmed)) {
       return 'partNumber';
     }
 
-    // Default to product name (contains letters and doesn't match CAS)
+    // Product Name: contains only letters (and spaces/hyphens)
+    // If it contains numbers but didn't match part number pattern, still treat as product name
+    const hasNumbers = /\d/.test(trimmed);
+    if (!hasNumbers) {
+      return 'productName';
+    }
+
+    // Default to product name for edge cases
     return 'productName';
   };
 
