@@ -117,6 +117,7 @@ const MoleculeViewerRDKit = ({
       }
 
       // Generate SVG with specified dimensions
+      // Using monochrome (all black) for traditional skeletal formula appearance
       const svg = mol.get_svg_with_highlights(JSON.stringify({
         width: width,
         height: height,
@@ -127,6 +128,8 @@ const MoleculeViewerRDKit = ({
         // ACS 1996-like settings
         fixedBondLength: 30,
         rotate: 0,
+        // Monochrome rendering - all atoms black (no colored heteroatoms)
+        useBWAtomPalette: true,
         // Use standard skeletal formula conventions
         includeMetadata: false
       }));
