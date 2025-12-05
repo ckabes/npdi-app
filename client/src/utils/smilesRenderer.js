@@ -664,14 +664,8 @@ class SVGRenderer {
         svg += `<text x="${atom.x + 10}" y="${atom.y - 8}" text-anchor="start" font-size="${this.options.fontSize * 0.8}" fill="black">${chargeLabel}</text>`;
       }
 
-      // Show implicit hydrogens if enabled
-      if (this.options.showImplicitHydrogens) {
-        const hCount = atom.getImplicitHydrogens();
-        if (hCount > 0) {
-          const hLabel = hCount === 1 ? 'H' : `H${hCount}`;
-          svg += `<text x="${atom.x + 12}" y="${atom.y}" text-anchor="start" font-size="${this.options.fontSize * 0.9}" fill="black">${hLabel}</text>`;
-        }
-      }
+      // Note: Hydrogens on heteroatoms are now included in the label itself (OH, NH2, etc.)
+      // This follows standard skeletal formula conventions
     }
 
     return svg;
@@ -699,12 +693,28 @@ class SVGRenderer {
 
   /**
    * Get atom label text
+   * Following skeletal formula conventions:
+   * - Carbons are never labeled (unless showCarbons option is true)
+   * - Heteroatoms always labeled with their symbol
+   * - Hydrogens on heteroatoms shown as part of label (OH, NH2, etc.)
    */
   getAtomLabel(atom) {
     let label = atom.element;
 
     if (atom.isotope) {
       label = `${atom.isotope}${label}`;
+    }
+
+    // For heteroatoms, add implicit hydrogens to the label
+    if (atom.element !== 'C' && atom.element !== 'H') {
+      const hCount = atom.getImplicitHydrogens();
+      if (hCount > 0) {
+        // Standard convention: OH, NH2, SH, etc.
+        label += 'H';
+        if (hCount > 1) {
+          label += hCount;
+        }
+      }
     }
 
     return label;
