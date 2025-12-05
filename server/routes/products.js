@@ -13,7 +13,9 @@ router.get('/recent-activity', productController.getRecentActivity);
 router.get('/cas-lookup/:casNumber', productController.lookupCAS);
 
 // SAP MARA data search endpoint (via Palantir Foundry)
-router.get('/sap-search/:partNumber', productController.searchMARA);
+// Supports searching by part number, product name, or CAS number
+// Query params: type (partNumber|productName|casNumber), value (search term)
+router.get('/sap-search', productController.searchMARA);
 
 // Similar products search endpoint (searches by CAS number)
 router.get('/similar-products/:casNumber', productController.searchSimilarProducts);

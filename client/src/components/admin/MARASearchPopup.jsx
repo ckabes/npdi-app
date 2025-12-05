@@ -58,6 +58,44 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
   const [mappedFields, setMappedFields] = useState(null);
   const [metadata, setMetadata] = useState(null);
   const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0]);
+  const [multipleResults, setMultipleResults] = useState(null);
+  const [selectedResult, setSelectedResult] = useState(null);
+  const [detectedType, setDetectedType] = useState(null);
+
+  /**
+   * Auto-detect search type based on input pattern
+   * - CAS Number: XXX-XX-X format (e.g., 865-50-9, 7732-18-5)
+   * - Part Number: Numeric only or ends with -BULK (e.g., 176036, 176036-BULK)
+   * - Product Name: Anything else (contains letters, not CAS format)
+   */
+  const detectSearchType = (value) => {
+    if (!value || value.trim() === '') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+
+    // CAS Number pattern: digits-digits-digit (e.g., 865-50-9)
+    const casPattern = /^\d{1,7}-\d{2}-\d$/;
+    if (casPattern.test(trimmed)) {
+      return 'casNumber';
+    }
+
+    // Part Number pattern: purely numeric or numeric with -BULK suffix
+    const partNumberPattern = /^\d+(-BULK)?$/i;
+    if (partNumberPattern.test(trimmed)) {
+      return 'partNumber';
+    }
+
+    // Default to product name (contains letters and doesn't match CAS)
+    return 'productName';
+  };
+
+  // Update detected type whenever search term changes
+  useEffect(() => {
+    const type = detectSearchType(searchTerm);
+    setDetectedType(type);
+  }, [searchTerm]);
 
   // Randomly display funny loading messages while searching
   useEffect(() => {
@@ -77,7 +115,13 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
-      toast.error('Please enter a part number');
+      toast.error('Please enter a search term');
+      return;
+    }
+
+    const searchType = detectSearchType(searchTerm);
+    if (!searchType) {
+      toast.error('Unable to determine search type');
       return;
     }
 
@@ -85,31 +129,57 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
     setSapData(null);
     setMappedFields(null);
     setMetadata(null);
+    setMultipleResults(null);
+    setSelectedResult(null);
 
     try {
-      // Normalize search term: append -BULK if not already present
-      let normalizedPartNumber = searchTerm.trim();
-      if (!normalizedPartNumber.endsWith('-BULK')) {
-        normalizedPartNumber = `${normalizedPartNumber}-BULK`;
-      }
-
-      console.log(`[SAP Search] Searching for: ${normalizedPartNumber}`);
+      const typeLabel = searchType === 'partNumber' ? 'Part Number' :
+                        searchType === 'productName' ? 'Product Name' : 'CAS Number';
+      console.log(`[SAP Search] Auto-detected type: ${typeLabel}, Value: ${searchTerm.trim()}`);
 
       // Search Palantir Foundry for SAP material data
-      const response = await productAPI.searchMARA(normalizedPartNumber);
+      const response = await productAPI.searchMARA(searchType, searchTerm.trim());
 
-      if (response.data.success && response.data.data) {
-        setSapData(response.data.data);
-        setMappedFields(response.data.mappedFields);
-        setMetadata(response.data.metadata || {});
-        toast.success(`Found SAP data for ${normalizedPartNumber}`);
+      if (response.data.success) {
+        if (response.data.multipleResults) {
+          // Multiple results - show selection UI
+          setMultipleResults(response.data.results);
+          toast.success(response.data.message);
+        } else {
+          // Single result - show mapped fields
+          setSapData(response.data.data);
+          setMappedFields(response.data.mappedFields);
+          setMetadata(response.data.metadata || {});
+          toast.success(response.data.message);
+        }
       } else {
-        toast.error(response.data.message || 'No data found for this part number');
+        toast.error(response.data.message || 'No data found');
       }
     } catch (error) {
       console.error('[SAP Search] Error:', error);
       const errorMsg = error.response?.data?.message || error.message || 'Failed to search SAP data';
       toast.error(errorMsg);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSelectResult = async (partNumber) => {
+    setSearching(true);
+    try {
+      console.log(`[SAP Search] Loading full data for selected part number: ${partNumber}`);
+      const response = await productAPI.searchMARA('partNumber', partNumber);
+
+      if (response.data.success && !response.data.multipleResults) {
+        setSapData(response.data.data);
+        setMappedFields(response.data.mappedFields);
+        setMetadata(response.data.metadata || {});
+        setMultipleResults(null); // Clear multiple results
+        toast.success(`Loaded data for ${partNumber}`);
+      }
+    } catch (error) {
+      console.error('[SAP Search] Error loading result:', error);
+      toast.error('Failed to load selected result');
     } finally {
       setSearching(false);
     }
@@ -161,18 +231,44 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex space-x-3">
             <div className="flex-1">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Enter part number (e.g., 176036)"
-                className="form-input w-full"
-                disabled={searching}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Note: "-BULK" will be automatically appended if not present
-              </p>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter part number, product name, or CAS number..."
+                  className="form-input w-full pr-32"
+                  disabled={searching}
+                />
+                {detectedType && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      detectedType === 'partNumber' ? 'bg-blue-100 text-blue-800' :
+                      detectedType === 'productName' ? 'bg-purple-100 text-purple-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {detectedType === 'partNumber' ? '🔢 Part #' :
+                       detectedType === 'productName' ? '📦 Product' :
+                       '🧪 CAS'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-1 text-xs text-gray-500">
+                {!detectedType && (
+                  <span>Search automatically detects: Part Number (numeric), CAS (XXX-XX-X), or Product Name</span>
+                )}
+                {detectedType === 'partNumber' && (
+                  <span className="text-blue-600">Detected: Part Number — "-BULK" will be auto-appended</span>
+                )}
+                {detectedType === 'productName' && (
+                  <span className="text-purple-600">Detected: Product Name — partial match search</span>
+                )}
+                {detectedType === 'casNumber' && (
+                  <span className="text-green-600">Detected: CAS Number — exact match search</span>
+                )}
+              </div>
             </div>
             <button
               onClick={handleSearch}
@@ -196,7 +292,7 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
 
         {/* Results Section */}
         <div className="flex-1 overflow-y-auto p-6">
-          {!sapData && !searching && (
+          {!sapData && !searching && !multipleResults && (
             <div className="text-center py-12 text-gray-400">
               <svg
                 className="mx-auto h-12 w-12 text-gray-300"
@@ -211,7 +307,7 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              <p className="mt-4 text-lg">Enter a part number above to search for SAP data</p>
+              <p className="mt-4 text-lg">Enter search criteria above to search for SAP data</p>
             </div>
           )}
 
@@ -225,6 +321,53 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
               <p className="mt-2 text-millipore-blue text-sm italic animate-pulse">
                 {loadingMessage}
               </p>
+            </div>
+          )}
+
+          {/* Multiple Results Selection */}
+          {multipleResults && !mappedFields && (
+            <div className="space-y-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-yellow-900 mb-2">
+                  Found {multipleResults.length} Results
+                </h3>
+                <p className="text-sm text-yellow-700">
+                  Select a product to view its full details and import data:
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                {multipleResults.map((result, index) => (
+                  <div
+                    key={index}
+                    className="bg-white border border-gray-300 rounded-lg p-4 hover:border-millipore-blue hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => handleSelectResult(result.partNumber)}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900">{result.productName}</h4>
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">Part #:</span> {result.partNumber}
+                          </div>
+                          <div>
+                            <span className="font-medium">CAS:</span> {result.casNumber}
+                          </div>
+                          <div>
+                            <span className="font-medium">Brand:</span> {result.brand}
+                          </div>
+                          <div>
+                            <span className="font-medium">Unit:</span> {result.baseUnit}
+                          </div>
+                        </div>
+                      </div>
+                      <svg className="w-6 h-6 text-millipore-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

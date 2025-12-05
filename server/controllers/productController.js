@@ -1153,16 +1153,25 @@ const generateCorpBaseContent = async (req, res) => {
  */
 const searchMARA = async (req, res) => {
   try {
-    const { partNumber } = req.params;
+    const { type, value } = req.query;
 
-    if (!partNumber || partNumber.trim() === '') {
+    // Validate search parameters
+    if (!type || !value || value.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: 'Part number is required'
+        message: 'Search type and value are required. Use query params: ?type=partNumber|productName|casNumber&value=searchTerm'
       });
     }
 
-    console.log(`[SAP Search] Request for part number: ${partNumber}`);
+    const validTypes = ['partNumber', 'productName', 'casNumber'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid search type. Must be one of: ${validTypes.join(', ')}`
+      });
+    }
+
+    console.log(`[SAP Search] Request - Type: ${type}, Value: ${value}`);
 
     // Check if Palantir is enabled
     const isEnabled = await palantirService.isEnabled();
@@ -1173,10 +1182,30 @@ const searchMARA = async (req, res) => {
       });
     }
 
-    // Query Palantir Foundry for MARA data
-    // The part number should already have -BULK appended by the frontend
+    // Build query based on search type
     const config = await palantirService.getConfig();
-    const query = `SELECT * FROM \`${config.datasetRID}\` WHERE MATNR = '${partNumber}' LIMIT 1`;
+    let query;
+    let searchValue = value.trim();
+
+    switch (type) {
+      case 'partNumber':
+        // Auto-append -BULK if not present
+        if (!searchValue.endsWith('-BULK')) {
+          searchValue = `${searchValue}-BULK`;
+        }
+        query = `SELECT * FROM \`${config.datasetRID}\` WHERE MATNR = '${searchValue}' LIMIT 1`;
+        break;
+
+      case 'productName':
+        // Search in both TEXT_SHORT and TEXT_LONG using LIKE for partial matching
+        query = `SELECT * FROM \`${config.datasetRID}\` WHERE TEXT_SHORT LIKE '%${searchValue}%' OR TEXT_LONG LIKE '%${searchValue}%' LIMIT 10`;
+        break;
+
+      case 'casNumber':
+        // Search by CAS number (YYD_CASNR field)
+        query = `SELECT * FROM \`${config.datasetRID}\` WHERE YYD_CASNR = '${searchValue}' LIMIT 10`;
+        break;
+    }
 
     console.log(`[SAP Search] Executing query: ${query}`);
 
@@ -1185,10 +1214,32 @@ const searchMARA = async (req, res) => {
     if (!result.rows || result.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: `No SAP data found for part number: ${partNumber}`
+        message: `No SAP data found for ${type}: ${searchValue}`
       });
     }
 
+    // For multiple results (product name or CAS search), return list for user selection
+    if (result.rows.length > 1) {
+      console.log(`[SAP Search] Found ${result.rows.length} results`);
+
+      const results = result.rows.map(row => ({
+        partNumber: row.MATNR || 'N/A',
+        productName: row.TEXT_SHORT || row.TEXT_LONG || 'N/A',
+        casNumber: row.YYD_CASNR || 'N/A',
+        brand: row.YYD_YLOGO_TEXT || 'N/A',
+        baseUnit: row.MEINS || 'N/A'
+      }));
+
+      return res.json({
+        success: true,
+        message: `Found ${result.rows.length} results for ${type}: ${searchValue}`,
+        multipleResults: true,
+        results: results,
+        count: result.rows.length
+      });
+    }
+
+    // Single result - process full field mapping
     const maraData = result.rows[0];
     console.log(`[SAP Search] Found MARA data:`, Object.keys(maraData));
     console.log(`[SAP Search] YYD_CASNR in data?`, 'YYD_CASNR' in maraData, '- value:', maraData.YYD_CASNR);
@@ -1478,11 +1529,12 @@ const searchMARA = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Found SAP data for ${partNumber}`,
+      message: `Found SAP data for ${type}: ${searchValue}`,
       data: maraData,
       mappedFields: mappedFields,
       metadata: metadata, // Include metadata for descriptive fields
-      fieldCount: Object.keys(mappedFields).length
+      fieldCount: Object.keys(mappedFields).length,
+      multipleResults: false
     });
 
   } catch (error) {

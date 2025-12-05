@@ -82,9 +82,13 @@ export const productAPI = {
       throw error;
     });
   },
-  searchMARA: (partNumber) => {
-    console.log('API: Starting SAP search for', partNumber);
-    return apiClient.get(`/products/sap-search/${partNumber}`, {
+  searchMARA: (searchType, searchValue) => {
+    console.log(`API: Starting SAP search - Type: ${searchType}, Value: ${searchValue}`);
+    return apiClient.get(`/products/sap-search`, {
+      params: {
+        type: searchType,
+        value: searchValue
+      },
       timeout: 60000 // 60 second timeout for Palantir queries
     }).then(response => {
       console.log('API: SAP search successful', response.data);
