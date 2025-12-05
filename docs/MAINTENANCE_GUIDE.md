@@ -1,7 +1,7 @@
 # NPDI Portal Maintenance Guide
 
-**Version:** 1.1
-**Last Updated:** December 2025
+**Version:** 1.2
+**Last Updated:** December 5, 2025
 **Author:** Connor Kabes
 
 ---
@@ -960,6 +960,7 @@ The NPDI Portal is built using modern web technologies:
 - **Heroicons** - Icon library
 - **React Hot Toast** - Notification system
 - **ExcelJS** - Excel file generation
+- **RDKit-JS** - Professional molecular structure rendering with client-side 2D visualization
 
 **Backend (Server):**
 - **Node.js** - JavaScript runtime
@@ -4290,7 +4291,7 @@ GET https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/property/Molecu
 - **IUPAC Name** (systematic chemical name)
 - **Molecular Formula** (e.g., C6H8O6)
 - **Molecular Weight** (g/mol)
-- **Canonical SMILES** (structure representation)
+- **Canonical SMILES** (structure representation) - *Used for molecular structure visualization*
 - **InChI** (International Chemical Identifier)
 - **InChIKey** (hashed InChI for searching)
 - **Synonyms** (alternative names)
@@ -4306,6 +4307,104 @@ GET https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{cid}/property/Molecu
   - Rotatable bonds
   - Exact mass
   - Complexity
+
+#### **15.3 Molecular Structure Viewer**
+
+**Purpose:** Professional 2D molecular structure visualization using RDKit-JS
+
+**Key Features:**
+- **Client-side rendering** - All processing happens in the browser for privacy
+- **ACS 1996 skeletal formula standards** - Professional chemical drawing conventions
+- **Proper zigzag patterns** - Correct sp3 carbon chain geometry (e.g., butanol, pseudoephedrine)
+- **Interactive rotation controls** - Adjust molecule orientation with ±5° buttons or direct input
+- **Monochrome output** - Clean black-on-white structures for clarity
+
+**How It Works:**
+
+1. **User enters SMILES** string in Chemical Properties form (manually or via PubChem auto-population)
+2. **Structure appears automatically** in the right column of the form
+3. **RDKit-JS generates 2D coordinates** using coordgen algorithm for optimal geometry
+4. **Rendering pipeline:**
+   - Cyclic molecules: Uses `straighten_depiction()` + `normalize_depiction()` for clean ring alignment
+   - Linear molecules: Uses `normalize_depiction()` for horizontal main axis
+   - Applies rotation transformation if specified
+5. **User can rotate** the structure using controls in the viewer header
+   - Click **−** button to rotate counter-clockwise by 5°
+   - Click **+** button to rotate clockwise by 5°
+   - Enter exact degree value in the input field
+   - Rotation resets to 0° when SMILES changes
+
+**Technical Implementation:**
+
+**Component:** `client/src/components/MoleculeViewerRDKit.jsx`
+
+```javascript
+// RDKit-JS loads from CDN (unpkg.com/@rdkit/rdkit)
+// Initializes WebAssembly module on component mount
+const RDKit = await window.initRDKitModule();
+
+// For each SMILES string:
+const mol = rdkit.get_mol(smiles);
+
+// Generate optimal 2D coordinates (cyclic molecules only)
+if (numRings > 0) {
+  mol.set_new_coords(true); // Use coordgen
+}
+
+// Apply alignment
+mol.straighten_depiction();  // Bonds at 30° multiples
+mol.normalize_depiction(1);  // Horizontal main axis
+
+// Generate SVG with rotation
+let svg = mol.get_svg_with_highlights(JSON.stringify({
+  width: 300,
+  height: 250,
+  rotate: rotationAngle,  // User-controlled
+  fixedBondLength: 30,    // ACS standard
+  backgroundColour: [1, 1, 1],  // White
+  symbolColour: [0, 0, 0]        // Black
+}));
+```
+
+**Form Integration:** `client/src/components/forms/ChemicalPropertiesForm.jsx`
+
+The molecular structure viewer appears in the Chemical Properties section when a valid SMILES string is present. Layout:
+- **Left column:** SMILES, InChI, InChI Key, Physical State, Shipping Conditions
+- **Right column:** Molecular Structure viewer with rotation controls
+
+**Rotation Controls:**
+```jsx
+<div className="flex items-center gap-2">
+  <button onClick={() => setRotation(prev => prev - 5)}>−</button>
+  <input
+    type="number"
+    value={rotation}
+    onChange={(e) => setRotation(parseInt(e.target.value))}
+  />
+  <span>°</span>
+  <button onClick={() => setRotation(prev => prev + 5)}>+</button>
+</div>
+```
+
+**Privacy & Security:**
+- No external API calls for structure rendering
+- All processing in browser via WebAssembly
+- SMILES data never leaves the client
+- CDN-loaded library (cached after first load)
+
+**Supported SMILES Features:**
+- Linear and cyclic molecules
+- Aromatic rings (benzene, etc.)
+- Heteroatoms (N, O, S, P, etc.)
+- Stereochemistry (wedge/dash bonds)
+- Complex polycyclic structures
+
+**Example Molecules:**
+- Ethanol: `CCO`
+- Butanol: `CCCCO`
+- Benzene: `c1ccccc1`
+- Diphenhydramine: `CN(C)CCOC(c1ccccc1)c2ccccc2`
+- Pseudoephedrine: `CC(C(c1ccccc1)O)NC`
 
 **Implementation:**
 

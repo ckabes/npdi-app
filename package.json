@@ -1,6 +1,6 @@
 {
   "name": "npdi-app",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "MilliporeSigma NPDI Application for Chemical Product Management",
   "main": "server/index.js",
   "scripts": {

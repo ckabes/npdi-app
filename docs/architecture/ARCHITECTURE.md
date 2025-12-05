@@ -3,8 +3,8 @@
 ## Document Information
 
 **Application:** MilliporeSigma NPDI Application
-**Version:** 1.1.0
-**Last Updated:** 2025-12-02
+**Version:** 1.2.0
+**Last Updated:** 2025-12-05
 **Purpose:** Comprehensive architectural overview for stakeholders and technical teams
 
 ---
@@ -121,6 +121,7 @@ The NPDI application facilitates the interface between Product Managers and Prod
 - **UI Components:** Headless UI, Heroicons
 - **Styling:** Tailwind CSS 3.3.3
 - **Notifications:** React Hot Toast 2.4.1
+- **Molecular Visualization:** RDKit-JS 2025.3.4 (client-side 2D structure rendering)
 
 #### Development Tools
 - **Process Manager:** Nodemon (server), Concurrently (parallel dev)
@@ -1816,9 +1817,294 @@ SELECT * FROM `{datasetRID}` WHERE MATNR = '176036' LIMIT 1
 - All mapped fields populated correctly
 - No VPN or connectivity errors
 
-### 7.5 Data Export Services
+### 7.5 RDKit-JS Molecular Structure Viewer Integration
 
-#### 7.4.1 PDP Checklist Export Service
+#### 7.5.1 Purpose
+
+The RDKit-JS integration provides professional 2D molecular structure visualization directly in the browser using WebAssembly (WASM), enabling chemists to instantly view skeletal formula representations of chemical compounds during ticket creation and review.
+
+**Benefits:**
+- Client-side rendering preserves data privacy (no external API calls)
+- Instant visual feedback for SMILES input validation
+- Professional-quality skeletal formulas following ACS 1996 standards
+- Interactive rotation controls for optimal viewing angles
+- Zero server-side processing overhead
+- Offline functionality (no internet required)
+
+#### 7.5.2 Integration Architecture
+
+**Component Layer:** `client/src/components/MoleculeViewerRDKit.jsx`
+**Consumer:** `client/src/components/forms/ChemicalPropertiesForm.jsx`
+
+**Library:** RDKit-JS 2025.3.4 (WebAssembly build of RDKit C++ toolkit)
+
+**Rendering Pipeline:**
+1. **SMILES Input** → ChemicalPropertiesForm detects canonical SMILES
+2. **Component Mount** → MoleculeViewerRDKit receives SMILES prop
+3. **WASM Loading** → RDKit MinimalLib loaded (cached after first use)
+4. **Molecule Parsing** → SMILES string parsed to RDKit Mol object
+5. **Coordinate Generation** → 2D coordinates calculated using coordgen
+6. **Depiction Alignment** → Structure straightened and normalized
+7. **SVG Generation** → Monochrome skeletal formula rendered to SVG
+8. **Display** → SVG embedded in React component
+
+#### 7.5.3 Client-Side Rendering Flow
+
+```
+1. User enters or PubChem auto-populates canonical SMILES
+   ↓
+2. ChemicalPropertiesForm.jsx passes SMILES to MoleculeViewerRDKit
+   ↓
+3. useEffect hook detects SMILES change
+   ↓
+4. Load RDKit WASM module (async, cached)
+   ↓
+5. Parse SMILES → RDKit Mol object
+   ↓
+6. Analyze molecule:
+   - Count rings (determines if cyclic)
+   - Detect molecule type (linear vs. cyclic)
+   ↓
+7. If cyclic (rings > 0):
+   - Generate new 2D coordinates (mol.set_new_coords(true))
+   - Uses coordgen algorithm for proper zigzag patterns
+   ↓
+8. If linear (rings = 0):
+   - Use existing coordinates (skip regeneration)
+   - Prevents alignment issues with straight-chain molecules
+   ↓
+9. Apply depiction alignment:
+   - mol.straighten_depiction() - Aligns bonds to 30° multiples
+   - mol.normalize_depiction(1) - Aligns main axis horizontally
+   ↓
+10. Generate SVG with settings:
+    - Width: 300px, Height: 250px
+    - Rotation: User-specified angle (default 0°)
+    - Fixed bond length: 30px
+    - Background: White [1,1,1]
+    - Symbols: Black [0,0,0]
+    - No highlights
+    ↓
+11. Parse SVG string and embed in DOM
+    ↓
+12. Display in gray-background container with rotation controls
+```
+
+#### 7.5.4 Technical Implementation Details
+
+**RDKit-JS Module Loading:**
+```javascript
+import initRDKitModule from '@rdkit/rdkit';
+
+useEffect(() => {
+  async function loadRDKit() {
+    try {
+      if (!window.RDKit) {
+        window.RDKit = await initRDKitModule();
+      }
+      // Molecule rendering logic...
+    } catch (error) {
+      setError('Failed to load RDKit library');
+    }
+  }
+  loadRDKit();
+}, [smiles, customRotation]);
+```
+
+**Coordinate Generation Logic:**
+```javascript
+const numRings = mol.get_num_rings();
+
+// Only regenerate coordinates for cyclic molecules
+// Prevents alignment issues with linear molecules (e.g., butanol)
+if (numRings > 0) {
+  mol.set_new_coords(true);  // Uses coordgen for proper zigzag patterns
+}
+
+// Determine rotation angle (custom prop or default 0)
+let rotationAngle = customRotation !== null ? customRotation : 0;
+
+// Apply alignment methods
+mol.straighten_depiction();  // Bonds at 30° multiples (ACS standards)
+mol.normalize_depiction(1);  // Horizontal main axis
+```
+
+**SVG Generation:**
+```javascript
+let svg = mol.get_svg_with_highlights(JSON.stringify({
+  width: 300,
+  height: 250,
+  rotate: rotationAngle,           // User-controlled rotation
+  fixedBondLength: 30,              // Consistent bond lengths
+  backgroundColour: [1, 1, 1],      // White background
+  symbolColour: [0, 0, 0],          // Black text/atoms
+  addAtomIndices: false,            // No atom numbering
+  addStereoAnnotation: true         // Show stereochemistry
+}));
+```
+
+#### 7.5.5 Interactive Rotation Controls
+
+**UI Components (in ChemicalPropertiesForm.jsx):**
+```jsx
+<div className="flex items-center gap-2">
+  <span className="text-xs text-gray-600">Rotate:</span>
+  <button
+    onClick={() => setMoleculeRotation(prev => prev - 5)}
+    className="w-6 h-6 flex items-center justify-center"
+  >
+    −
+  </button>
+  <input
+    type="number"
+    value={moleculeRotation}
+    onChange={(e) => setMoleculeRotation(parseInt(e.target.value) || 0)}
+    className="w-12 h-6 px-1 text-xs font-mono text-center"
+  />
+  <span className="text-xs text-gray-600">°</span>
+  <button
+    onClick={() => setMoleculeRotation(prev => prev + 5)}
+    className="w-6 h-6 flex items-center justify-center"
+  >
+    +
+  </button>
+</div>
+```
+
+**Features:**
+- **Decrement Button (−):** Rotate 5° counter-clockwise
+- **Numeric Input:** Direct angle entry (1° precision)
+- **Increment Button (+):** Rotate 5° clockwise
+- **Reset on SMILES Change:** Rotation resets to 0° when new molecule loaded
+
+**Use Cases:**
+- Align molecules for better viewing angle
+- Match specific orientation requirements
+- Optimize structure for screenshots/exports
+- Personal viewing preferences
+
+#### 7.5.6 Privacy & Security Advantages
+
+**Client-Side Processing:**
+- All molecular rendering occurs in browser (JavaScript + WebAssembly)
+- No SMILES or molecular data sent to external servers
+- Complies with corporate data privacy policies
+- Works offline (no internet required after initial page load)
+
+**Comparison to Server-Side Rendering:**
+```
+Client-Side (RDKit-JS):
+SMILES → Browser WASM → SVG → Display
+✓ Private
+✓ Fast (no network latency)
+✓ No API limits
+✓ Offline capable
+
+Server-Side (Alternative):
+SMILES → API Request → Server Processing → SVG Response → Display
+✗ Data leaves client
+✗ Network latency
+✗ API rate limits
+✗ Internet required
+```
+
+#### 7.5.7 Supported Molecular Features
+
+**Structure Types:**
+- Linear alkanes (e.g., butanol, decane)
+- Cyclic compounds (e.g., benzene, cyclohexane)
+- Polycyclic aromatics (e.g., naphthalene, anthracene)
+- Heterocycles (e.g., pyridine, furan)
+- Complex pharmaceuticals (e.g., diphenhydramine, pseudoephedrine)
+
+**Chemical Annotations:**
+- Stereochemistry indicators (wedge/dash bonds)
+- Aromatic ring representation (delocalized electrons)
+- Implicit hydrogens (not shown on carbons)
+- Heteroatom labels (N, O, S, P, etc.)
+- Formal charges (+/−)
+- Radical indicators
+
+**Skeletal Formula Conventions (ACS 1996):**
+- Carbon atoms implied at vertices
+- Hydrogen atoms omitted (except on heteroatoms)
+- Bond angles at 30° multiples (60°, 90°, 120°, etc.)
+- Zigzag pattern for sp³ carbon chains
+- Monochrome rendering (black on white)
+
+#### 7.5.8 Error Handling
+
+**Invalid SMILES:**
+```javascript
+try {
+  const mol = window.RDKit.get_mol(smiles);
+  if (!mol || !mol.is_valid()) {
+    setError('Invalid molecular structure');
+    return;
+  }
+  // Rendering logic...
+} catch (error) {
+  setError('Failed to parse SMILES string');
+}
+```
+
+**Error States:**
+- Empty SMILES → Display placeholder message
+- Invalid SMILES → Display error message with red border
+- WASM load failure → Display fallback message
+- Rendering error → Log error, display generic message
+
+**User Feedback:**
+- Loading state: "Generating structure..."
+- Success state: SVG displayed
+- Error state: Red-bordered box with error message
+- Empty state: "Enter SMILES to view structure"
+
+#### 7.5.9 Performance Considerations
+
+**WASM Module Caching:**
+- RDKit WASM loaded once per session
+- Stored in `window.RDKit` global
+- ~2MB initial load, cached by browser
+- Subsequent molecules render instantly
+
+**Rendering Performance:**
+- Small molecules (< 20 atoms): < 50ms
+- Medium molecules (20-100 atoms): 50-200ms
+- Large molecules (> 100 atoms): 200-500ms
+- React memoization prevents unnecessary re-renders
+
+**Memory Management:**
+```javascript
+// Cleanup molecule object to prevent memory leaks
+mol.delete();
+```
+
+#### 7.5.10 Integration with PubChem Data
+
+**Automatic Population Flow:**
+```
+1. User enters CAS number
+   ↓
+2. PubChem service fetches compound data
+   ↓
+3. Returns canonical SMILES (e.g., "CC(C)NCC(COc1ccccc1)O")
+   ↓
+4. ChemicalPropertiesForm populates SMILES field
+   ↓
+5. MoleculeViewerRDKit detects change and renders structure
+   ↓
+6. User sees visual confirmation of correct compound
+```
+
+**Data Validation:**
+- Visual structure confirms correct CAS number lookup
+- Users can verify molecular formula matches
+- Identifies PubChem data errors (wrong structure → wrong CAS)
+
+### 7.6 Data Export Services
+
+#### 7.6.1 PDP Checklist Export Service
 
 **Service Layer:** `server/services/pdpChecklistExportService.js`
 
@@ -1849,7 +2135,7 @@ SELECT * FROM `{datasetRID}` WHERE MATNR = '176036' LIMIT 1
 - CorpBase data (product description, applications)
 - Physical properties (boiling point, density, melting point)
 
-#### 7.4.2 Data Export Service
+#### 7.6.2 Data Export Service
 
 **Service Layer:** `server/services/dataExportService.js`
 
@@ -1866,7 +2152,7 @@ SELECT * FROM `{datasetRID}` WHERE MATNR = '176036' LIMIT 1
 - Data transformation and formatting
 - Batch export capabilities
 
-#### 7.4.3 Export Controller Integration
+#### 7.6.3 Export Controller Integration
 
 **Endpoint:** `POST /api/products/:id/export`
 

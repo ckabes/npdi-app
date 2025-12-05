@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
   BookOpenIcon,
   ExclamationTriangleIcon,
   ChevronRightIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const HelpDocumentation = () => {
@@ -15,6 +17,8 @@ const HelpDocumentation = () => {
   const [tocSections, setTocSections] = useState([]);
   const [expandedSections, setExpandedSections] = useState({});
   const [activeSection, setActiveSection] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
   const contentRef = useRef(null);
 
   useEffect(() => {
@@ -227,6 +231,82 @@ const HelpDocumentation = () => {
     }));
   };
 
+  // Search functionality
+  const performSearch = (query) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const results = [];
+    const lowerQuery = query.toLowerCase();
+    const lines = markdownContent.split('\n');
+    let currentHeading = '';
+    let currentHeadingId = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Track current section
+      if (line.match(/^#{1,4}\s+/)) {
+        currentHeading = line.replace(/^#+\s+/, '').replace(/\*\*/g, '');
+        currentHeadingId = generateId(currentHeading);
+      }
+
+      // Check if line contains search query
+      if (line.toLowerCase().includes(lowerQuery)) {
+        // Extract context (snippet around the match)
+        const matchIndex = line.toLowerCase().indexOf(lowerQuery);
+        const start = Math.max(0, matchIndex - 40);
+        const end = Math.min(line.length, matchIndex + query.length + 40);
+        let snippet = line.substring(start, end);
+
+        // Add ellipsis if needed
+        if (start > 0) snippet = '...' + snippet;
+        if (end < line.length) snippet = snippet + '...';
+
+        // Remove markdown formatting for display
+        snippet = snippet.replace(/[#*`]/g, '');
+
+        results.push({
+          heading: currentHeading || 'Introduction',
+          headingId: currentHeadingId,
+          snippet: snippet,
+          lineNumber: i + 1
+        });
+      }
+    }
+
+    setSearchResults(results);
+
+    // Auto-expand sections containing results
+    if (results.length > 0) {
+      const expandedIds = {};
+      tocSections.forEach(part => {
+        const hasMatch = results.some(r =>
+          part.items.some(item => item.id === r.headingId)
+        );
+        if (hasMatch) {
+          expandedIds[part.id] = true;
+        }
+      });
+      setExpandedSections(prev => ({ ...prev, ...expandedIds }));
+    }
+  };
+
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, markdownContent, tocSections]);
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+  };
+
   // Helper to extract text from React children (handles nested elements)
   const extractText = (children) => {
     if (typeof children === 'string') {
@@ -354,58 +434,125 @@ const HelpDocumentation = () => {
           <p className="text-blue-100 text-xs mt-1">Navigation</p>
         </div>
 
-        <nav className="p-4">
-          {tocSections.map((part) => (
-            <div key={part.id} className="mb-4">
+        {/* Search Box */}
+        <div className="p-4 border-b border-gray-200 bg-gray-50">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search documentation..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="block w-full pl-10 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-millipore-blue focus:border-transparent"
+            />
+            {searchQuery && (
               <button
-                onClick={() => toggleSection(part.id)}
-                className="flex items-center justify-between w-full text-left font-semibold text-gray-900 hover:text-millipore-blue mb-2 transition-colors"
+                onClick={clearSearch}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                <span className="text-sm">{part.title}</span>
-                {expandedSections[part.id] ? (
-                  <ChevronDownIcon className="h-4 w-4" />
-                ) : (
-                  <ChevronRightIcon className="h-4 w-4" />
-                )}
+                <XMarkIcon className="h-4 w-4 text-gray-400 hover:text-gray-600" />
               </button>
+            )}
+          </div>
 
-              {expandedSections[part.id] && (
-                <div className="ml-2 space-y-1">
-                  {part.items.map((section) => (
-                    <div key={section.id}>
-                      <button
-                        onClick={() => scrollToSection(section.id)}
-                        className={`block w-full text-left text-xs py-1.5 px-2 rounded transition-colors ${
-                          activeSection === section.id
-                            ? 'bg-millipore-blue text-white'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        {section.title}
-                      </button>
-                      {section.subsections && section.subsections.length > 0 && (
-                        <div className="ml-3 mt-1 space-y-0.5">
-                          {section.subsections.map((subsection) => (
-                            <button
-                              key={subsection.id}
-                              onClick={() => scrollToSection(subsection.id)}
-                              className={`block w-full text-left text-xs py-1 px-2 rounded transition-colors ${
-                                activeSection === subsection.id
-                                  ? 'bg-blue-100 text-millipore-blue font-medium'
-                                  : 'text-gray-600 hover:bg-gray-50'
-                              }`}
-                            >
-                              {subsection.title}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+          {/* Search Results Summary */}
+          {searchQuery && (
+            <div className="mt-2 text-xs text-gray-600">
+              {searchResults.length > 0 ? (
+                <span>{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found</span>
+              ) : (
+                <span className="text-amber-600">No results found</span>
               )}
             </div>
-          ))}
+          )}
+        </div>
+
+        {/* Search Results or Navigation */}
+        <nav className="p-4">
+          {searchQuery && searchResults.length > 0 ? (
+            // Show search results
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Search Results
+              </h3>
+              {searchResults.slice(0, 50).map((result, index) => (
+                <button
+                  key={index}
+                  onClick={() => scrollToSection(result.headingId)}
+                  className="block w-full text-left p-2 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200"
+                >
+                  <div className="text-xs font-medium text-millipore-blue mb-1">
+                    {result.heading}
+                  </div>
+                  <div className="text-xs text-gray-600 line-clamp-2">
+                    {result.snippet}
+                  </div>
+                </button>
+              ))}
+              {searchResults.length > 50 && (
+                <p className="text-xs text-gray-500 italic mt-2">
+                  Showing first 50 of {searchResults.length} results
+                </p>
+              )}
+            </div>
+          ) : !searchQuery ? (
+            // Show normal table of contents when not searching
+            <>
+              {tocSections.map((part) => (
+                <div key={part.id} className="mb-4">
+                  <button
+                    onClick={() => toggleSection(part.id)}
+                    className="flex items-center justify-between w-full text-left font-semibold text-gray-900 hover:text-millipore-blue mb-2 transition-colors"
+                  >
+                    <span className="text-sm">{part.title}</span>
+                    {expandedSections[part.id] ? (
+                      <ChevronDownIcon className="h-4 w-4" />
+                    ) : (
+                      <ChevronRightIcon className="h-4 w-4" />
+                    )}
+                  </button>
+
+                  {expandedSections[part.id] && (
+                    <div className="ml-2 space-y-1">
+                      {part.items.map((section) => (
+                        <div key={section.id}>
+                          <button
+                            onClick={() => scrollToSection(section.id)}
+                            className={`block w-full text-left text-xs py-1.5 px-2 rounded transition-colors ${
+                              activeSection === section.id
+                                ? 'bg-millipore-blue text-white'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            {section.title}
+                          </button>
+                          {section.subsections && section.subsections.length > 0 && (
+                            <div className="ml-3 mt-1 space-y-0.5">
+                              {section.subsections.map((subsection) => (
+                                <button
+                                  key={subsection.id}
+                                  onClick={() => scrollToSection(subsection.id)}
+                                  className={`block w-full text-left text-xs py-1 px-2 rounded transition-colors ${
+                                    activeSection === subsection.id
+                                      ? 'bg-blue-100 text-millipore-blue font-medium'
+                                      : 'text-gray-600 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  {subsection.title}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </>
+          ) : null}
         </nav>
       </div>
 
