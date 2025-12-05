@@ -12,7 +12,6 @@ import {
   ExclamationTriangleIcon,
   ArrowTrendingUpIcon,
   BoltIcon,
-  ArrowPathIcon,
   KeyIcon,
   ScaleIcon,
   QuestionMarkCircleIcon
@@ -24,20 +23,22 @@ import ApiKeyManagement from '../components/admin/ApiKeyManagement';
 import HelpDocumentation from '../components/admin/HelpDocumentation';
 import { adminAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import { useAuth } from '../utils/AuthContext';
 
 // Lazy load Weight Matrix Management to avoid loading until needed
 const WeightMatrixManagement = lazy(() => import('../components/admin/WeightMatrixManagement'));
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (activeTab === 'overview') {
+    if (activeTab === 'overview' && user) {
       fetchStats();
     }
-  }, [activeTab]);
+  }, [activeTab, user]);
 
   const fetchStats = async () => {
     try {
@@ -148,18 +149,6 @@ const AdminDashboard = () => {
 
     return (
       <div className="space-y-6">
-        {/* Header with Refresh Button */}
-        <div className="flex justify-end">
-          <button
-            onClick={fetchStats}
-            className="btn btn-secondary flex items-center space-x-2"
-            title="Refresh statistics"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-            <span>Refresh</span>
-          </button>
-        </div>
-
         {/* Key Metrics Row 1 */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard

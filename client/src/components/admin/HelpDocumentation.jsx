@@ -294,13 +294,15 @@ const HelpDocumentation = () => {
     }
   };
 
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
       performSearch(searchQuery);
-    }, 300);
+    }
+  };
 
-    return () => clearTimeout(debounceTimer);
-  }, [searchQuery, markdownContent, tocSections]);
+  const handleSearchClick = () => {
+    performSearch(searchQuery);
+  };
 
   const clearSearch = () => {
     setSearchQuery('');
@@ -442,29 +444,36 @@ const HelpDocumentation = () => {
             </div>
             <input
               type="text"
-              placeholder="Search documentation..."
+              placeholder="Search documentation (press Enter)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-millipore-blue focus:border-transparent"
+              onKeyDown={handleSearchKeyDown}
+              className="block w-full pl-10 pr-20 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-millipore-blue focus:border-transparent"
             />
-            {searchQuery && (
+            <div className="absolute inset-y-0 right-0 flex items-center pr-2 gap-1">
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="p-1 hover:bg-gray-200 rounded"
+                  title="Clear search"
+                >
+                  <XMarkIcon className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                </button>
+              )}
               <button
-                onClick={clearSearch}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={handleSearchClick}
+                className="px-2 py-1 bg-millipore-blue text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                title="Search (or press Enter)"
               >
-                <XMarkIcon className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                Go
               </button>
-            )}
+            </div>
           </div>
 
           {/* Search Results Summary */}
-          {searchQuery && (
+          {searchResults.length > 0 && (
             <div className="mt-2 text-xs text-gray-600">
-              {searchResults.length > 0 ? (
-                <span>{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found</span>
-              ) : (
-                <span className="text-amber-600">No results found</span>
-              )}
+              <span>{searchResults.length} result{searchResults.length !== 1 ? 's' : ''} found</span>
             </div>
           )}
         </div>
