@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import MoleculeViewer from '../MoleculeViewer';
 
 /**
  * ChemicalPropertiesForm Component
@@ -34,6 +35,7 @@ const ChemicalPropertiesForm = ({
 }) => {
   // Use watch with default empty string to ensure reactivity
   const casNumber = watch('chemicalProperties.casNumber', '');
+  const canonicalSMILES = watch('chemicalProperties.canonicalSMILES', '');
   const visibleProperties = watch('chemicalProperties.additionalProperties.visibleProperties') || [];
   const additionalProps = watch('chemicalProperties.additionalProperties') || {};
   const [showAddPropertyMenu, setShowAddPropertyMenu] = useState(false);
@@ -288,7 +290,7 @@ const ChemicalPropertiesForm = ({
             )}
           </div>
 
-          <div>
+          <div className="sm:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               SMILES
             </label>
@@ -307,6 +309,25 @@ const ChemicalPropertiesForm = ({
             )}
             {!autoPopulated && !readOnly && (
               <p className="mt-1 text-xs text-gray-500">Simplified Molecular-Input Line-Entry System</p>
+            )}
+
+            {/* Molecular Structure Viewer */}
+            {canonicalSMILES && canonicalSMILES.trim() !== '' && (
+              <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-gray-700">Molecular Structure</h4>
+                  <span className="text-xs text-gray-500">2D Structure from SMILES</span>
+                </div>
+                <div className="flex justify-center bg-white rounded border border-gray-200 p-4">
+                  <MoleculeViewer
+                    smiles={canonicalSMILES}
+                    width={400}
+                    height={300}
+                    showCarbons={false}
+                    showImplicitHydrogens={false}
+                  />
+                </div>
+              </div>
             )}
           </div>
 
