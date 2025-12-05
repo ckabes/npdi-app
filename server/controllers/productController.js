@@ -1203,13 +1203,41 @@ const searchMARA = async (req, res) => {
       case 'productName':
         // Search in both TEXT_SHORT and TEXT_LONG using case-insensitive prefix matching
         // Matches from the beginning: "Ethanol" matches "Ethanol", "Ethanol, Reagent grade", "Ethanolamine"
+        // Use ROW_NUMBER() for pagination since Palantir SQL doesn't support OFFSET
         const upperSearchValue = searchValue.toUpperCase();
-        query = `SELECT * FROM \`${config.datasetRID}\` WHERE UPPER(TEXT_SHORT) LIKE '${upperSearchValue}%' OR UPPER(TEXT_LONG) LIKE '${upperSearchValue}%' LIMIT ${searchLimit} OFFSET ${searchOffset}`;
+        if (searchOffset === 0) {
+          // First page - simple LIMIT query
+          query = `SELECT * FROM \`${config.datasetRID}\` WHERE UPPER(TEXT_SHORT) LIKE '${upperSearchValue}%' OR UPPER(TEXT_LONG) LIKE '${upperSearchValue}%' LIMIT ${searchLimit}`;
+        } else {
+          // Subsequent pages - use ROW_NUMBER() window function
+          query = `
+            SELECT * FROM (
+              SELECT *, ROW_NUMBER() OVER (ORDER BY MATNR) as row_num
+              FROM \`${config.datasetRID}\`
+              WHERE UPPER(TEXT_SHORT) LIKE '${upperSearchValue}%' OR UPPER(TEXT_LONG) LIKE '${upperSearchValue}%'
+            )
+            WHERE row_num > ${searchOffset} AND row_num <= ${searchOffset + searchLimit}
+          `.trim();
+        }
         break;
 
       case 'casNumber':
         // Search by CAS number (YYD_CASNR field)
-        query = `SELECT * FROM \`${config.datasetRID}\` WHERE YYD_CASNR = '${searchValue}' LIMIT ${searchLimit} OFFSET ${searchOffset}`;
+        // Use ROW_NUMBER() for pagination since Palantir SQL doesn't support OFFSET
+        if (searchOffset === 0) {
+          // First page - simple LIMIT query
+          query = `SELECT * FROM \`${config.datasetRID}\` WHERE YYD_CASNR = '${searchValue}' LIMIT ${searchLimit}`;
+        } else {
+          // Subsequent pages - use ROW_NUMBER() window function
+          query = `
+            SELECT * FROM (
+              SELECT *, ROW_NUMBER() OVER (ORDER BY MATNR) as row_num
+              FROM \`${config.datasetRID}\`
+              WHERE YYD_CASNR = '${searchValue}'
+            )
+            WHERE row_num > ${searchOffset} AND row_num <= ${searchOffset + searchLimit}
+          `.trim();
+        }
         break;
     }
 
