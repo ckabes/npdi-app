@@ -131,17 +131,39 @@ const MoleculeViewerRDKit = ({
         includeMetadata: false
       }));
 
-      // Force all colors to black for true monochrome rendering
-      // Replace all fill and stroke color attributes with black
-      svg = svg.replace(/fill='#[0-9A-Fa-f]{6}'/g, "fill='#000000'");
-      svg = svg.replace(/fill="#[0-9A-Fa-f]{6}"/g, 'fill="#000000"');
-      svg = svg.replace(/stroke='#[0-9A-Fa-f]{6}'/g, "stroke='#000000'");
-      svg = svg.replace(/stroke="#[0-9A-Fa-f]{6}"/g, 'stroke="#000000"');
-      // Also handle RGB format
-      svg = svg.replace(/fill='rgb\([^)]+\)'/g, "fill='#000000'");
-      svg = svg.replace(/fill="rgb\([^)]+\)"/g, 'fill="#000000"');
-      svg = svg.replace(/stroke='rgb\([^)]+\)'/g, "stroke='#000000'");
-      svg = svg.replace(/stroke="rgb\([^)]+\)"/g, 'stroke="#000000"');
+      // Force all non-white/non-transparent colors to black for true monochrome rendering
+      // Preserve white (#FFF, #FFFFFF) and transparent backgrounds
+      // Replace all other colors (heteroatoms, wedge bonds, etc.) with black
+
+      // Function to check if color is white or should be preserved
+      const shouldPreserveColor = (color) => {
+        const normalized = color.toLowerCase().replace(/\s/g, '');
+        return normalized === '#fff' ||
+               normalized === '#ffffff' ||
+               normalized === 'white' ||
+               normalized === 'none' ||
+               normalized.includes('transparent');
+      };
+
+      // Replace hex colors, but preserve white
+      svg = svg.replace(/fill='(#[0-9A-Fa-f]{3,6})'/gi, (match, color) => {
+        return shouldPreserveColor(color) ? match : "fill='#000000'";
+      });
+      svg = svg.replace(/fill="(#[0-9A-Fa-f]{3,6})"/gi, (match, color) => {
+        return shouldPreserveColor(color) ? match : 'fill="#000000"';
+      });
+      svg = svg.replace(/stroke='(#[0-9A-Fa-f]{3,6})'/gi, (match, color) => {
+        return shouldPreserveColor(color) ? match : "stroke='#000000'";
+      });
+      svg = svg.replace(/stroke="(#[0-9A-Fa-f]{3,6})"/gi, (match, color) => {
+        return shouldPreserveColor(color) ? match : 'stroke="#000000"';
+      });
+
+      // Replace RGB/RGBA colors (these are usually colored heteroatoms or wedge bonds)
+      svg = svg.replace(/fill='(rgba?\([^)]+\))'/g, "fill='#000000'");
+      svg = svg.replace(/fill="(rgba?\([^)]+\))"/g, 'fill="#000000"');
+      svg = svg.replace(/stroke='(rgba?\([^)]+\))'/g, "stroke='#000000'");
+      svg = svg.replace(/stroke="(rgba?\([^)]+\))"/g, 'stroke="#000000"');
 
       // Insert SVG into container
       containerRef.current.innerHTML = svg;
