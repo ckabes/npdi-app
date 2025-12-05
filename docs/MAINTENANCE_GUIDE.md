@@ -8537,6 +8537,18 @@ lsof -i :27017 # MongoDB
 - Improved dashboard statistics
 - Activity feed enhancements
 
+**Version 1.2.0** (December 2025 - SAP Search & UX Enhancements)
+- Intelligent multi-criteria SAP search (automatic type detection)
+- Case-insensitive prefix matching for product name searches
+- Pagination with "Load More" functionality (10 results at a time)
+- Base -BULK SKU filtering (excludes variants like -VAR, -SPEC)
+- Enhanced result display with SBU instead of Unit
+- Missing CAS indicator with visual feedback
+- Improved loading UX with immediate spinner feedback
+- Dynamic currency support (14 currencies)
+- Pricing form simplification
+- ROW_NUMBER() pagination for Palantir SQL compatibility
+
 ---
 
 ## CONCLUSION
@@ -8562,5 +8574,5 @@ This maintenance guide has covered everything you need to maintain and support t
 ---
 
 *This guide was created with assistance from Claude Code by Anthropic.*
-*Last Updated: November 2025*
+*Last Updated: December 2025*
 
