@@ -19,16 +19,24 @@ import React, { useEffect, useRef, useState } from 'react';
  * - Stereochemistry visualization (wedge/dash bonds)
  * - Ring systems with proper geometry
  *
+ * Rotation System:
+ * - Positive values: clockwise rotation (e.g., 10 = 10° clockwise)
+ * - Negative values: counter-clockwise rotation (e.g., -10 = 10° counter-clockwise)
+ * - Rotation is controlled by parent component via customRotation prop
+ * - Parent component provides UI controls for rotation adjustments
+ *
  * @param {string} smiles - SMILES notation string
  * @param {number} width - SVG width in pixels (default: 300)
  * @param {number} height - SVG height in pixels (default: 300)
  * @param {string} className - Additional CSS classes
+ * @param {number} customRotation - Optional: Override automatic rotation (in degrees)
  */
 const MoleculeViewerRDKit = ({
   smiles,
   width = 300,
   height = 300,
-  className = ''
+  className = '',
+  customRotation = null
 }) => {
   const containerRef = useRef(null);
   const [rdkit, setRDKit] = useState(null);
@@ -132,25 +140,45 @@ const MoleculeViewerRDKit = ({
       }
 
       // Apply appropriate alignment based on molecular structure
-      // Get molecular descriptors to determine if molecule has rings
+      // Determine rotation angle and coordinate generation strategy
+      let rotationAngle = 0;
+      let numRings = 0;
+
       try {
         const descriptors = JSON.parse(mol.get_descriptors());
-        const numRings = descriptors.NumRings || 0;
-
-        if (numRings > 0) {
-          // Cyclic/complex molecules (e.g., Diphenhydramine, benzene)
-          // Use straighten_depiction to align bonds at 30-degree multiples
-          mol.straighten_depiction();
-        } else {
-          // Linear/acyclic molecules (e.g., butanol, ethanol)
-          // Use normalize_depiction(1) to align main axis horizontally
-          mol.normalize_depiction(1);
-        }
+        numRings = descriptors.NumRings || 0;
       } catch (err) {
-        console.warn('Could not get molecular descriptors, using default alignment:', err);
-        // Fallback to straighten_depiction if descriptors fail
-        mol.straighten_depiction();
+        console.warn('Could not get molecular descriptors:', err);
       }
+
+      // Only regenerate coordinates for cyclic molecules
+      // This ensures zigzag patterns in ring side chains while preserving
+      // the existing good alignment of linear molecules
+      if (numRings > 0) {
+        try {
+          // Generate new 2D coordinates with proper geometry for cyclic molecules
+          // This uses RDKit's coordgen to create chemically accurate depictions
+          // with proper zigzag patterns in chains attached to rings
+          mol.set_new_coords(true); // true = use coordgen for better depictions
+        } catch (err) {
+          console.warn('Could not set new coordinates, using existing:', err);
+        }
+      }
+
+      // Determine rotation angle
+      // Rely on straighten_depiction and normalize_depiction for orientation
+      // customRotation prop allows manual rotation override
+      if (customRotation !== null) {
+        rotationAngle = customRotation;
+      } else {
+        rotationAngle = 0;
+      }
+
+      // Apply both straighten and normalize for optimal depiction
+      // Step 1: Straighten bonds to 30-degree multiples for cleaner appearance
+      mol.straighten_depiction();
+      // Step 2: Normalize to align main axis horizontally
+      mol.normalize_depiction(1);
 
       // Generate SVG with specified dimensions
       // Use RDKit core color settings for true monochrome rendering
@@ -163,7 +191,7 @@ const MoleculeViewerRDKit = ({
         explicitMethyl: false,
         // ACS 1996-like settings
         fixedBondLength: 30,
-        rotate: 0,
+        rotate: rotationAngle,
         // Atom label spacing (fraction of font size, default: 0.066)
         additionalAtomLabelPadding: 0.18,
         // Monochrome color settings (RGB values 0-1)
@@ -249,7 +277,7 @@ const MoleculeViewerRDKit = ({
         containerRef.current.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #dc2626;">Rendering error</div>`;
       }
     }
-  }, [rdkit, smiles, width, height]);
+  }, [rdkit, smiles, width, height, customRotation]);
 
   if (loading) {
     return (

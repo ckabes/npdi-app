@@ -44,6 +44,14 @@ const ChemicalPropertiesForm = ({
   // Track which fields have been manually edited (lose green background when edited)
   const [editedFields, setEditedFields] = useState(new Set());
 
+  // Track molecule rotation
+  const [moleculeRotation, setMoleculeRotation] = useState(0);
+
+  // Reset rotation when SMILES changes
+  React.useEffect(() => {
+    setMoleculeRotation(0);
+  }, [canonicalSMILES]);
+
   // Helper function to mark a field as edited
   const markFieldAsEdited = (fieldName) => {
     setEditedFields(prev => new Set([...prev, fieldName]));
@@ -59,9 +67,6 @@ const ChemicalPropertiesForm = ({
     const fieldValue = watch(`chemicalProperties.${fieldName}`);
     return fieldValue !== null && fieldValue !== undefined && fieldValue !== '';
   };
-
-  // Debug logging
-  console.log('ChemicalPropertiesForm - additionalProps:', additionalProps);
 
   // Available properties that can be added
   const availableProperties = [
@@ -290,115 +295,154 @@ const ChemicalPropertiesForm = ({
             )}
           </div>
 
-          <div className="sm:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              SMILES
-            </label>
-            <input
-              {...register('chemicalProperties.canonicalSMILES', {
-                onChange: (e) => {
-                  markFieldAsEdited('canonicalSMILES');
-                }
-              })}
-              type="text"
-              className={`form-input ${isFieldAutoPopulated('canonicalSMILES') ? 'bg-green-50' : ''}`}
-              placeholder="e.g., CCO (for ethanol)"
-              readOnly={readOnly}
-            />
-            {autoPopulated && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
-            )}
-            {!autoPopulated && !readOnly && (
-              <p className="mt-1 text-xs text-gray-500">Simplified Molecular-Input Line-Entry System</p>
-            )}
+          {/* Left Column: SMILES, identifiers, and state fields */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                SMILES
+              </label>
+              <input
+                {...register('chemicalProperties.canonicalSMILES', {
+                  onChange: (e) => {
+                    markFieldAsEdited('canonicalSMILES');
+                  }
+                })}
+                type="text"
+                className={`form-input ${isFieldAutoPopulated('canonicalSMILES') ? 'bg-green-50' : ''}`}
+                placeholder="e.g., CCO (for ethanol)"
+                readOnly={readOnly}
+              />
+              {autoPopulated && (
+                <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
+              )}
+              {!autoPopulated && !readOnly && (
+                <p className="mt-1 text-xs text-gray-500">Simplified Molecular-Input Line-Entry System</p>
+              )}
+            </div>
 
-            {/* Molecular Structure Viewer */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                InChI
+              </label>
+              <textarea
+                {...register('chemicalProperties.inchi')}
+                rows="2"
+                className={`form-input ${isFieldAutoPopulated('inchi') ? 'bg-green-50' : ''}`}
+                placeholder="International Chemical Identifier"
+                readOnly={readOnly}
+                onChange={(e) => {
+                  markFieldAsEdited('inchi');
+                }}
+              />
+              {isFieldAutoPopulated('inchi') && (
+                <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                InChI Key
+              </label>
+              <input
+                {...register('chemicalProperties.inchiKey')}
+                type="text"
+                className={`form-input ${isFieldAutoPopulated('inchiKey') ? 'bg-green-50' : ''}`}
+                placeholder="Hashed InChI identifier"
+                readOnly={readOnly}
+                onChange={(e) => {
+                  markFieldAsEdited('inchiKey');
+                }}
+              />
+              {isFieldAutoPopulated('inchiKey') && (
+                <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Physical State
+              </label>
+              <select
+                {...register('chemicalProperties.physicalState')}
+                className="form-select"
+                disabled={readOnly}
+              >
+                <option value="Solid">Solid</option>
+                <option value="Liquid">Liquid</option>
+                <option value="Gas">Gas</option>
+                <option value="Powder">Powder</option>
+                <option value="Crystal">Crystal</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Shipping Conditions
+              </label>
+              <select
+                {...register('chemicalProperties.shippingConditions')}
+                className="form-select"
+                disabled={readOnly}
+              >
+                <option value="Standard">Standard (Ambient)</option>
+                <option value="Wet Ice">Wet Ice (2-8°C)</option>
+                <option value="Dry Ice">Dry Ice (-20°C to -80°C)</option>
+                <option value="Liquid Nitrogen">Liquid Nitrogen (-196°C)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Right Column: Molecular Structure Viewer */}
+          <div>
             {canonicalSMILES && canonicalSMILES.trim() !== '' && (
-              <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg h-full">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-medium text-gray-700">Molecular Structure</h4>
-                  <span className="text-xs text-gray-500">2D Structure from SMILES</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-600">Rotate:</span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setMoleculeRotation(prev => prev - 5)}
+                        className="w-6 h-6 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors text-gray-600"
+                        title="Rotate counter-clockwise 5°"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="number"
+                        value={moleculeRotation}
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                          if (!isNaN(value)) {
+                            setMoleculeRotation(value);
+                          }
+                        }}
+                        className="w-12 h-6 px-1 text-xs font-mono text-center text-gray-700 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        title="Enter rotation in degrees"
+                      />
+                      <span className="text-xs text-gray-600">°</span>
+                      <button
+                        type="button"
+                        onClick={() => setMoleculeRotation(prev => prev + 5)}
+                        className="w-6 h-6 flex items-center justify-center bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors text-gray-600"
+                        title="Rotate clockwise 5°"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-center bg-white rounded border border-gray-200 p-4">
+                <div className="flex justify-center items-center bg-white rounded border border-gray-200 p-4">
                   <MoleculeViewerRDKit
                     smiles={canonicalSMILES}
-                    width={400}
-                    height={300}
+                    width={300}
+                    height={250}
+                    customRotation={moleculeRotation}
                   />
                 </div>
               </div>
             )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              InChI
-            </label>
-            <textarea
-              {...register('chemicalProperties.inchi')}
-              rows="2"
-              className={`form-input ${isFieldAutoPopulated('inchi') ? 'bg-green-50' : ''}`}
-              placeholder="International Chemical Identifier"
-              readOnly={readOnly}
-              onChange={(e) => {
-                markFieldAsEdited('inchi');
-              }}
-            />
-            {isFieldAutoPopulated('inchi') && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              InChI Key
-            </label>
-            <input
-              {...register('chemicalProperties.inchiKey')}
-              type="text"
-              className={`form-input ${isFieldAutoPopulated('inchiKey') ? 'bg-green-50' : ''}`}
-              placeholder="Hashed InChI identifier"
-              readOnly={readOnly}
-              onChange={(e) => {
-                markFieldAsEdited('inchiKey');
-              }}
-            />
-            {isFieldAutoPopulated('inchiKey') && (
-              <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem (editable)</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Physical State
-            </label>
-            <select
-              {...register('chemicalProperties.physicalState')}
-              className="form-select"
-              disabled={readOnly}
-            >
-              <option value="Solid">Solid</option>
-              <option value="Liquid">Liquid</option>
-              <option value="Gas">Gas</option>
-              <option value="Powder">Powder</option>
-              <option value="Crystal">Crystal</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Shipping Conditions
-            </label>
-            <select
-              {...register('chemicalProperties.shippingConditions')}
-              className="form-select"
-              disabled={readOnly}
-            >
-              <option value="Standard">Standard (Ambient)</option>
-              <option value="Wet Ice">Wet Ice (2-8°C)</option>
-              <option value="Dry Ice">Dry Ice (-20°C to -80°C)</option>
-              <option value="Liquid Nitrogen">Liquid Nitrogen (-196°C)</option>
-            </select>
           </div>
         </div>
 
