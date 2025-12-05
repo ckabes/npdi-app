@@ -27,7 +27,12 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **Storage Conditions**: Temperature, humidity, light, and atmosphere requirements
 - **Regulatory Information**: FDA, EPA, REACH, TSCA compliance tracking
 - **PubChem Integration**: Automatic chemical data population from CAS numbers
-- **SAP Data Integration**: Palantir SQL Query API v2 for MARA dataset queries with material number lookup
+- **SAP Data Integration**: Palantir SQL Query API v2 for MARA dataset queries
+  - Intelligent multi-criteria search (CAS, part number, or product name)
+  - Automatic search type detection with visual feedback
+  - Pagination with "Load More" functionality (10 results at a time)
+  - Case-insensitive prefix matching for product names
+  - Filters to show only base -BULK SKUs (excludes variants)
 - **Similar Products Search**: Find related products with the same CAS number from SAP MARA data
 - **Weight Matrix Management**: Package size to weight conversion for SKU variants
 - **Plant Codes & Business Lines**: Centralized management of plant codes, business lines, and product hierarchy
@@ -168,7 +173,8 @@ npdi-app/
 - [Palantir SQL Query API Integration](docs/Palantir-SQL-Query-API-Integration-Guide.md) - SAP MARA data access
 - [SAP MARA Field Mapping](docs/features/SAP-MARA-to-ProductTicket-Mapping.md) - MARA to ProductTicket schema mapping
 - [Similar Products Search](docs/features/SIMILAR_PRODUCTS_SEARCH.md) - Find related products by CAS number
-- [Recent Improvements](docs/features/RECENT_IMPROVEMENTS_2025_11.md) - Latest enhancements and bug fixes
+- [Recent Improvements - December 2025](docs/features/RECENT_IMPROVEMENTS_2025_12.md) - SAP search enhancements, currency support, and UX improvements
+- [Recent Improvements - November 2025](docs/features/RECENT_IMPROVEMENTS_2025_11.md) - Previous enhancements and bug fixes
 
 ## Getting Started
 
