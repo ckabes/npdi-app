@@ -402,13 +402,18 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
                             <span className="font-medium">Part #:</span> {result.partNumber}
                           </div>
                           <div>
-                            <span className="font-medium">CAS:</span> {result.casNumber}
+                            <span className="font-medium">CAS:</span>{' '}
+                            {result.casNumber ? (
+                              result.casNumber
+                            ) : (
+                              <span className="text-red-400 italic text-xs">CAS Missing</span>
+                            )}
                           </div>
                           <div>
                             <span className="font-medium">Brand:</span> {result.brand}
                           </div>
                           <div>
-                            <span className="font-medium">Unit:</span> {result.baseUnit}
+                            <span className="font-medium">SBU:</span> {result.sbu}
                           </div>
                         </div>
                       </div>

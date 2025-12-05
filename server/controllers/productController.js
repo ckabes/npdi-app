@@ -1261,9 +1261,9 @@ const searchMARA = async (req, res) => {
       const results = result.rows.map(row => ({
         partNumber: row.MATNR || 'N/A',
         productName: row.TEXT_SHORT || row.TEXT_LONG || 'N/A',
-        casNumber: row.YYD_CASNR || 'N/A',
+        casNumber: row.YYD_CASNR || null, // null for missing CAS to show special UI
         brand: row.YYD_YLOGO_TEXT || 'N/A',
-        baseUnit: row.MEINS || 'N/A'
+        sbu: row.YYD_YSBU || row.SPART || 'N/A' // Use YYD_YSBU (primary) or SPART (fallback)
       }));
 
       // Determine if there might be more results
