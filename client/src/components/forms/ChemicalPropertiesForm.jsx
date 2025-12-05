@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MoleculeViewer from '../MoleculeViewer';
+import MoleculeViewerRDKit from '../MoleculeViewerRDKit';
 
 /**
  * ChemicalPropertiesForm Component
@@ -317,15 +317,13 @@ const ChemicalPropertiesForm = ({
               <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-medium text-gray-700">Molecular Structure</h4>
-                  <span className="text-xs text-gray-500">2D Structure from SMILES</span>
+                  <span className="text-xs text-gray-500">Professional 2D rendering via RDKit</span>
                 </div>
                 <div className="flex justify-center bg-white rounded border border-gray-200 p-4">
-                  <MoleculeViewer
+                  <MoleculeViewerRDKit
                     smiles={canonicalSMILES}
                     width={400}
                     height={300}
-                    showCarbons={false}
-                    showImplicitHydrogens={false}
                   />
                 </div>
               </div>

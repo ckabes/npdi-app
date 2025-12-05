@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MoleculeViewer from '../components/MoleculeViewer';
+import MoleculeViewerRDKit from '../components/MoleculeViewerRDKit';
 
 /**
  * Molecule Demo Page
@@ -7,8 +7,6 @@ import MoleculeViewer from '../components/MoleculeViewer';
  */
 const MoleculeDemo = () => {
   const [customSMILES, setCustomSMILES] = useState('CCO');
-  const [showCarbons, setShowCarbons] = useState(false);
-  const [showHydrogens, setShowHydrogens] = useState(false);
 
   const exampleMolecules = [
     {
@@ -118,28 +116,6 @@ const MoleculeDemo = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={showCarbons}
-                    onChange={(e) => setShowCarbons(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Show carbon labels</span>
-                </label>
-
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={showHydrogens}
-                    onChange={(e) => setShowHydrogens(e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">Show implicit hydrogens</span>
-                </label>
-              </div>
-
               <div className="pt-4 border-t border-gray-200">
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Quick Examples:</h3>
                 <div className="flex flex-wrap gap-2">
@@ -163,12 +139,10 @@ const MoleculeDemo = () => {
 
             {/* Visualization */}
             <div className="flex items-center justify-center bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4">
-              <MoleculeViewer
+              <MoleculeViewerRDKit
                 smiles={customSMILES}
                 width={400}
                 height={400}
-                showCarbons={showCarbons}
-                showImplicitHydrogens={showHydrogens}
               />
             </div>
           </div>
@@ -189,12 +163,10 @@ const MoleculeDemo = () => {
                   >
                     <div className="border border-gray-200 rounded-lg p-3 hover:border-blue-500 hover:shadow-md transition-all bg-white">
                       <div className="flex items-center justify-center mb-2 bg-gray-50 rounded">
-                        <MoleculeViewer
+                        <MoleculeViewerRDKit
                           smiles={smiles}
                           width={150}
                           height={150}
-                          showCarbons={false}
-                          showImplicitHydrogens={false}
                         />
                       </div>
                       <p className="text-sm font-medium text-gray-900 text-center truncate">
