@@ -374,7 +374,8 @@ class CoordinateGenerator {
     this.visited.add(startAtom.index);
 
     // Traverse molecule and assign coordinates
-    this.traverseFrom(startAtom, 0);
+    // Start with angle going to the right (0°) which will create a left-to-right structure
+    this.traverseFrom(startAtom, Math.PI);
 
     // Center the molecule
     this.centerMolecule();
@@ -408,21 +409,22 @@ class CoordinateGenerator {
 
   /**
    * Calculate bond angles for neighbors
+   * Uses standard chemical drawing conventions
    */
   calculateAngles(atom, numNeighbors, incomingAngle) {
-    const bondCount = atom.getBondCount();
     const angles = [];
 
     if (numNeighbors === 1) {
-      // Linear or continuation
-      angles.push(incomingAngle + Math.PI); // Continue in same direction
+      // Continue in same direction (linear chain)
+      angles.push(incomingAngle + Math.PI);
     } else if (numNeighbors === 2) {
-      // sp2 geometry (120 degrees)
+      // Standard 120° bond angles (sp2/sp3 in 2D)
+      // This creates the traditional organic chemistry skeletal structure
       const baseAngle = incomingAngle + Math.PI;
       angles.push(baseAngle - Math.PI / 3); // -60 degrees
       angles.push(baseAngle + Math.PI / 3); // +60 degrees
     } else if (numNeighbors === 3) {
-      // sp3 geometry (109.5 degrees ≈ 120 degrees for 2D)
+      // sp3-like geometry with 120° spacing
       const baseAngle = incomingAngle + Math.PI;
       angles.push(baseAngle - 2 * Math.PI / 3); // -120 degrees
       angles.push(baseAngle);
