@@ -15,6 +15,12 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 
 ### Chemical Data Management
 - **Chemical Properties**: CAS numbers, molecular formulas, physical states, purity ranges
+- **Molecular Structure Viewer**: Professional 2D structure rendering using RDKit-JS with interactive rotation controls
+  - Client-side rendering for privacy (no external data transmission)
+  - Proper zigzag patterns for sp3 carbon chains
+  - Monochrome skeletal formula display following ACS 1996 standards
+  - Interactive rotation with +/- buttons (5° increments) and direct degree input
+  - Automatic coordinate generation for optimal molecular geometry
 - **Quality Specifications Parser**: Natural language input for quality specs with automatic formatting and smart capitalization
 - **Quality Tests Configuration**: Database-backed parser knowledge base (303 entries) manageable via admin UI - test attributes, methods, and default mappings
 - **Hazard Classification**: GHS classes, signal words, transport classifications, UN numbers
@@ -58,6 +64,7 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **React Hot Toast** for user notifications
 - **Headless UI** for accessible components
 - **Heroicons** for UI icons
+- **RDKit-JS** for molecular structure rendering (via CDN)
 
 ## Project Structure
 
@@ -129,7 +136,8 @@ npdi-app/
 │   └── src/
 │       ├── components/       # Reusable UI components
 │       │   ├── admin/       # Admin-specific components
-│       │   └── forms/       # Form components
+│       │   ├── forms/       # Form components
+│       │   └── MoleculeViewerRDKit.jsx  # Molecular structure viewer
 │       ├── pages/           # Page components
 │       ├── services/        # API client services
 │       ├── utils/           # Auth context, helpers

@@ -316,7 +316,7 @@ const ChemicalPropertiesForm = ({
                 <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
               )}
               {!autoPopulated && !readOnly && (
-                <p className="mt-1 text-xs text-gray-500">Simplified Molecular-Input Line-Entry System</p>
+                <p className="mt-1 text-xs text-gray-500">Simplified Molecular-Input Line-Entry System. Structure visualization appears on the right.</p>
               )}
             </div>
 
