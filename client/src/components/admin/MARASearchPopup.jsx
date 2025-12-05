@@ -257,7 +257,7 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
               </div>
               <div className="mt-1 text-xs text-gray-500">
                 {!detectedType && (
-                  <span>Search automatically detects: Part Number (numeric), CAS (XXX-XX-X), or Product Name</span>
+                  <span>Search by product name, CAS number, or part number</span>
                 )}
                 {detectedType === 'partNumber' && (
                   <span className="text-blue-600">Detected: Part Number — "-BULK" will be auto-appended</span>
