@@ -3,6 +3,7 @@ import { PlusIcon, TrashIcon, CalculatorIcon, InformationCircleIcon } from '@her
 import toast from 'react-hot-toast';
 import { calculateMarginPercent } from '../../utils/pricingCalculations';
 import { weightMatrixAPI } from '../../services/api';
+import { getCurrencySymbol } from '../../utils/currencyUtils';
 
 /**
  * SKUVariantsForm Component
@@ -41,6 +42,8 @@ const SKUVariantsForm = ({
   errors = {}
 }) => {
   const baseUnit = watch('pricingData.baseUnit') || 'g';
+  const currency = watch('currency') || 'USD';
+  const currencySymbol = getCurrencySymbol(currency);
 
   /**
    * Calculate and display margin for a specific SKU
@@ -537,7 +540,7 @@ const SKUVariantsForm = ({
                     </label>
                     <div className="flex">
                       <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                        $
+                        {currencySymbol}
                       </span>
                       <input
                         {...register(`skuVariants.${index}.pricing.listPrice`, { required: showPricing ? 'List price is required' : false })}
@@ -561,7 +564,7 @@ const SKUVariantsForm = ({
                           {calculateMarginForSKU(index)}% margin
                         </span>
                         <div className="text-xs text-gray-500 mt-1">
-                          Cost: ${watch(`skuVariants.${index}.pricing.calculatedCost`)
+                          Cost: {currencySymbol}{watch(`skuVariants.${index}.pricing.calculatedCost`)
                             ? parseFloat(watch(`skuVariants.${index}.pricing.calculatedCost`)).toFixed(2)
                             : '0.00'}
                         </div>
