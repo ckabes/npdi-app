@@ -295,14 +295,15 @@ const ChemicalPropertiesForm = ({
               SMILES
             </label>
             <input
-              {...register('chemicalProperties.canonicalSMILES')}
+              {...register('chemicalProperties.canonicalSMILES', {
+                onChange: (e) => {
+                  markFieldAsEdited('canonicalSMILES');
+                }
+              })}
               type="text"
               className={`form-input ${isFieldAutoPopulated('canonicalSMILES') ? 'bg-green-50' : ''}`}
               placeholder="e.g., CCO (for ethanol)"
               readOnly={readOnly}
-              onChange={(e) => {
-                markFieldAsEdited('canonicalSMILES');
-              }}
             />
             {autoPopulated && (
               <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
