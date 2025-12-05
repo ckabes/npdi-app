@@ -117,8 +117,7 @@ const MoleculeViewerRDKit = ({
       }
 
       // Generate SVG with specified dimensions
-      // Using monochrome (all black) for traditional skeletal formula appearance
-      const svg = mol.get_svg_with_highlights(JSON.stringify({
+      let svg = mol.get_svg_with_highlights(JSON.stringify({
         width: width,
         height: height,
         bondLineWidth: 2,
@@ -128,11 +127,21 @@ const MoleculeViewerRDKit = ({
         // ACS 1996-like settings
         fixedBondLength: 30,
         rotate: 0,
-        // Monochrome rendering - all atoms black (no colored heteroatoms)
-        useBWAtomPalette: true,
         // Use standard skeletal formula conventions
         includeMetadata: false
       }));
+
+      // Force all colors to black for true monochrome rendering
+      // Replace all fill and stroke color attributes with black
+      svg = svg.replace(/fill='#[0-9A-Fa-f]{6}'/g, "fill='#000000'");
+      svg = svg.replace(/fill="#[0-9A-Fa-f]{6}"/g, 'fill="#000000"');
+      svg = svg.replace(/stroke='#[0-9A-Fa-f]{6}'/g, "stroke='#000000'");
+      svg = svg.replace(/stroke="#[0-9A-Fa-f]{6}"/g, 'stroke="#000000"');
+      // Also handle RGB format
+      svg = svg.replace(/fill='rgb\([^)]+\)'/g, "fill='#000000'");
+      svg = svg.replace(/fill="rgb\([^)]+\)"/g, 'fill="#000000"');
+      svg = svg.replace(/stroke='rgb\([^)]+\)'/g, "stroke='#000000'");
+      svg = svg.replace(/stroke="rgb\([^)]+\)"/g, 'stroke="#000000"');
 
       // Insert SVG into container
       containerRef.current.innerHTML = svg;
