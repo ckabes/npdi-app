@@ -27,14 +27,17 @@ const PricingCalculationForm = ({
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="text-sm font-medium text-blue-900 mb-3">Standard Cost Inputs</h4>
 
-          {baseUnitValue > 0 && (
-            <div className="mb-4 bg-white p-3 rounded border border-blue-200">
-              <p className="text-xs font-medium text-gray-600 mb-1">Using Base Unit:</p>
-              <p className="text-sm font-semibold text-blue-900">{baseUnitValue} {baseUnit}</p>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {baseUnitValue > 0 && (
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Base Unit
+                </label>
+                <div className="bg-white p-2 rounded border border-blue-200">
+                  <p className="text-sm font-semibold text-blue-900">{baseUnitValue} {baseUnit}</p>
+                </div>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
                 Standard Cost ($/{baseUnit || 'unit'})
@@ -45,32 +48,6 @@ const PricingCalculationForm = ({
                 step="0.01"
                 className="form-input text-sm"
                 placeholder="0.50"
-                readOnly={readOnly}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Packaging Cost ($/unit)
-              </label>
-              <input
-                {...register('pricingData.standardCosts.packagingCost')}
-                type="number"
-                step="0.01"
-                className="form-input text-sm"
-                placeholder="2.50"
-                readOnly={readOnly}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Labor & Overhead ($/unit)
-              </label>
-              <input
-                {...register('pricingData.standardCosts.laborOverheadCost')}
-                type="number"
-                step="0.01"
-                className="form-input text-sm"
-                placeholder="5.00"
                 readOnly={readOnly}
               />
             </div>
