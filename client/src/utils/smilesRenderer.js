@@ -505,7 +505,7 @@ class SVGRenderer {
       showCarbons: options.showCarbons || false,
       showImplicitHydrogens: options.showImplicitHydrogens || false,
       padding: options.padding || 20,
-      bondMargin: options.bondMargin || 3 // Gap between bond and atom label (ACS 1996: ~1.6pt)
+      bondMargin: options.bondMargin || 6 // Gap between bond and atom label (increased for better visibility)
     };
   }
 
