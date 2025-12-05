@@ -361,6 +361,50 @@ class CoordinateGenerator {
     this.visited = new Set();
     this.chainAngle = Math.PI / 3; // 60 degrees - creates 120° internal angle (ACS 1996 standard)
     this.zigzagDirection = 1; // Alternates between 1 and -1 for up/down zigzag
+    this.ringAtoms = new Set(); // Track atoms that are part of rings
+  }
+
+  /**
+   * Detect atoms that are part of rings
+   */
+  detectRings() {
+    this.ringAtoms.clear();
+
+    // Find all atoms involved in rings by detecting cycles in the bond graph
+    this.molecule.atoms.forEach(atom => {
+      if (this.isInRing(atom)) {
+        this.ringAtoms.add(atom.index);
+      }
+    });
+  }
+
+  /**
+   * Check if an atom is part of a ring using depth-first search
+   */
+  isInRing(startAtom) {
+    const visited = new Set();
+    const recStack = new Set();
+
+    const dfs = (atom, parent) => {
+      visited.add(atom.index);
+      recStack.add(atom.index);
+
+      for (const bond of atom.bonds) {
+        const neighbor = bond.atom1 === atom ? bond.atom2 : bond.atom1;
+
+        if (!visited.has(neighbor.index)) {
+          if (dfs(neighbor, atom)) return true;
+        } else if (neighbor !== parent && recStack.has(neighbor.index)) {
+          // Found a cycle
+          return true;
+        }
+      }
+
+      recStack.delete(atom.index);
+      return false;
+    };
+
+    return dfs(startAtom, null);
   }
 
   /**
@@ -368,6 +412,9 @@ class CoordinateGenerator {
    */
   generate() {
     if (this.molecule.atoms.length === 0) return;
+
+    // Detect which atoms are in rings
+    this.detectRings();
 
     // Start with first atom at origin
     const startAtom = this.molecule.atoms[0];
@@ -412,24 +459,41 @@ class CoordinateGenerator {
   /**
    * Calculate bond angles for neighbors
    * Uses ACS 1996 standard: 120° internal bond angles for skeletal formulas
+   * Special handling for ring atoms to create proper polygon shapes
    */
   calculateAngles(atom, numNeighbors, incomingAngle) {
     const angles = [];
+    const isRingAtom = this.ringAtoms.has(atom.index);
 
     if (numNeighbors === 1) {
-      // Linear chain: Create zigzag pattern with 120° internal angle
-      // Alternate between +60° and -60° to create up/down zigzag
-      const forwardAngle = incomingAngle + Math.PI;
-      const zigzagAngle = forwardAngle + (this.zigzagDirection * this.chainAngle);
-      angles.push(zigzagAngle);
+      if (isRingAtom) {
+        // Ring atom continuing ring: use ~60° rotation for 6-membered rings
+        // This creates a hexagonal pattern (360° / 6 = 60° per vertex)
+        const forwardAngle = incomingAngle + Math.PI;
+        angles.push(forwardAngle - Math.PI / 3); // Rotate 60° for polygon
+      } else {
+        // Linear chain: Create zigzag pattern with 120° internal angle
+        // Alternate between +60° and -60° to create up/down zigzag
+        const forwardAngle = incomingAngle + Math.PI;
+        const zigzagAngle = forwardAngle + (this.zigzagDirection * this.chainAngle);
+        angles.push(zigzagAngle);
 
-      // Flip direction for next atom in chain
-      this.zigzagDirection *= -1;
+        // Flip direction for next atom in chain
+        this.zigzagDirection *= -1;
+      }
     } else if (numNeighbors === 2) {
-      // Branching: two bonds at 120° angles
-      const baseAngle = incomingAngle + Math.PI;
-      angles.push(baseAngle - this.chainAngle); // -60 degrees
-      angles.push(baseAngle + this.chainAngle); // +60 degrees
+      if (isRingAtom) {
+        // Ring atom with two neighbors: likely part of ring
+        // Use 120° angles to approximate ring shape
+        const baseAngle = incomingAngle + Math.PI;
+        angles.push(baseAngle - this.chainAngle); // -60 degrees
+        angles.push(baseAngle + this.chainAngle); // +60 degrees
+      } else {
+        // Branching in chain: two bonds at 120° angles
+        const baseAngle = incomingAngle + Math.PI;
+        angles.push(baseAngle - this.chainAngle); // -60 degrees
+        angles.push(baseAngle + this.chainAngle); // +60 degrees
+      }
     } else if (numNeighbors === 3) {
       // Tri-substituted: three bonds at 120° spacing
       const baseAngle = incomingAngle + Math.PI;
