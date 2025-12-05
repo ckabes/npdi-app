@@ -357,8 +357,10 @@ class SMILESParser {
 class CoordinateGenerator {
   constructor(molecule) {
     this.molecule = molecule;
-    this.bondLength = 30; // Standard bond length in pixels
+    this.bondLength = 30; // Standard bond length in pixels (approx. 14.4pt ACS 1996)
     this.visited = new Set();
+    this.chainAngle = Math.PI / 3; // 60 degrees - creates 120° internal angle (ACS 1996 standard)
+    this.zigzagDirection = 1; // Alternates between 1 and -1 for up/down zigzag
   }
 
   /**
@@ -409,28 +411,33 @@ class CoordinateGenerator {
 
   /**
    * Calculate bond angles for neighbors
-   * Uses standard chemical drawing conventions
+   * Uses ACS 1996 standard: 120° internal bond angles for skeletal formulas
    */
   calculateAngles(atom, numNeighbors, incomingAngle) {
     const angles = [];
 
     if (numNeighbors === 1) {
-      // Continue in same direction (linear chain)
-      angles.push(incomingAngle + Math.PI);
+      // Linear chain: Create zigzag pattern with 120° internal angle
+      // Alternate between +60° and -60° to create up/down zigzag
+      const forwardAngle = incomingAngle + Math.PI;
+      const zigzagAngle = forwardAngle + (this.zigzagDirection * this.chainAngle);
+      angles.push(zigzagAngle);
+
+      // Flip direction for next atom in chain
+      this.zigzagDirection *= -1;
     } else if (numNeighbors === 2) {
-      // Standard 120° bond angles (sp2/sp3 in 2D)
-      // This creates the traditional organic chemistry skeletal structure
+      // Branching: two bonds at 120° angles
       const baseAngle = incomingAngle + Math.PI;
-      angles.push(baseAngle - Math.PI / 3); // -60 degrees
-      angles.push(baseAngle + Math.PI / 3); // +60 degrees
+      angles.push(baseAngle - this.chainAngle); // -60 degrees
+      angles.push(baseAngle + this.chainAngle); // +60 degrees
     } else if (numNeighbors === 3) {
-      // sp3-like geometry with 120° spacing
+      // Tri-substituted: three bonds at 120° spacing
       const baseAngle = incomingAngle + Math.PI;
       angles.push(baseAngle - 2 * Math.PI / 3); // -120 degrees
       angles.push(baseAngle);
       angles.push(baseAngle + 2 * Math.PI / 3); // +120 degrees
     } else {
-      // Distribute evenly
+      // Multiple substituents: distribute evenly
       const baseAngle = incomingAngle + Math.PI;
       for (let i = 0; i < numNeighbors; i++) {
         angles.push(baseAngle + (2 * Math.PI * i) / numNeighbors);
@@ -497,7 +504,8 @@ class SVGRenderer {
       fontSize: options.fontSize || 14,
       showCarbons: options.showCarbons || false,
       showImplicitHydrogens: options.showImplicitHydrogens || false,
-      padding: options.padding || 20
+      padding: options.padding || 20,
+      bondMargin: options.bondMargin || 3 // Gap between bond and atom label (ACS 1996: ~1.6pt)
     };
   }
 
@@ -539,29 +547,88 @@ class SVGRenderer {
 
   /**
    * Calculate bounding box of molecule
+   * Includes extra space for atom labels (especially heteroatoms)
    */
   calculateBoundingBox() {
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
 
     this.molecule.atoms.forEach(atom => {
-      minX = Math.min(minX, atom.x);
-      maxX = Math.max(maxX, atom.x);
-      minY = Math.min(minY, atom.y);
-      maxY = Math.max(maxY, atom.y);
+      // Account for atom position
+      let atomMinX = atom.x;
+      let atomMaxX = atom.x;
+      let atomMinY = atom.y;
+      let atomMaxY = atom.y;
+
+      // If atom has a label, account for label width/height
+      if (this.shouldShowAtomLabel(atom)) {
+        const label = this.getAtomLabel(atom);
+        // Estimate label width: ~7px per character for 14pt font
+        const labelWidth = label.length * (this.options.fontSize * 0.5);
+        const labelHeight = this.options.fontSize;
+
+        // Labels are center-anchored, so extend in both directions
+        atomMinX -= labelWidth / 2;
+        atomMaxX += labelWidth / 2;
+        atomMinY -= labelHeight / 2;
+        atomMaxY += labelHeight / 2;
+      }
+
+      minX = Math.min(minX, atomMinX);
+      maxX = Math.max(maxX, atomMaxX);
+      minY = Math.min(minY, atomMinY);
+      maxY = Math.max(maxY, atomMaxY);
     });
 
     return { minX, maxX, minY, maxY };
   }
 
   /**
+   * Adjust bond coordinates to account for atom label margin
+   * Shortens bond at each end if atom has a visible label
+   */
+  adjustBondForLabels(x1, y1, x2, y2, atom1, atom2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+
+    if (length === 0) return { x1, y1, x2, y2 };
+
+    const ux = dx / length; // Unit vector x
+    const uy = dy / length; // Unit vector y
+
+    let newX1 = x1;
+    let newY1 = y1;
+    let newX2 = x2;
+    let newY2 = y2;
+
+    // Shorten bond at atom1 end if it has a label
+    if (this.shouldShowAtomLabel(atom1)) {
+      newX1 = x1 + ux * this.options.bondMargin;
+      newY1 = y1 + uy * this.options.bondMargin;
+    }
+
+    // Shorten bond at atom2 end if it has a label
+    if (this.shouldShowAtomLabel(atom2)) {
+      newX2 = x2 - ux * this.options.bondMargin;
+      newY2 = y2 - uy * this.options.bondMargin;
+    }
+
+    return { x1: newX1, y1: newY1, x2: newX2, y2: newY2 };
+  }
+
+  /**
    * Render a bond
    */
   renderBond(bond) {
-    const x1 = bond.atom1.x;
-    const y1 = bond.atom1.y;
-    const x2 = bond.atom2.x;
-    const y2 = bond.atom2.y;
+    // Adjust bond coordinates for label margins
+    const adjusted = this.adjustBondForLabels(
+      bond.atom1.x, bond.atom1.y,
+      bond.atom2.x, bond.atom2.y,
+      bond.atom1, bond.atom2
+    );
+
+    const { x1, y1, x2, y2 } = adjusted;
 
     let svg = '';
 
