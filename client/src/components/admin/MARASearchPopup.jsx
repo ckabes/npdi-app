@@ -186,7 +186,10 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
   };
 
   const handleSelectResult = async (partNumber) => {
+    // Clear the list immediately and show loading state for better UX
+    setMultipleResults(null);
     setSearching(true);
+
     try {
       console.log(`[SAP Search] Loading full data for selected part number: ${partNumber}`);
       const response = await productAPI.searchMARA('partNumber', partNumber);
@@ -195,7 +198,6 @@ const MARASearchPopup = ({ onClose, onApprove }) => {
         setSapData(response.data.data);
         setMappedFields(response.data.mappedFields);
         setMetadata(response.data.metadata || {});
-        setMultipleResults(null); // Clear multiple results
         toast.success(`Loaded data for ${partNumber}`);
       }
     } catch (error) {
