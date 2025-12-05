@@ -561,7 +561,7 @@ const HelpDocumentation = () => {
                 </div>
               ))}
             </>
-          ) : null}
+          )}
         </nav>
       </div>
 
