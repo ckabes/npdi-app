@@ -742,7 +742,7 @@ productTicketSchema.pre('save', function(next) {
   next();
 });
 
-productTicketSchema.pre('save', async function(next) {
+productTicketSchema.pre('save', async function() {
   if (this.isNew && !this.ticketNumber) {
     const year = new Date().getFullYear();
     let ticketNumber;
@@ -767,10 +767,9 @@ productTicketSchema.pre('save', async function(next) {
     }
 
     if (!isUnique) {
-      return next(new Error('Unable to generate unique ticket number after multiple attempts'));
+      throw new Error('Unable to generate unique ticket number after multiple attempts');
     }
   }
-  next();
 });
 
 module.exports = mongoose.model('ProductTicket', productTicketSchema);

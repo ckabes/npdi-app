@@ -280,6 +280,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
                     {showAllCategories ? 'Showing all categories' : 'Showing life science categories'}
                   </p>
                   <button
+                    type="button"
                     onClick={handleToggleAllCategories}
                     disabled={loadingAll}
                     className="text-xs text-white hover:text-blue-100 underline transition-colors flex items-center gap-1"
@@ -293,6 +294,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 className="text-white hover:text-gray-200 transition-colors"
               >
@@ -329,6 +331,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
             <div className="px-6 py-3 bg-gray-100 border-b border-gray-200">
               <div className="flex items-center text-sm">
                 <button
+                  type="button"
                   onClick={() => {
                     setSelectedSegment(null);
                     setSelectedFamily(null);
@@ -343,6 +346,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
                   <>
                     <span className="mx-2 text-gray-400">/</span>
                     <button
+                      type="button"
                       onClick={() => {
                         setSelectedFamily(null);
                         setSelectedClass(null);
@@ -358,6 +362,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
                   <>
                     <span className="mx-2 text-gray-400">/</span>
                     <button
+                      type="button"
                       onClick={() => {
                         setSelectedClass(null);
                         setSelectedCommodity(null);
@@ -388,6 +393,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
                 </div>
                 {searchResults.map((result, index) => (
                   <button
+                    type="button"
                     key={`${result.item.code}-${index}`}
                     onClick={() => handleSearchResultSelect(result)}
                     className={`w-full flex items-start justify-between p-3 text-left border rounded-lg transition-all group ${
@@ -444,6 +450,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
               <div className="grid grid-cols-1 gap-3">
                 {filterItems(segments, searchTerm).map((segment) => (
                   <button
+                    type="button"
                     key={segment.code}
                     onClick={() => handleSegmentSelect(segment)}
                     className="flex items-center justify-between p-4 text-left border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
@@ -467,6 +474,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
               <div className="grid grid-cols-1 gap-3">
                 {filterItems(families, searchTerm).map((family) => (
                   <button
+                    type="button"
                     key={family.code}
                     onClick={() => handleFamilySelect(family)}
                     className="flex items-center justify-between p-4 text-left border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
@@ -490,6 +498,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
               <div className="grid grid-cols-1 gap-3">
                 {filterItems(classes, searchTerm).map((classItem) => (
                   <button
+                    type="button"
                     key={classItem.code}
                     onClick={() => handleClassSelect(classItem)}
                     className="flex items-center justify-between p-4 text-left border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group"
@@ -513,6 +522,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
               <div className="grid grid-cols-1 gap-2">
                 {filterItems(commodities, searchTerm).map((commodity) => (
                   <button
+                    type="button"
                     key={commodity.code}
                     onClick={() => handleCommoditySelect(commodity)}
                     className="flex items-center justify-between p-3 text-left border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all group"
@@ -548,6 +558,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
                 )}
               </div>
               <button
+                type="button"
                 onClick={onClose}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >

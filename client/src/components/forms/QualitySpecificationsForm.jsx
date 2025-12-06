@@ -269,7 +269,7 @@ const QualitySpecificationsForm = ({
                 value={nlpInput}
                 onChange={(e) => setNlpInput(e.target.value)}
                 rows="2"
-                className="form-input text-sm flex-1"
+                className="bg-white form-input text-sm flex-1"
                 placeholder="purity ≥99.9% by gc, ph 6.5-7.5, appearance: white powder"
               />
               <button
