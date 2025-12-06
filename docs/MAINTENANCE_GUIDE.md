@@ -143,9 +143,10 @@
 - 16.2 Badge Components
 - 16.3 Form Components
 - 16.4 Modal Components
-- 16.5 Loading States
-- 16.6 Toast Notifications
-- 16.7 Background Design and Animations
+- 16.5 Reusable Utilities (v1.2.0)
+- 16.6 Loading States
+- 16.7 Toast Notifications
+- 16.8 Background Design and Animations
 
 **17. SKU and Pricing Management**
 - 17.1 SKU Variant Generation
@@ -4681,6 +4682,8 @@ Gray Scale: #F3F4F6, #E5E7EB, #D1D5DB, #9CA3AF, #6B7280, #4B5563, #374151
 
 **1. Badges**
 
+**Legacy Badge Components**
+
 **Location:** `client/src/components/badges.jsx`
 
 **StatusBadge:**
@@ -4708,6 +4711,45 @@ Priority Colors:
 - MEDIUM: Blue
 - HIGH: Orange
 - URGENT: Red (pulsing animation)
+
+**New Reusable Badge Components (v1.2.0)**
+
+**Location:** `client/src/components/common/Badge.jsx`
+
+These components provide consistent badge styling across the application:
+
+**RoleBadge** - Display user roles with color coding:
+```javascript
+import { RoleBadge } from '../components/common/Badge';
+
+<RoleBadge role="PRODUCT_MANAGER" />
+<RoleBadge role="PM_OPS" />
+<RoleBadge role="ADMIN" />
+```
+
+Role Colors:
+- PRODUCT_MANAGER: Blue
+- PM_OPS: Purple
+- ADMIN: Red
+
+**ActiveStatusBadge** - Display active/inactive status:
+```javascript
+import { ActiveStatusBadge } from '../components/common/Badge';
+
+<ActiveStatusBadge active={true} />   // Green "Active"
+<ActiveStatusBadge active={false} />  // Gray "Inactive"
+```
+
+**GenericBadge** - Custom color-coded badges:
+```javascript
+import { GenericBadge } from '../components/common/Badge';
+
+<GenericBadge text="Custom" color="blue" />
+<GenericBadge text="Warning" color="yellow" />
+<GenericBadge text="Error" color="red" />
+```
+
+Available colors: gray, blue, green, yellow, red, purple, orange
 
 **2. Buttons**
 
@@ -4853,12 +4895,53 @@ Priority Colors:
 
 **6. Loading States**
 
-**Loading Spinner:**
-```javascript
-import Loading from './components/Loading';
+**LoadingSpinner Component (v1.2.0 - Recommended)**
 
-{loading && <Loading />}
+**Location:** `client/src/components/common/LoadingSpinner.jsx`
+
+The new reusable loading spinner with customizable sizes and messages:
+
+```javascript
+import LoadingSpinner from '../components/common/LoadingSpinner';
+
+// Default medium size
+<LoadingSpinner />
+
+// With custom message
+<LoadingSpinner message="Loading ticket data..." />
+
+// Small size
+<LoadingSpinner size="sm" />
+
+// Large size with message
+<LoadingSpinner size="lg" message="Processing..." />
 ```
+
+Available sizes: `sm`, `md` (default), `lg`
+
+**Empty State Component (v1.2.0)**
+
+**Location:** `client/src/components/common/EmptyState.jsx`
+
+Consistent empty data state display:
+
+```javascript
+import EmptyState from '../components/common/EmptyState';
+
+// Basic empty state
+<EmptyState message="No tickets found" />
+
+// With custom icon and action
+<EmptyState
+  icon={DocumentIcon}
+  title="No Tickets"
+  message="Create your first ticket to get started"
+  actionLabel="Create Ticket"
+  onAction={() => navigate('/tickets/new')}
+/>
+```
+
+**Legacy Loading Patterns:**
 
 **Skeleton Loaders:**
 ```javascript
@@ -5057,6 +5140,122 @@ toast.custom((t) => (
   {/* 1 column on mobile, 2 on tablet, 4 on desktop */}
 </div>
 ```
+
+#### **16.5 Reusable Utilities (v1.2.0)**
+
+The following utility modules provide consistent helper functions across the application.
+
+**Backend Utilities**
+
+**errorHandler.js** - Error handling utilities
+
+**Location:** `server/utils/errorHandler.js`
+
+```javascript
+const { asyncHandler, sendErrorResponse, sendSuccessResponse } = require('../utils/errorHandler');
+
+// Wrap async route handlers to catch errors
+router.get('/tickets', asyncHandler(async (req, res) => {
+  const tickets = await ProductTicket.find();
+  sendSuccessResponse(res, tickets, 'Tickets retrieved successfully');
+}));
+
+// Send standardized error responses
+router.get('/ticket/:id', asyncHandler(async (req, res) => {
+  const ticket = await ProductTicket.findById(req.params.id);
+  if (!ticket) {
+    return sendErrorResponse(res, 'Ticket not found', 404);
+  }
+  sendSuccessResponse(res, ticket);
+}));
+```
+
+Available functions:
+- `asyncHandler(fn)` - Wraps async functions to catch errors
+- `sendErrorResponse(res, message, statusCode)` - Standardized error response
+- `sendSuccessResponse(res, data, message)` - Standardized success response
+- `sendValidationError(res, errors)` - Validation error response
+- `handleNotFound(res, resource)` - 404 response helper
+
+**Frontend Utilities**
+
+**dateFormatters.js** - Date formatting utilities
+
+**Location:** `client/src/utils/dateFormatters.js`
+
+```javascript
+import { formatDate, formatDateOnly, formatTimeAgo } from '../utils/dateFormatters';
+
+// Full date and time: "Jan 15, 2025, 3:30 PM"
+const formatted = formatDate(ticket.createdAt);
+
+// Date only: "Jan 15, 2025"
+const dateOnly = formatDateOnly(ticket.createdAt);
+
+// Relative time: "2 hours ago", "3 days ago"
+const relative = formatTimeAgo(ticket.updatedAt);
+```
+
+Available functions:
+- `formatDate(date)` - Full date and time
+- `formatDateOnly(date)` - Date without time
+- `formatDateTime(date, options)` - Customizable formatting
+- `formatTimeAgo(date)` - Relative time (e.g., "2 hours ago")
+- `formatTimeOnly(date)` - Time only (e.g., "3:30 PM")
+- `formatDateISO(date)` - ISO 8601 format
+- `formatDuration(seconds)` - Duration display (e.g., "2h 30m")
+
+**currencyUtils.js** - Currency formatting utilities
+
+**Location:** `client/src/utils/currencyUtils.js`
+
+```javascript
+import { getCurrencySymbol, formatPrice } from '../utils/currencyUtils';
+
+// Get currency symbol
+const symbol = getCurrencySymbol('EUR');  // Returns '€'
+
+// Format price with currency
+const price = formatPrice(1234.56, 'USD');  // Returns '$1,234.56'
+```
+
+Supported currencies: USD, EUR, GBP, JPY, CNY, CHF, INR, AUD, CAD, KRW, SGD, HKD, MXN, BRL
+
+**GenericCRUDManager Component**
+
+**Location:** `client/src/components/admin/GenericCRUDManager.jsx`
+
+Reusable CRUD manager for admin entities with Palantir rebuild support:
+
+```javascript
+import GenericCRUDManager from '../components/admin/GenericCRUDManager';
+
+<GenericCRUDManager
+  title="Plant Codes"
+  entityName="plant code"
+  apiEndpoint="/api/plant-codes"
+  rebuildEndpoint="/api/plant-codes/rebuild"
+  columns={[
+    { key: 'plantCode', label: 'Plant Code', editable: false },
+    { key: 'name', label: 'Plant Name', editable: true },
+    { key: 'location', label: 'Location', editable: true }
+  ]}
+  fields={[
+    { key: 'plantCode', label: 'Plant Code', required: true },
+    { key: 'name', label: 'Plant Name', required: true },
+    { key: 'location', label: 'Location', required: false }
+  ]}
+/>
+```
+
+Features:
+- CRUD operations (Create, Read, Update, Delete)
+- Inline editing with save/cancel
+- Palantir rebuild with progress tracking
+- Active/inactive status toggles
+- Metadata display (last extracted, source)
+- Form validation
+- Error handling and toast notifications
 
 ---
 

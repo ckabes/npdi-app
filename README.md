@@ -134,18 +134,30 @@ npdi-app/
 │   │   ├── pdpChecklistExportService.js
 │   │   └── dataExportService.js
 │   ├── utils/                # Helper utilities
-│   │   └── enumCleaner.js
+│   │   ├── enumCleaner.js   # Enum validation and cleaning
+│   │   ├── errorHandler.js  # Error handling utilities
+│   │   └── encryption.js    # Data encryption utilities
 │   └── index.js              # Server entry point
 ├── client/                   # Frontend React app
 │   ├── public/               # Static assets
 │   └── src/
 │       ├── components/       # Reusable UI components
 │       │   ├── admin/       # Admin-specific components
+│       │   │   └── GenericCRUDManager.jsx  # Reusable CRUD component
+│       │   ├── common/      # Shared UI components
+│       │   │   ├── Badge.jsx           # Role/status badges
+│       │   │   ├── LoadingSpinner.jsx  # Loading states
+│       │   │   └── EmptyState.jsx      # Empty data states
 │       │   ├── forms/       # Form components
 │       │   └── MoleculeViewerRDKit.jsx  # Molecular structure viewer
 │       ├── pages/           # Page components
 │       ├── services/        # API client services
-│       ├── utils/           # Auth context, helpers
+│       ├── utils/           # Utilities and helpers
+│       │   ├── AuthContext.jsx      # Authentication context
+│       │   ├── dateFormatters.js    # Date formatting utilities
+│       │   ├── currencyUtils.js     # Currency formatting
+│       │   ├── pricingCalculations.js  # Pricing logic
+│       │   └── qualitySpecParser.js    # Quality spec parsing
 │       └── styles/          # CSS and styling
 ├── docs/                     # Project documentation
 │   ├── api/                 # API documentation
