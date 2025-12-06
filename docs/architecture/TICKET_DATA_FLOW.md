@@ -28,13 +28,13 @@ This document provides detailed diagrams showing how models, routes, controllers
 │                        │   api.js Client │                          │
 │                        │  (Axios Client) │                          │
 │                        └────────┬────────┘                          │
-└─────────────────────────────────┼──────────────────────────────────┘
+└─────────────────────────────────┼───────────────────────────────────┘
                                   │ HTTP Requests
                                   │
-┌─────────────────────────────────▼──────────────────────────────────┐
+┌─────────────────────────────────▼───────────────────────────────────┐
 │                         BACKEND (Node.js/Express)                   │
 │  ┌──────────────────────────────────────────────────────────────┐  │
-│  │                       ROUTES                                  │  │
+│  │                       ROUTES                                 │  │
 │  │  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐ │  │
 │  │  │ products.js    │  │ templates.js   │  │ formConfig.js  │ │  │
 │  │  │ /api/products  │  │ /api/templates │  │ /api/form-config│ │  │
@@ -42,7 +42,7 @@ This document provides detailed diagrams showing how models, routes, controllers
 │  └──────────┼────────────────────┼────────────────────┼──────────┘  │
 │             │                    │                    │             │
 │  ┌──────────▼────────────────────▼────────────────────▼──────────┐  │
-│  │                       CONTROLLERS                             │  │
+│  │                       CONTROLLERS                            │  │
 │  │  ┌──────────────────────────────────────────────────────────┐ │  │
 │  │  │         productController.js                             │ │  │
 │  │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │ │  │
@@ -52,7 +52,7 @@ This document provides detailed diagrams showing how models, routes, controllers
 │  └────────────┼──────────────────┼──────────────────┼───────────┘  │
 │               │                  │                  │               │
 │  ┌────────────▼──────────────────▼──────────────────▼───────────┐  │
-│  │                        SERVICES                               │  │
+│  │                        SERVICES                              │  │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │  │
 │  │  │  pubchemSvc  │  │ palantirSvc  │  │ aiContentSvc │       │  │
 │  │  │ (External)   │  │ (SAP MARA)   │  │ (Azure AI)   │       │  │
@@ -64,7 +64,7 @@ This document provides detailed diagrams showing how models, routes, controllers
 │  └───────────────────────────────────────────────────────────────┘  │
 │               │                  │                  │               │
 │  ┌────────────▼──────────────────▼──────────────────▼───────────┐  │
-│  │                         MODELS (Mongoose)                     │  │
+│  │                         MODELS (Mongoose)                    │  │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │  │
 │  │  │ProductTicket │  │TicketTemplate│  │FormConfig    │       │  │
 │  │  │   Schema     │  │   Schema     │  │  Schema      │       │  │
@@ -79,10 +79,10 @@ This document provides detailed diagrams showing how models, routes, controllers
                 │                  │                  │
 ┌───────────────▼──────────────────▼──────────────────▼───────────────┐
 │                       MONGODB DATABASE                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐             │
-│  │producttickets│  │tickettemplates│ │formconfigurations          │
-│  │  Collection  │  │  Collection   │  │  Collection  │             │
-│  └──────────────┘  └──────────────┘  └──────────────┘             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐      │
+│  │producttickets│  │tickettemplates│  │formconfigurations    │      │
+│  │  Collection  │  │  Collection   │  │  Collection          │      │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘      │
 │  ┌──────────────┐                                                  │
 │  │    users     │                                                  │
 │  │  Collection  │                                                  │
@@ -783,11 +783,11 @@ const getFieldValue = (fieldKey) => {
 │  Ticket: NPDI-2025-0038                 │
 │  Status: SUBMITTED                      │
 ├─────────────────────────────────────────┤
-│  [Basic Info] [Chemical] [Quality] ... │
+│  [Basic Info] [Chemical] [Quality] ...  │
 ├─────────────────────────────────────────┤
 │  Product Name:    Ethanol               │
-│  SBU:            Life Science           │
-│  CAS Number:     64-17-5                │
+│  SBU:             Life Science          │
+│  CAS Number:      64-17-5               │
 │  Molecular Formula: C2H6O               │
 │  ...                                    │
 └─────────────────────────────────────────┘
