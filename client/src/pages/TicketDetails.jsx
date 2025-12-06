@@ -43,25 +43,9 @@ const TicketDetails = () => {
   const getDefaultFormValues = () => {
     if (!ticket || !editMode) return {};
 
-    return {
+    // Create a deep copy of ticket data to avoid mutating the original
+    const formData = {
       ...ticket,
-      // Ensure pricingData is properly initialized from ticket data
-      pricingData: {
-        standardCosts: {
-          rawMaterialCostPerUnit: ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit ?? 0,
-          packagingCost: ticket.pricingData?.standardCosts?.packagingCost ?? 0,
-          laborOverheadCost: ticket.pricingData?.standardCosts?.laborOverheadCost ?? 0
-        },
-        targetMargin: ticket.pricingData?.targetMargin ?? 50,
-        baseUnit: ticket.pricingData?.baseUnit ?? 'g'
-      },
-      // Ensure baseUnit is properly initialized
-      baseUnit: {
-        value: ticket.baseUnit?.value ?? 100,
-        unit: ticket.baseUnit?.unit ?? 'g'
-      },
-      // Ensure currency is initialized
-      currency: ticket.currency ?? 'USD',
       // Convert intellectualProperty boolean to string for radio buttons
       intellectualProperty: ticket.intellectualProperty ? {
         hasIP: ticket.intellectualProperty.hasIP ? 'true' : 'false',
@@ -71,16 +55,36 @@ const TicketDetails = () => {
         hasIP: 'false',
         patentNumber: '',
         licenseNumber: ''
-      },
-      skuVariants: ticket.skuVariants && ticket.skuVariants.length > 0
-        ? ticket.skuVariants
-        : [{
-            type: 'PREPACK',
-            sku: '',
-            packageSize: { value: 100, unit: 'g' },
-            pricing: { listPrice: 0, currency: 'USD' }
-          }]
+      }
     };
+
+    // Only set defaults for missing values - don't overwrite existing data
+    if (!formData.pricingData) {
+      formData.pricingData = {
+        standardCosts: { rawMaterialCostPerUnit: 0.50 },
+        targetMargin: 50,
+        baseUnit: 'g'
+      };
+    }
+
+    if (!formData.baseUnit) {
+      formData.baseUnit = { value: 100, unit: 'g' };
+    }
+
+    if (!formData.currency) {
+      formData.currency = 'USD';
+    }
+
+    if (!formData.skuVariants || formData.skuVariants.length === 0) {
+      formData.skuVariants = [{
+        type: 'PREPACK',
+        sku: '',
+        packageSize: { value: 100, unit: 'g' },
+        pricing: { listPrice: 0, currency: 'USD' }
+      }];
+    }
+
+    return formData;
   };
   
   // Don't provide defaultValues here - we'll populate via resetEdit() when ticket data loads

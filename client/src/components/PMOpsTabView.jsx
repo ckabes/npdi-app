@@ -255,7 +255,10 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
     }
 
     // Parse numeric fields
-    const numericFields = ['packageSize.value', 'netWeight.value', 'grossWeight.value', 'volume.value', 'pricing.listPrice'];
+    const numericFields = [
+      'packageSize.value', 'netWeight.value', 'grossWeight.value', 'volume.value', 'pricing.listPrice',
+      'forecastedSalesVolume.year1', 'forecastedSalesVolume.year2', 'forecastedSalesVolume.year3'
+    ];
     const parsedValue = numericFields.includes(field) && value !== ''
       ? parseFloat(value) || ''
       : value;
@@ -967,13 +970,13 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                     value={baseUnit.value}
                     onChange={(e) => handleBaseUnitChange('value', e.target.value)}
                     placeholder="Value"
-                    className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                    className="w-32 bg-white px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
                     disabled={savingBaseUnit}
                   />
                   <select
                     value={baseUnit.unit}
                     onChange={(e) => handleBaseUnitChange('unit', e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                    className="bg-white px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
                     disabled={savingBaseUnit}
                   >
                     <option value="mg">mg</option>
@@ -1285,23 +1288,32 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
           </table>
         </div>
 
-        {/* Prepack Forecast Table - Only show if there are prepacks with forecast data */}
+        {/* Prepack Forecast Table - Show all prepacks when editing, or only those with forecast data otherwise */}
         {(() => {
-          const prepacksWithForecast = skusToDisplay.filter(variant =>
-            variant.type === 'PREPACK' &&
-            variant.forecastedSalesVolume &&
-            (variant.forecastedSalesVolume.year1 ||
-             variant.forecastedSalesVolume.year2 ||
-             variant.forecastedSalesVolume.year3)
-          );
+          // Get prepack SKUs with their original indices
+          const prepacksWithIndices = skusToDisplay
+            .map((variant, originalIdx) => ({ variant, originalIdx }))
+            .filter(({ variant }) => variant.type === 'PREPACK');
 
-          if (prepacksWithForecast.length === 0) return null;
+          // Filter to only show those with data if not editing
+          const prepacksToShow = editingSKUs
+            ? prepacksWithIndices
+            : prepacksWithIndices.filter(({ variant }) =>
+                variant.forecastedSalesVolume &&
+                (variant.forecastedSalesVolume.year1 ||
+                 variant.forecastedSalesVolume.year2 ||
+                 variant.forecastedSalesVolume.year3)
+              );
+
+          if (prepacksToShow.length === 0) return null;
 
           return (
             <div className="mt-8">
               <div className="mb-3">
                 <h4 className="text-sm font-semibold text-gray-900">Prepack Sales Forecast</h4>
-                <p className="text-xs text-gray-500 mt-1">Forecasted sales volumes for PREPACK SKUs</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {editingSKUs ? 'Edit forecasted sales volumes for PREPACK SKUs' : 'Forecasted sales volumes for PREPACK SKUs'}
+                </p>
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
@@ -1316,8 +1328,8 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {prepacksWithForecast.map((variant, idx) => (
-                      <tr key={idx} className="hover:bg-purple-50/30">
+                    {prepacksToShow.map(({ variant, originalIdx }) => (
+                      <tr key={originalIdx} className="hover:bg-purple-50/30">
                         {/* Type */}
                         <td className="px-4 py-3 text-sm">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -1339,23 +1351,53 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
 
                         {/* Forecast Year 1 */}
                         <td className="px-4 py-3 text-sm">
-                          <span className="font-semibold text-purple-700">
-                            {variant.forecastedSalesVolume?.year1 || '—'}
-                          </span>
+                          {editingSKUs ? (
+                            <input
+                              type="number"
+                              value={variant.forecastedSalesVolume?.year1 || ''}
+                              onChange={(e) => handleUpdateSKUField(originalIdx, 'forecastedSalesVolume.year1', e.target.value)}
+                              className="form-input text-sm w-24 bg-white"
+                              placeholder="0"
+                            />
+                          ) : (
+                            <span className="font-semibold text-purple-700">
+                              {variant.forecastedSalesVolume?.year1 || '—'}
+                            </span>
+                          )}
                         </td>
 
                         {/* Forecast Year 2 */}
                         <td className="px-4 py-3 text-sm">
-                          <span className="font-semibold text-purple-700">
-                            {variant.forecastedSalesVolume?.year2 || '—'}
-                          </span>
+                          {editingSKUs ? (
+                            <input
+                              type="number"
+                              value={variant.forecastedSalesVolume?.year2 || ''}
+                              onChange={(e) => handleUpdateSKUField(originalIdx, 'forecastedSalesVolume.year2', e.target.value)}
+                              className="form-input text-sm w-24 bg-white"
+                              placeholder="0"
+                            />
+                          ) : (
+                            <span className="font-semibold text-purple-700">
+                              {variant.forecastedSalesVolume?.year2 || '—'}
+                            </span>
+                          )}
                         </td>
 
                         {/* Forecast Year 3 */}
                         <td className="px-4 py-3 text-sm">
-                          <span className="font-semibold text-purple-700">
-                            {variant.forecastedSalesVolume?.year3 || '—'}
-                          </span>
+                          {editingSKUs ? (
+                            <input
+                              type="number"
+                              value={variant.forecastedSalesVolume?.year3 || ''}
+                              onChange={(e) => handleUpdateSKUField(originalIdx, 'forecastedSalesVolume.year3', e.target.value)}
+                              className="form-input text-sm w-24 bg-white"
+                              placeholder="0"
+                            />
+                          ) : (
+                            <span className="font-semibold text-purple-700">
+                              {variant.forecastedSalesVolume?.year3 || '—'}
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}
