@@ -1,106 +1,192 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-  html, body {
-    @apply h-full;
+@theme {
+  --color-millipore-blue: #0066CC;
+  --color-millipore-blue-dark: #004499;
+  --color-millipore-blue-light: #3388DD;
+  --color-millipore-orange: #FF6600;
+  --color-millipore-orange-dark: #CC5200;
+  --color-millipore-gray: #666666;
+  --color-millipore-gray-light: #F5F5F5;
+
+  --font-family-sans: Inter, system-ui, sans-serif;
+}
+
+/* Base styles */
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Component styles */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.btn:focus {
+  outline: 2px solid;
+  outline-offset: 2px;
+  --tw-ring-offset-width: 2px;
+}
+
+.btn-primary {
+  background-color: #003087;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #002366;
+}
+
+.btn-primary:focus {
+  --tw-ring-color: #003087;
+}
+
+.btn-secondary {
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.btn-secondary:hover {
+  background-color: #d1d5db;
+}
+
+.btn-secondary:focus {
+  --tw-ring-color: #9ca3af;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+.btn-danger:focus {
+  --tw-ring-color: #ef4444;
+}
+
+.form-input {
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border-color: #d1d5db;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.form-input:focus {
+  border-color: #003087;
+  --tw-ring-color: #003087;
+}
+
+.form-select {
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border-color: #d1d5db;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.form-select:focus {
+  border-color: #003087;
+  --tw-ring-color: #003087;
+}
+
+.card {
+  background-color: white;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.card-body {
+  padding: 1rem 1.5rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 500;
+}
+
+.badge-draft {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.badge-in-process {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge-npdi-initiated {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.badge-completed {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-canceled {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.priority-low {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.priority-medium {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.priority-high {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.priority-urgent {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+@keyframes glow-green {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.3), 0 0 10px rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.5);
   }
-  
-  body {
-    @apply font-sans antialiased;
+  50% {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.5), 0 0 25px rgba(34, 197, 94, 0.3);
+    border-color: rgba(34, 197, 94, 0.8);
   }
 }
 
-@layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-
-  .btn-primary {
-    @apply bg-millipore-blue hover:bg-millipore-blue-dark text-white focus:ring-millipore-blue;
-  }
-
-  .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 focus:ring-gray-400;
-  }
-
-  .btn-danger {
-    @apply bg-red-600 hover:bg-red-700 text-white focus:ring-red-500;
-  }
-
-  .form-input {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-millipore-blue focus:ring-millipore-blue;
-  }
-
-  .form-select {
-    @apply block w-full rounded-md border-gray-300 shadow-sm focus:border-millipore-blue focus:ring-millipore-blue;
-  }
-
-  .card {
-    @apply bg-white shadow rounded-lg;
-  }
-
-  .card-header {
-    @apply px-6 py-4 border-b border-gray-200;
-  }
-
-  .card-body {
-    @apply px-6 py-4;
-  }
-
-  .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-  }
-
-  .badge-draft {
-    @apply bg-gray-100 text-gray-800;
-  }
-
-  .badge-in-process {
-    @apply bg-yellow-100 text-yellow-800;
-  }
-
-  .badge-npdi-initiated {
-    @apply bg-orange-100 text-orange-800;
-  }
-
-  .badge-completed {
-    @apply bg-green-100 text-green-800;
-  }
-
-  .badge-canceled {
-    @apply bg-red-100 text-red-800;
-  }
-
-  .priority-low {
-    @apply bg-green-100 text-green-800;
-  }
-
-  .priority-medium {
-    @apply bg-yellow-100 text-yellow-800;
-  }
-
-  .priority-high {
-    @apply bg-orange-100 text-orange-800;
-  }
-
-  .priority-urgent {
-    @apply bg-red-100 text-red-800;
-  }
-
-  @keyframes glow-green {
-    0%, 100% {
-      box-shadow: 0 0 5px rgba(34, 197, 94, 0.3), 0 0 10px rgba(34, 197, 94, 0.2);
-      border-color: rgba(34, 197, 94, 0.5);
-    }
-    50% {
-      box-shadow: 0 0 15px rgba(34, 197, 94, 0.5), 0 0 25px rgba(34, 197, 94, 0.3);
-      border-color: rgba(34, 197, 94, 0.8);
-    }
-  }
-
-  .animate-glow-green {
-    animation: glow-green 1.5s ease-in-out 2;
-  }
+.animate-glow-green {
+  animation: glow-green 1.5s ease-in-out 2;
 }
