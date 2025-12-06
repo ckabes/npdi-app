@@ -21,19 +21,24 @@ const connectDB = async () => {
  * - Major version (X.x.x): Breaking changes, field removals, structural changes
  *
  * The version field should use semantic versioning (e.g., 1.0.0, 1.1.0, 2.0.0).
- * The name should be descriptive and NOT include the version number.
+ * The name should include template name and version (e.g., PM-Chem-1.8.0).
  *
  * After updating:
- * 1. Update the version field below
+ * 1. Update BOTH the version field AND the name field below (name should be PM-Chem-X.X.X)
  * 2. Run: node server/scripts/seedFormConfig.js
  * 3. Update CHANGELOG or documentation with changes
+ *
+ * Created by: Connor Kabes
+ * Updated by: connor.kabes@milliporesigma.com
  */
 
 const defaultFormConfig = {
-  name: 'Chemical Product Form',
+  name: 'PM-Chem-1.8.0',
   description: 'Form configuration for NPDI chemical product tickets (Product Manager - Chemistry)',
-  version: '1.0.0',
+  version: '1.8.0',
   isActive: true,
+  createdBy: 'Connor Kabes',
+  updatedBy: 'connor.kabes@milliporesigma.com',
   sections: [
     {
       sectionKey: 'productionType',
