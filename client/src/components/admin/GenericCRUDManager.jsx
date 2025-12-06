@@ -336,12 +336,12 @@ const GenericCRUDManager = ({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   {column.label}
                 </th>
               ))}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -350,7 +350,7 @@ const GenericCRUDManager = ({
             {items.map((item) => (
               <tr key={item._id} className="hover:bg-gray-50">
                 {columns.map((column) => (
-                  <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                  <td key={column.key} className="px-3 py-3 whitespace-nowrap">
                     {editingId === item._id && column.editable !== false ? (
                       column.renderEdit ? (
                         column.renderEdit(editForm, setEditForm)
@@ -367,7 +367,7 @@ const GenericCRUDManager = ({
                     )}
                   </td>
                 ))}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
                   {editingId === item._id ? (
                     <div className="flex items-center space-x-2">
                       <button

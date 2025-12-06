@@ -1056,35 +1056,33 @@ const Dashboard = () => {
               </Link>
             </div>
           </div>
-          <div className="card-body p-0">
+          <div className="card-body !p-0">
             {draftTickets.length > 0 ? (
               <div className="divide-y divide-gray-200">
                 {draftTickets.map((ticket) => (
                   <Link
                     key={ticket._id}
                     to={`/tickets/${ticket._id}`}
-                    className="block px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-gray-300"
+                    className="flex items-start space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <PencilIcon className="h-5 w-5 text-gray-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {ticket.ticketNumber}
-                          </p>
-                          <StatusBadge status={ticket.status} />
-                          {ticket.priority && <PriorityBadge priority={ticket.priority} />}
-                        </div>
-                        <p className="text-sm text-gray-700 mb-1">
-                          {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled Draft'}
+                    <div className="flex-shrink-0 mt-0.5">
+                      <PencilIcon className="h-5 w-5 text-gray-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          {ticket.ticketNumber}
                         </p>
-                        <div className="flex items-center space-x-3 text-xs text-gray-500">
-                          <span>Created {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                          <span>•</span>
-                          <span>Last updated {formatTimeAgo(ticket.updatedAt)}</span>
-                        </div>
+                        <StatusBadge status={ticket.status} />
+                        {ticket.priority && <PriorityBadge priority={ticket.priority} />}
+                      </div>
+                      <p className="text-sm text-gray-700 mb-1">
+                        {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled Draft'}
+                      </p>
+                      <div className="flex items-center space-x-3 text-xs text-gray-500">
+                        <span>Created {new Date(ticket.createdAt).toLocaleDateString()}</span>
+                        <span>•</span>
+                        <span>Last updated {formatTimeAgo(ticket.updatedAt)}</span>
                       </div>
                     </div>
                   </Link>
@@ -1119,59 +1117,57 @@ const Dashboard = () => {
                 </Link>
               </div>
             </div>
-            <div className="card-body p-0">
+            <div className="card-body !p-0">
               {allRecentTickets.length > 0 ? (
                 <div className="divide-y divide-gray-200">
                   {allRecentTickets.map((ticket) => (
                     <Link
                       key={ticket._id}
                       to={`/tickets/${ticket._id}`}
-                      className="block px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-green-200"
+                      className="flex items-start space-x-3 px-4 py-3 hover:bg-green-50 transition-colors"
                     >
-                      <div className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 mt-0.5">
-                          <DocumentIcon className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <p className="text-sm font-medium text-gray-900">
-                              {ticket.ticketNumber}
-                            </p>
-                            <StatusBadge status={ticket.status} />
-                            {ticket.priority && <PriorityBadge priority={ticket.priority} />}
-                          </div>
-                          <p className="text-sm text-gray-700 mb-1">
-                            {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
+                      <div className="flex-shrink-0 mt-0.5">
+                        <DocumentIcon className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <p className="text-sm font-medium text-gray-900">
+                            {ticket.ticketNumber}
                           </p>
-                          <div className="flex items-center space-x-3 text-xs text-gray-500">
-                            {(ticket.createdByUser || ticket.createdBy) && (
-                              <>
-                                <span className="font-medium truncate max-w-[150px]" title={ticket.createdByUser
-                                    ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
-                                    : ticket.createdBy}>
-                                  {ticket.createdByUser
-                                    ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
-                                    : ticket.createdBy}
-                                </span>
-                                <span>•</span>
-                              </>
-                            )}
-                            <span>SBU {ticket.sbu}</span>
-                            <span>•</span>
-                            <span
-                              title={ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                              }) : 'Unknown time'}
-                              className="cursor-help"
-                            >
-                              Updated {formatTimeAgo(ticket.updatedAt)}
-                            </span>
-                          </div>
+                          <StatusBadge status={ticket.status} />
+                          {ticket.priority && <PriorityBadge priority={ticket.priority} />}
+                        </div>
+                        <p className="text-sm text-gray-700 mb-1">
+                          {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
+                        </p>
+                        <div className="flex items-center space-x-3 text-xs text-gray-500">
+                          {(ticket.createdByUser || ticket.createdBy) && (
+                            <>
+                              <span className="font-medium truncate max-w-[150px]" title={ticket.createdByUser
+                                  ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
+                                  : ticket.createdBy}>
+                                {ticket.createdByUser
+                                  ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
+                                  : ticket.createdBy}
+                              </span>
+                              <span>•</span>
+                            </>
+                          )}
+                          <span>SBU {ticket.sbu}</span>
+                          <span>•</span>
+                          <span
+                            title={ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit'
+                            }) : 'Unknown time'}
+                            className="cursor-help"
+                          >
+                            Updated {formatTimeAgo(ticket.updatedAt)}
+                          </span>
                         </div>
                       </div>
                     </Link>

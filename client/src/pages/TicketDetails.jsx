@@ -62,6 +62,16 @@ const TicketDetails = () => {
       },
       // Ensure currency is initialized
       currency: ticket.currency ?? 'USD',
+      // Convert intellectualProperty boolean to string for radio buttons
+      intellectualProperty: ticket.intellectualProperty ? {
+        hasIP: ticket.intellectualProperty.hasIP ? 'true' : 'false',
+        patentNumber: ticket.intellectualProperty.patentNumber || '',
+        licenseNumber: ticket.intellectualProperty.licenseNumber || ''
+      } : {
+        hasIP: 'false',
+        patentNumber: '',
+        licenseNumber: ''
+      },
       skuVariants: ticket.skuVariants && ticket.skuVariants.length > 0
         ? ticket.skuVariants
         : [{
@@ -122,6 +132,7 @@ const TicketDetails = () => {
 
       // Reset the entire form with ticket data
       const formData = getDefaultFormValues();
+      console.log('[TicketDetails] Initializing edit form ONE TIME with data:', formData);
       resetEdit(formData);
     }
 
@@ -129,7 +140,7 @@ const TicketDetails = () => {
     if (!editMode && formInitializedRef.current) {
       formInitializedRef.current = false;
     }
-  }, [ticket, editMode, resetEdit]);
+  }, [ticket, editMode]); // Removed resetEdit from dependencies to prevent re-initialization
 
   const fetchTicket = async () => {
     try {

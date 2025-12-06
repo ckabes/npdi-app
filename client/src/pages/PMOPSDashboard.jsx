@@ -288,35 +288,35 @@ const PMOPSDashboard = () => {
               <h3 className="text-lg font-medium text-red-900">Urgent Tickets Waiting</h3>
             </div>
           </div>
-          <div className="card-body p-0">
+          <div className="card-body !p-0">
             <table className="min-w-full divide-y divide-red-200">
               <thead className="bg-red-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">Ticket</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">SBU</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">Waiting Time</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-red-700 uppercase">Action</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-red-700 uppercase">Ticket</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-red-700 uppercase">Status</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-red-700 uppercase">SBU</th>
+                  <th className="px-3 py-3 text-left text-xs font-medium text-red-700 uppercase">Waiting Time</th>
+                  <th className="px-3 py-3 text-right text-xs font-medium text-red-700 uppercase">Action</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-red-200">
                 {agingAnalysis.urgentWaiting.map((ticket) => (
                   <tr key={ticket.ticketId || ticket._id} className="hover:bg-red-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                       {ticket.ticketNumber || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <StatusBadge status={ticket.status} />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
                       {ticket.sbu}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-3 whitespace-nowrap">
                       <span className="text-sm font-bold text-red-600">
                         {ticket.waitingDays} days
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <td className="px-3 py-3 whitespace-nowrap text-right text-sm">
                       <Link
                         to={`/tickets/${ticket.ticketId}`}
                         className="text-red-600 hover:text-red-800 font-medium"
@@ -349,19 +349,19 @@ const PMOPSDashboard = () => {
           </div>
           <p className="text-sm text-gray-500 mt-1">5 most recently submitted tickets</p>
         </div>
-        <div className="card-body p-0">
+        <div className="card-body !p-0">
           {recentlySubmitted && recentlySubmitted.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created by</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created by</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
+                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -372,26 +372,26 @@ const PMOPSDashboard = () => {
 
                     return (
                       <tr key={ticket._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                           {ticket.ticketNumber || 'N/A'}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="px-3 py-3 text-sm text-gray-900">
                           <div className="max-w-[200px] truncate" title={ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}>
                             {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <PriorityBadge priority={ticket.priority} />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
                           {ticket.sbu}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-3 py-3 text-sm text-gray-500">
                           <div className="max-w-[150px] truncate" title={submitterName}>
                             {submitterName}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 py-3 whitespace-nowrap">
                           <div>
                             <span className="text-sm text-gray-900">
                               {formatTimeAgo(ticket.createdAt)}
@@ -401,7 +401,7 @@ const PMOPSDashboard = () => {
                             </p>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <td className="px-3 py-3 whitespace-nowrap text-right text-sm">
                           <Link
                             to={`/tickets/${ticket._id}`}
                             className="text-millipore-blue hover:text-millipore-blue-dark font-medium"
@@ -504,36 +504,36 @@ const PMOPSDashboard = () => {
           <h3 className="text-lg font-medium text-gray-900">Aging Tickets (Longest Waiting)</h3>
           <p className="text-sm text-gray-500 mt-1">Tickets waiting for action, sorted by age</p>
         </div>
-        <div className="card-body p-0">
+        <div className="card-body !p-0">
           {agingAnalysis.longestWaiting && agingAnalysis.longestWaiting.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waiting Time</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waiting Time</th>
+                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {agingAnalysis.longestWaiting.map((ticket) => (
                     <tr key={ticket.ticketId || ticket._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                         {ticket.ticketNumber || 'N/A'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap">
                         <StatusBadge status={ticket.status} />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap">
                         <PriorityBadge priority={ticket.priority} />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
                         {ticket.sbu}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap">
                         <div>
                           <span className={`text-sm font-bold ${
                             ticket.waitingDays > 7 ? 'text-red-600' :
@@ -544,7 +544,7 @@ const PMOPSDashboard = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <td className="px-3 py-3 whitespace-nowrap text-right text-sm">
                         <Link
                           to={`/tickets/${ticket.ticketId}`}
                           className="text-millipore-blue hover:text-millipore-blue-dark font-medium"

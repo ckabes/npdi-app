@@ -1284,6 +1284,87 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
             </tbody>
           </table>
         </div>
+
+        {/* Prepack Forecast Table - Only show if there are prepacks with forecast data */}
+        {(() => {
+          const prepacksWithForecast = skusToDisplay.filter(variant =>
+            variant.type === 'PREPACK' &&
+            variant.forecastedSalesVolume &&
+            (variant.forecastedSalesVolume.year1 ||
+             variant.forecastedSalesVolume.year2 ||
+             variant.forecastedSalesVolume.year3)
+          );
+
+          if (prepacksWithForecast.length === 0) return null;
+
+          return (
+            <div className="mt-8">
+              <div className="mb-3">
+                <h4 className="text-sm font-semibold text-gray-900">Prepack Sales Forecast</h4>
+                <p className="text-xs text-gray-500 mt-1">Forecasted sales volumes for PREPACK SKUs</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                  <thead className="bg-gradient-to-r from-purple-50 to-blue-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Part Number</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Package Size</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Forecast Year 1</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Forecast Year 2</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Forecast Year 3</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {prepacksWithForecast.map((variant, idx) => (
+                      <tr key={idx} className="hover:bg-purple-50/30">
+                        {/* Type */}
+                        <td className="px-4 py-3 text-sm">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            {variant.type}
+                          </span>
+                        </td>
+
+                        {/* Part Number */}
+                        <td className="px-4 py-3 text-sm font-mono text-gray-900">
+                          {basePartNumber ? `${basePartNumber}-${getPartNumberSuffix(variant)}` : '—'}
+                        </td>
+
+                        {/* Package Size */}
+                        <td className="px-4 py-3 text-sm font-medium">
+                          {variant.packageSize?.value && variant.packageSize?.unit
+                            ? `${variant.packageSize.value} ${variant.packageSize.unit}`
+                            : '—'}
+                        </td>
+
+                        {/* Forecast Year 1 */}
+                        <td className="px-4 py-3 text-sm">
+                          <span className="font-semibold text-purple-700">
+                            {variant.forecastedSalesVolume?.year1 || '—'}
+                          </span>
+                        </td>
+
+                        {/* Forecast Year 2 */}
+                        <td className="px-4 py-3 text-sm">
+                          <span className="font-semibold text-purple-700">
+                            {variant.forecastedSalesVolume?.year2 || '—'}
+                          </span>
+                        </td>
+
+                        {/* Forecast Year 3 */}
+                        <td className="px-4 py-3 text-sm">
+                          <span className="font-semibold text-purple-700">
+                            {variant.forecastedSalesVolume?.year3 || '—'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   };
