@@ -59,6 +59,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 2. **Managing API Access**: See [API Key Setup](api/API_KEY_SETUP.md)
 3. **Teams Notifications**: Configure using [Teams Integration](integrations/TEAMS_INTEGRATION.md)
 4. **Palantir Integration for SAP Data**: Setup guide in [Palantir SQL Query API Integration](Palantir-SQL-Query-API-Integration-Guide.md)
+5. **Admin Dashboard Analysis**: Review [Admin Dashboard & System Settings Analysis](admin/ADMIN_DASHBOARD_ANALYSIS.md) for enhancement opportunities
 
 ### For IT/Infrastructure
 1. **System Maintenance**: [Maintenance Guide](MAINTENANCE_GUIDE.md) - Complete operations and troubleshooting guide
