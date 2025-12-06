@@ -138,7 +138,8 @@ const createTicket = async (req, res) => {
     // Add creation entry to status history with user info
     ticket.statusHistory = [{
       status: ticket.status,
-      changedBy: null, // Object ID would go here in real system
+      changedBy: currentUser.email, // Email (legacy)
+      changedByEmployeeId: currentUser.employeeId, // Employee ID
       reason: `Ticket created with status: ${ticket.status} by ${currentUser.firstName} ${currentUser.lastName}`,
       action: 'TICKET_CREATED',
       changedAt: new Date(),
@@ -232,7 +233,8 @@ const saveDraft = async (req, res) => {
     // Add creation entry to status history for draft
     ticket.statusHistory = [{
       status: 'DRAFT',
-      changedBy: null, // Object ID would go here in real system
+      changedBy: currentUser.email, // Email (legacy)
+      changedByEmployeeId: currentUser.employeeId, // Employee ID
       reason: `Draft ticket created by ${currentUser.firstName} ${currentUser.lastName}`,
       action: 'TICKET_CREATED',
       changedAt: new Date(),
@@ -674,7 +676,8 @@ const updateTicketStatus = async (req, res) => {
     // Validate submission requirements if changing status to SUBMITTED
     if (status === 'SUBMITTED' && oldStatus !== 'SUBMITTED') {
       const currentUser = getCurrentUser(req);
-      const validation = await validateSubmissionRequirements(ticket.toObject(), currentUser.email);
+      const userIdentifier = currentUser.employeeId || currentUser.email;
+      const validation = await validateSubmissionRequirements(ticket.toObject(), userIdentifier, !!currentUser.employeeId);
 
       if (!validation.isValid) {
         return res.status(400).json({
@@ -687,14 +690,15 @@ const updateTicketStatus = async (req, res) => {
     }
 
     ticket.status = status;
-    
+
     // Enhanced status change tracking
     const statusChangeReason = reason || `Status manually changed from ${oldStatus} to ${status}`;
-    
+
     const currentUser = getCurrentUser(req);
     ticket.statusHistory.push({
       status,
-      changedBy: null, // Object ID would go here in real system
+      changedBy: currentUser.email, // Email (legacy)
+      changedByEmployeeId: currentUser.employeeId, // Employee ID
       reason: `${statusChangeReason} by ${currentUser.firstName} ${currentUser.lastName}`,
       action: 'STATUS_CHANGE',
       details: {
@@ -757,7 +761,8 @@ const addComment = async (req, res) => {
     const currentUser = getCurrentUser(req);
 
     ticket.comments.push({
-      user: null,
+      user: currentUser.email, // Email (legacy)
+      userEmployeeId: currentUser.employeeId, // Employee ID
       content: content.trim(),
       userInfo: currentUser
     });
@@ -765,14 +770,14 @@ const addComment = async (req, res) => {
     // Track comment addition in status history
     ticket.statusHistory.push({
       status: ticket.status,
-      changedBy: null, // Object ID would go here in real system
+      changedBy: currentUser.email, // Email (legacy)
+      changedByEmployeeId: currentUser.employeeId, // Employee ID
       reason: `Comment added by ${currentUser.firstName} ${currentUser.lastName}: "${content.trim().substring(0, 50)}${content.trim().length > 50 ? '...' : ''}"`,
       action: 'COMMENT_ADDED',
       userInfo: currentUser
     });
 
     await ticket.save();
-    // Note: comments.user is a String field (email address), not ObjectId reference
 
     const newComment = ticket.comments[ticket.comments.length - 1];
 
