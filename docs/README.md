@@ -17,6 +17,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 
 ### Architecture
 - [Architecture Overview](architecture/ARCHITECTURE.md) - System design and components
+- [Ticket Data Flow](architecture/TICKET_DATA_FLOW.md) - Detailed diagrams of models, routes, and controllers interaction
 
 ### Features
 - [PMOps SKU Workflow](features/PMOPS_SKU_WORKFLOW.md) - Part number assignment and SKU management guide
