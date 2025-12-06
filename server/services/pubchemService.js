@@ -13,7 +13,7 @@ class PubChemService {
   async getCompoundByCAS(casNumber) {
     try {
       await this.delay(this.requestDelay);
-      
+
       // First, get the compound CID by CAS number
       const cidResponse = await axios.get(
         `${this.baseURL}/compound/name/${encodeURIComponent(casNumber)}/cids/JSON`,
@@ -27,6 +27,17 @@ class PubChemService {
       const cid = cidResponse.data.IdentifierList.CID[0];
       return await this.getCompoundData(cid);
     } catch (error) {
+      // Check if this is a 404 "not found" error from PubChem
+      if (error.response?.status === 404 || error.response?.data?.Fault?.Code === 'PUGREST.NotFound') {
+        console.error(`PubChem: CAS number ${casNumber} not found`);
+        throw new Error(
+          `CAS number "${casNumber}" not found in PubChem database. ` +
+          `Please verify the CAS number is correct. Common issues: ` +
+          `incorrect format (should be XX-XX-X or XXX-XX-X), typos, or compound not in PubChem.`
+        );
+      }
+
+      // Other errors (timeout, network, etc.)
       console.error(`PubChem API error for CAS ${casNumber}:`, error.message);
       throw new Error(`Failed to fetch data for CAS ${casNumber}: ${error.message}`);
     }
