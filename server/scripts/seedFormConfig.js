@@ -33,9 +33,9 @@ const connectDB = async () => {
  */
 
 const defaultFormConfig = {
-  name: 'PM-Chem-1.8.0',
+  name: 'PM-Chem-1.9.0',
   description: 'Form configuration for NPDI chemical product tickets (Product Manager - Chemistry)',
-  version: '1.8.0',
+  version: '1.9.0',
   isActive: true,
   createdBy: 'Connor Kabes',
   updatedBy: 'connor.kabes@milliporesigma.com',
