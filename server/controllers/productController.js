@@ -1030,7 +1030,7 @@ const getDashboardStats = async (req, res) => {
           agingTickets: [
             {
               $match: {
-                status: { $nin: ['COMPLETED', 'CANCELED'] },
+                status: { $nin: ['COMPLETED', 'CANCELED', 'DRAFT'] },
                 statusHistory: { $exists: true, $ne: [] }
               }
             },

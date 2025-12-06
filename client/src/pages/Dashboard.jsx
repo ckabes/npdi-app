@@ -984,47 +984,45 @@ const Dashboard = () => {
               </Link>
             </div>
           </div>
-          <div className="card-body p-0">
+          <div className="card-body !p-0">
             {myTickets.length > 0 ? (
               <div className="divide-y divide-gray-200">
                 {myTickets.map((ticket) => (
                   <Link
                     key={ticket._id}
                     to={`/tickets/${ticket._id}`}
-                    className="block px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-blue-200"
+                    className="flex items-start space-x-3 px-4 py-3 hover:bg-blue-50 transition-colors"
                   >
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 mt-0.5">
-                        <ClockIcon className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <p className="text-sm font-medium text-gray-900">
-                            {ticket.ticketNumber}
-                          </p>
-                          <StatusBadge status={ticket.status} />
-                          {ticket.priority && <PriorityBadge priority={ticket.priority} />}
-                        </div>
-                        <p className="text-sm text-gray-700 mb-1">
-                          {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
+                    <div className="flex-shrink-0 mt-0.5">
+                      <ClockIcon className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <p className="text-sm font-medium text-gray-900">
+                          {ticket.ticketNumber}
                         </p>
-                        <div className="flex items-center space-x-3 text-xs text-gray-500">
-                          <span>SBU {ticket.sbu}</span>
-                          <span>•</span>
-                          <span
-                            title={ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit'
-                            }) : 'Unknown time'}
-                            className="cursor-help"
-                          >
-                            Updated {formatTimeAgo(ticket.updatedAt)}
-                          </span>
-                        </div>
+                        <StatusBadge status={ticket.status} />
+                        {ticket.priority && <PriorityBadge priority={ticket.priority} />}
+                      </div>
+                      <p className="text-sm text-gray-700 mb-1">
+                        {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
+                      </p>
+                      <div className="flex items-center space-x-3 text-xs text-gray-500">
+                        <span>SBU {ticket.sbu}</span>
+                        <span>•</span>
+                        <span
+                          title={ticket.updatedAt ? new Date(ticket.updatedAt).toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          }) : 'Unknown time'}
+                          className="cursor-help"
+                        >
+                          Updated {formatTimeAgo(ticket.updatedAt)}
+                        </span>
                       </div>
                     </div>
                   </Link>
