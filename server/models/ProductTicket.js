@@ -517,7 +517,7 @@ const productTicketSchema = new mongoose.Schema({
     },
     initiatedAt: Date
     // When NPDI is initiated, the main ticketNumber field is updated to match this trackingNumber
-    // Example: ticketNumber changes from "NPDI-2025-0055" to "NPDI-2025-0054"
+    // Example: ticketNumber changes from "NPDI-2025-0055" to "10000030016545"
     // The original ticket number is preserved in statusHistory for audit trail
   },
   standardCost: {
