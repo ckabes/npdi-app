@@ -1,6 +1,18 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
+  employeeId: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true,
+    validate: {
+      validator: function(v) {
+        return /^M\d+$/.test(v);
+      },
+      message: 'Employee ID must start with M followed by numbers (e.g., M361549)'
+    }
+  },
   email: {
     type: String,
     required: true,
@@ -55,9 +67,8 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 module.exports = mongoose.model('User', userSchema);

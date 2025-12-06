@@ -28,12 +28,20 @@ const ticketTemplateSchema = new mongoose.Schema({
     default: []
   },
   createdBy: {
-    type: String,  // Email address from profile
+    type: String,  // Email address from profile (legacy, prefer createdByEmployeeId)
     default: 'system'
   },
+  createdByEmployeeId: {
+    type: String,  // Employee ID (e.g., M361549)
+    default: null
+  },
   updatedBy: {
-    type: String,  // Email address from profile
+    type: String,  // Email address from profile (legacy, prefer updatedByEmployeeId)
     default: 'system'
+  },
+  updatedByEmployeeId: {
+    type: String,  // Employee ID (e.g., M361549)
+    default: null
   },
   createdAt: {
     type: Date,
@@ -45,20 +53,18 @@ const ticketTemplateSchema = new mongoose.Schema({
   }
 });
 
-ticketTemplateSchema.pre('save', function(next) {
+ticketTemplateSchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 // Ensure only one default template
-ticketTemplateSchema.pre('save', async function(next) {
+ticketTemplateSchema.pre('save', async function() {
   if (this.isDefault && this.isModified('isDefault')) {
     await mongoose.model('TicketTemplate').updateMany(
       { _id: { $ne: this._id } },
       { isDefault: false }
     );
   }
-  next();
 });
 
 module.exports = mongoose.model('TicketTemplate', ticketTemplateSchema);

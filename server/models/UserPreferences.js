@@ -2,9 +2,16 @@ const mongoose = require('mongoose');
 
 const userPreferencesSchema = new mongoose.Schema({
   userId: {
-    type: String,  // Email address from profile
-    required: true,
-    unique: true
+    type: String,  // Email address from profile (legacy, prefer userEmployeeId)
+    required: false,
+    unique: false,
+    sparse: true  // Allow multiple null values
+  },
+  userEmployeeId: {
+    type: String,  // Employee ID (e.g., M361549)
+    required: false,
+    unique: true,
+    sparse: true  // Allow multiple null values during migration
   },
 
   // Display Preferences
@@ -119,20 +126,26 @@ const userPreferencesSchema = new mongoose.Schema({
 });
 
 // Get or create user preferences
-userPreferencesSchema.statics.getOrCreate = async function(userId) {
-  let preferences = await this.findOne({ userId });
+// userId can be either email or employeeId
+userPreferencesSchema.statics.getOrCreate = async function(userId, isEmployeeId = false) {
+  const query = isEmployeeId ? { userEmployeeId: userId } : { $or: [{ userEmployeeId: userId }, { userId }] };
+  let preferences = await this.findOne(query);
   if (!preferences) {
-    preferences = await this.create({ userId });
+    const createData = isEmployeeId ? { userEmployeeId: userId } : { userId };
+    preferences = await this.create(createData);
   }
   return preferences;
 };
 
 // Update user preferences
-userPreferencesSchema.statics.updatePreferences = async function(userId, updates) {
-  let preferences = await this.findOne({ userId });
+// userId can be either email or employeeId
+userPreferencesSchema.statics.updatePreferences = async function(userId, updates, isEmployeeId = false) {
+  const query = isEmployeeId ? { userEmployeeId: userId } : { $or: [{ userEmployeeId: userId }, { userId }] };
+  let preferences = await this.findOne(query);
 
   if (!preferences) {
-    preferences = new this({ userId, ...updates });
+    const createData = isEmployeeId ? { userEmployeeId: userId, ...updates } : { userId, ...updates };
+    preferences = new this(createData);
   } else {
     // Deep merge updates
     Object.keys(updates).forEach(key => {

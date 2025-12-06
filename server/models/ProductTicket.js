@@ -461,7 +461,11 @@ const productTicketSchema = new mongoose.Schema({
     default: 'MEDIUM'
   },
   createdBy: {
-    type: String,  // Email address from profile
+    type: String,  // Email address from profile (legacy, prefer createdByEmployeeId)
+    required: false
+  },
+  createdByEmployeeId: {
+    type: String,  // Employee ID (e.g., M361549)
     required: false
   },
   createdByUser: {
@@ -474,7 +478,11 @@ const productTicketSchema = new mongoose.Schema({
     required: false
   },
   assignedTo: {
-    type: String,  // Email address from profile
+    type: String,  // Email address from profile (legacy, prefer assignedToEmployeeId)
+    required: false
+  },
+  assignedToEmployeeId: {
+    type: String,  // Employee ID (e.g., M361549)
     required: false
   },
   chemicalProperties: chemicalPropertiesSchema,
@@ -499,7 +507,10 @@ const productTicketSchema = new mongoose.Schema({
   partNumber: {
     baseNumber: String,
     assignedBy: {
-      type: String  // Email address from profile
+      type: String  // Email address from profile (legacy, prefer assignedByEmployeeId)
+    },
+    assignedByEmployeeId: {
+      type: String  // Employee ID (e.g., M361549)
     },
     assignedAt: Date
   },
@@ -513,7 +524,10 @@ const productTicketSchema = new mongoose.Schema({
   npdiTracking: {
     trackingNumber: String,  // Official NPDI tracking number from external NPDI system
     initiatedBy: {
-      type: String  // Email address from profile
+      type: String  // Email address from profile (legacy, prefer initiatedByEmployeeId)
+    },
+    initiatedByEmployeeId: {
+      type: String  // Employee ID (e.g., M361549)
     },
     initiatedAt: Date
     // When NPDI is initiated, the main ticketNumber field is updated to match this trackingNumber
@@ -566,7 +580,10 @@ const productTicketSchema = new mongoose.Schema({
   statusHistory: [{
     status: String,
     changedBy: {
-      type: String  // Email address from profile
+      type: String  // Email address from profile (legacy, prefer changedByEmployeeId)
+    },
+    changedByEmployeeId: {
+      type: String  // Employee ID (e.g., M361549)
     },
     changedAt: {
       type: Date,
@@ -587,7 +604,11 @@ const productTicketSchema = new mongoose.Schema({
   }],
   comments: [{
     user: {
-      type: String,  // Email address from profile
+      type: String,  // Email address from profile (legacy, prefer userEmployeeId)
+      required: false
+    },
+    userEmployeeId: {
+      type: String,  // Employee ID (e.g., M361549)
       required: false
     },
     content: {

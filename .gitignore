@@ -105,3 +105,6 @@ server/scripts/VPN*.md
 OPTIMIZATION_IMPLEMENTATION_PLAN.md
 ARCHITECTURE_OPTIMIZATION_ANALYSIS.md
 logs/
+
+# Migration planning documents (internal use only)
+EMPLOYEE_ID_MIGRATION_PLAN.md

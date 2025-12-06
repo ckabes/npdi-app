@@ -53,8 +53,12 @@ const apiKeySchema = new mongoose.Schema({
   },
   // Metadata
   createdBy: {
-    type: String,  // Email address from profile
-    required: true
+    type: String,  // Email address from profile (legacy, prefer createdByEmployeeId)
+    required: false
+  },
+  createdByEmployeeId: {
+    type: String,  // Employee ID (e.g., M361549)
+    required: false
   },
   createdAt: {
     type: Date,
@@ -77,9 +81,8 @@ const apiKeySchema = new mongoose.Schema({
 });
 
 // Pre-save middleware to update timestamp
-apiKeySchema.pre('save', function(next) {
+apiKeySchema.pre('save', function() {
   this.updatedAt = Date.now();
-  next();
 });
 
 // Static method to generate a new API key

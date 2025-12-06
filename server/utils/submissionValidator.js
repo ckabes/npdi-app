@@ -4,10 +4,11 @@ const User = require('../models/User');
 /**
  * Validates that all required fields (per template's submissionRequirements) are filled
  * @param {Object} ticketData - The ticket data to validate
- * @param {string} userEmail - The user's email to look up their template
+ * @param {string} userIdentifier - The user's email or employeeId to look up their template
+ * @param {boolean} isEmployeeId - Whether userIdentifier is an employeeId (default: false)
  * @returns {Object} { isValid: boolean, missingFields: array, template: object }
  */
-const validateSubmissionRequirements = async (ticketData, userEmail) => {
+const validateSubmissionRequirements = async (ticketData, userIdentifier, isEmployeeId = false) => {
   try {
     let template = null;
 
@@ -25,7 +26,12 @@ const validateSubmissionRequirements = async (ticketData, userEmail) => {
 
     // If no stored template (new ticket) or stored template not found, use user's current template
     if (!template) {
-      const user = await User.findOne({ email: userEmail }).populate({
+      // Support both email and employeeId
+      const userQuery = isEmployeeId
+        ? { employeeId: userIdentifier }
+        : { $or: [{ employeeId: userIdentifier }, { email: userIdentifier }] };
+
+      const user = await User.findOne(userQuery).populate({
         path: 'ticketTemplate',
         populate: { path: 'formConfiguration' }
       });
@@ -46,7 +52,7 @@ const validateSubmissionRequirements = async (ticketData, userEmail) => {
 
     // If still no template found, allow submission (no requirements to check)
     if (!template) {
-      console.warn('No template found for user:', userEmail);
+      console.warn('No template found for user:', userIdentifier);
       return { isValid: true, missingFields: [], template: null };
     }
 
