@@ -28,10 +28,7 @@ const TemplateManager = () => {
       const response = await templatesAPI.getAll(true); // Include users
       setTemplates(response.data);
 
-      // Expand the first template by default
-      if (response.data.length > 0) {
-        setExpandedTemplates({ [response.data[0]._id]: true });
-      }
+      // All templates collapsed by default
     } catch (err) {
       console.error('Error fetching templates:', err);
       setError('Failed to load templates. Please try again.');
@@ -53,6 +50,24 @@ const TemplateManager = () => {
       ...prev,
       [key]: !prev[key]
     }));
+  };
+
+  const expandAllSections = (template) => {
+    const updates = {};
+    template.formConfiguration.sections.forEach(section => {
+      const key = `${template._id}-${section.sectionKey}`;
+      updates[key] = true;
+    });
+    setExpandedSections(prev => ({ ...prev, ...updates }));
+  };
+
+  const collapseAllSections = (template) => {
+    const updates = {};
+    template.formConfiguration.sections.forEach(section => {
+      const key = `${template._id}-${section.sectionKey}`;
+      updates[key] = false;
+    });
+    setExpandedSections(prev => ({ ...prev, ...updates }));
   };
 
   const toggleFieldRequirement = async (template, fieldKey) => {
@@ -170,10 +185,15 @@ const TemplateManager = () => {
                     <DocumentTextIcon className="h-6 w-6 text-blue-600" />
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">
-                        {template.name}
+                        {template.formConfiguration?.name || template.name}
                         {template.isDefault && (
                           <span className="ml-2 px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
                             Default
+                          </span>
+                        )}
+                        {template.formConfiguration?.version && (
+                          <span className="ml-2 px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded">
+                            v{template.formConfiguration.version}
                           </span>
                         )}
                       </h2>
@@ -231,15 +251,31 @@ const TemplateManager = () => {
                   {/* Form Sections and Fields */}
                   {template.formConfiguration?.sections ? (
                     <div className="space-y-4">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                        Submission Requirements by Section
-                      </h3>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-gray-700">
+                          Submission Requirements by Section
+                        </h3>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => expandAllSections(template)}
+                            className="px-3 py-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200"
+                          >
+                            Expand All
+                          </button>
+                          <button
+                            onClick={() => collapseAllSections(template)}
+                            className="px-3 py-1 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded border border-gray-200"
+                          >
+                            Collapse All
+                          </button>
+                        </div>
+                      </div>
                       {template.formConfiguration.sections
                         .filter(section => section.visible !== false)
                         .sort((a, b) => a.order - b.order)
                         .map(section => {
                           const sectionKey = `${template._id}-${section.sectionKey}`;
-                          const isSectionExpanded = expandedSections[sectionKey] !== false; // Default expanded
+                          const isSectionExpanded = expandedSections[sectionKey] === true; // Default collapsed
 
                           return (
                             <div
@@ -290,11 +326,6 @@ const TemplateManager = () => {
                                               <span className="text-xs text-gray-500">
                                                 ({field.type})
                                               </span>
-                                              {field.required && (
-                                                <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">
-                                                  Form Required
-                                                </span>
-                                              )}
                                             </div>
                                             {field.helpText && (
                                               <p className="text-xs text-gray-500 mt-1">
