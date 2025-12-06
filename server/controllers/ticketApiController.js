@@ -86,16 +86,24 @@ exports.getAllTickets = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
-    // Execute query
-    const tickets = await ProductTicket.find(filter)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .select('-__v')
-      .lean();
+    // Execute query with aggregation to combine pagination + count
+    const result = await ProductTicket.aggregate([
+      { $match: filter },
+      {
+        $facet: {
+          tickets: [
+            { $sort: sortOptions },
+            { $skip: skip },
+            { $limit: parseInt(limit) },
+            { $project: { __v: 0 } }
+          ],
+          total: [{ $count: 'count' }]
+        }
+      }
+    ]);
 
-    // Get total count for pagination
-    const total = await ProductTicket.countDocuments(filter);
+    const tickets = result[0].tickets;
+    const total = result[0].total[0]?.count || 0;
 
     // Transform tickets for API response
     const transformedTickets = tickets.map(transformTicketForAPI);
@@ -211,14 +219,24 @@ exports.getTicketsByTemplate = async (req, res) => {
     // This would need to be enhanced based on your business logic
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const tickets = await ProductTicket.find()
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .select('-__v')
-      .lean();
+    // Execute query with aggregation to combine pagination + count
+    const result = await ProductTicket.aggregate([
+      { $match: {} },
+      {
+        $facet: {
+          tickets: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: parseInt(limit) },
+            { $project: { __v: 0 } }
+          ],
+          total: [{ $count: 'count' }]
+        }
+      }
+    ]);
 
-    const total = await ProductTicket.countDocuments();
+    const tickets = result[0].tickets;
+    const total = result[0].total[0]?.count || 0;
 
     // Transform tickets for API response
     const transformedTickets = tickets.map(transformTicketForAPI);
@@ -323,21 +341,32 @@ exports.searchTickets = async (req, res) => {
     const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
 
     // Build projection if specific fields requested
-    let projection = '-__v';
+    let projectFields = { __v: 0 };
     if (fields && Array.isArray(fields)) {
-      projection = fields.join(' ');
+      projectFields = fields.reduce((acc, field) => {
+        acc[field] = 1;
+        return acc;
+      }, {});
     }
 
-    // Execute query
-    const tickets = await ProductTicket.find(searchFilter)
-      .select(projection)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean();
+    // Execute query with aggregation to combine pagination + count
+    const result = await ProductTicket.aggregate([
+      { $match: searchFilter },
+      {
+        $facet: {
+          tickets: [
+            { $sort: sortOptions },
+            { $skip: skip },
+            { $limit: parseInt(limit) },
+            { $project: projectFields }
+          ],
+          total: [{ $count: 'count' }]
+        }
+      }
+    ]);
 
-    // Get total count
-    const total = await ProductTicket.countDocuments(searchFilter);
+    const tickets = result[0].tickets;
+    const total = result[0].total[0]?.count || 0;
 
     // Transform tickets for API response
     const transformedTickets = tickets.map(transformTicketForAPI);
@@ -433,6 +462,7 @@ exports.getAvailableTemplates = async (req, res) => {
       .populate('formConfiguration', 'name description version sections')
       .select('-__v')
       .sort({ isDefault: -1, name: 1 })
+      .limit(50) // Safety limit to prevent unbounded queries
       .lean();
 
     res.json({

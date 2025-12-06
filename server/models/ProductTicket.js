@@ -623,6 +623,24 @@ const productTicketSchema = new mongoose.Schema({
   }
 });
 
+// Indexes for query performance
+// Dashboard and list queries frequently filter by status with date sorting
+productTicketSchema.index({ status: 1, updatedAt: -1 });
+// Filtered lists by status and SBU
+productTicketSchema.index({ status: 1, sbu: 1 });
+// Filtered lists by status and priority
+productTicketSchema.index({ status: 1, priority: 1 });
+// User's tickets queries
+productTicketSchema.index({ createdBy: 1, status: 1 });
+// Assignment queries
+productTicketSchema.index({ assignedTo: 1, status: 1 });
+// Date-based queries and default sorting
+productTicketSchema.index({ createdAt: -1 });
+// CAS number lookup for chemical products
+productTicketSchema.index({ 'chemicalProperties.casNumber': 1 });
+// SBU reports with date sorting
+productTicketSchema.index({ sbu: 1, createdAt: -1 });
+
 // Pre-save hook to clean up and normalize data before validation
 productTicketSchema.pre('validate', function(next) {
   // Clean up enum fields - convert empty strings to undefined to avoid enum validation errors

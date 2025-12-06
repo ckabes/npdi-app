@@ -414,7 +414,7 @@ const Dashboard = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-red-200">
                   {agingAnalysis.urgentWaiting.map((ticket) => (
-                    <tr key={ticket.ticketId} className="hover:bg-red-50">
+                    <tr key={ticket.ticketId || ticket._id} className="hover:bg-red-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {ticket.ticketNumber || 'N/A'}
                       </td>
@@ -634,7 +634,7 @@ const Dashboard = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {agingAnalysis.longestWaiting.map((ticket) => (
-                      <tr key={ticket.ticketId} className="hover:bg-gray-50">
+                      <tr key={ticket.ticketId || ticket._id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {ticket.ticketNumber || 'N/A'}
                         </td>

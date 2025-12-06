@@ -22,10 +22,265 @@ const getAdminStats = async (req, res) => {
       console.warn('Could not load profiles for user count:', error.message);
     }
 
-    // Get all tickets for comprehensive statistics
-    const allTickets = await ProductTicket.find({}).select('status priority sbu createdAt updatedAt statusHistory');
+    // Use MongoDB aggregation pipeline for efficient statistics calculation
+    // This replaces fetching all tickets into memory and processing with JavaScript
+    const stats = await ProductTicket.aggregate([
+      {
+        $facet: {
+          // Count tickets by status
+          statusCounts: [
+            {
+              $group: {
+                _id: '$status',
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          // Count tickets by priority
+          priorityCounts: [
+            {
+              $group: {
+                _id: '$priority',
+                count: { $sum: 1 }
+              }
+            }
+          ],
+          // Count tickets by SBU with percentages
+          sbuCounts: [
+            {
+              $group: {
+                _id: '$sbu',
+                count: { $sum: 1 }
+              }
+            },
+            {
+              $project: {
+                sbu: '$_id',
+                count: 1,
+                _id: 0
+              }
+            }
+          ],
+          // Total ticket count
+          totalCount: [
+            {
+              $count: 'count'
+            }
+          ],
+          // Completed tickets this week
+          completedThisWeek: [
+            {
+              $match: {
+                status: 'COMPLETED',
+                updatedAt: { $gte: oneWeekAgo }
+              }
+            },
+            { $count: 'count' }
+          ],
+          // Completed tickets this month
+          completedThisMonth: [
+            {
+              $match: {
+                status: 'COMPLETED',
+                updatedAt: { $gte: oneMonthAgo }
+              }
+            },
+            { $count: 'count' }
+          ],
+          // Calculate average processing times from status history
+          processingTimes: [
+            {
+              $match: {
+                statusHistory: { $exists: true, $ne: [] }
+              }
+            },
+            {
+              $project: {
+                statusHistory: 1,
+                createdAt: 1
+              }
+            },
+            {
+              $project: {
+                submittedEntry: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$statusHistory',
+                        as: 'h',
+                        cond: {
+                          $or: [
+                            { $eq: ['$$h.status', 'SUBMITTED'] },
+                            { $eq: ['$$h.action', 'TICKET_CREATED'] }
+                          ]
+                        }
+                      }
+                    },
+                    0
+                  ]
+                },
+                inProcessEntry: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$statusHistory',
+                        as: 'h',
+                        cond: { $eq: ['$$h.status', 'IN_PROCESS'] }
+                      }
+                    },
+                    0
+                  ]
+                },
+                completedEntry: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$statusHistory',
+                        as: 'h',
+                        cond: { $eq: ['$$h.status', 'COMPLETED'] }
+                      }
+                    },
+                    0
+                  ]
+                },
+                createdAt: 1
+              }
+            },
+            {
+              $project: {
+                submittedDate: {
+                  $ifNull: [
+                    '$submittedEntry.changedAt',
+                    '$createdAt'
+                  ]
+                },
+                inProcessDate: '$inProcessEntry.changedAt',
+                completedDate: '$completedEntry.changedAt'
+              }
+            },
+            {
+              $project: {
+                hoursToInProcess: {
+                  $cond: [
+                    { $ne: ['$inProcessDate', null] },
+                    {
+                      $divide: [
+                        { $subtract: ['$inProcessDate', '$submittedDate'] },
+                        3600000
+                      ]
+                    },
+                    null
+                  ]
+                },
+                hoursToCompleted: {
+                  $cond: [
+                    { $ne: ['$completedDate', null] },
+                    {
+                      $divide: [
+                        { $subtract: ['$completedDate', '$submittedDate'] },
+                        3600000
+                      ]
+                    },
+                    null
+                  ]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                avgHoursToInProcess: {
+                  $avg: '$hoursToInProcess'
+                },
+                avgHoursToCompleted: {
+                  $avg: '$hoursToCompleted'
+                }
+              }
+            }
+          ],
+          // Calculate aging tickets (non-completed/canceled)
+          agingTickets: [
+            {
+              $match: {
+                status: { $nin: ['COMPLETED', 'CANCELED'] },
+                statusHistory: { $exists: true, $ne: [] }
+              }
+            },
+            {
+              $project: {
+                status: 1,
+                priority: 1,
+                sbu: 1,
+                createdAt: 1,
+                submittedEntry: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: '$statusHistory',
+                        as: 'h',
+                        cond: {
+                          $or: [
+                            { $eq: ['$$h.status', 'SUBMITTED'] },
+                            { $eq: ['$$h.action', 'TICKET_CREATED'] }
+                          ]
+                        }
+                      }
+                    },
+                    0
+                  ]
+                }
+              }
+            },
+            {
+              $project: {
+                status: 1,
+                priority: 1,
+                sbu: 1,
+                submittedDate: {
+                  $ifNull: [
+                    '$submittedEntry.changedAt',
+                    '$createdAt'
+                  ]
+                }
+              }
+            },
+            {
+              $project: {
+                ticketId: '$_id',
+                status: 1,
+                priority: 1,
+                sbu: 1,
+                waitingHours: {
+                  $divide: [
+                    { $subtract: [now, '$submittedDate'] },
+                    3600000
+                  ]
+                }
+              }
+            },
+            {
+              $project: {
+                ticketId: 1,
+                status: 1,
+                priority: 1,
+                sbu: 1,
+                waitingHours: { $round: ['$waitingHours', 0] },
+                waitingDays: {
+                  $floor: {
+                    $divide: ['$waitingHours', 24]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]);
 
-    // Count tickets by status
+    // Extract results from aggregation
+    const result = stats[0];
+
+    // Process status counts
     const statusCounts = {
       draft: 0,
       submitted: 0,
@@ -33,10 +288,21 @@ const getAdminStats = async (req, res) => {
       npdiInitiated: 0,
       completed: 0,
       canceled: 0,
-      total: allTickets.length
+      total: result.totalCount[0]?.count || 0
     };
 
-    // Count tickets by priority
+    result.statusCounts.forEach(item => {
+      switch (item._id) {
+        case 'DRAFT': statusCounts.draft = item.count; break;
+        case 'SUBMITTED': statusCounts.submitted = item.count; break;
+        case 'IN_PROCESS': statusCounts.inProcess = item.count; break;
+        case 'NPDI_INITIATED': statusCounts.npdiInitiated = item.count; break;
+        case 'COMPLETED': statusCounts.completed = item.count; break;
+        case 'CANCELED': statusCounts.canceled = item.count; break;
+      }
+    });
+
+    // Process priority counts
     const priorityCounts = {
       LOW: 0,
       MEDIUM: 0,
@@ -44,94 +310,31 @@ const getAdminStats = async (req, res) => {
       URGENT: 0
     };
 
-    // SBU breakdown
-    const sbuCounts = {};
-
-    // Time tracking arrays
-    let submittedToCompletedTimes = [];
-    let submittedToInProcessTimes = [];
-    let agingTickets = [];
-
-    // Process each ticket
-    allTickets.forEach(ticket => {
-      // Count by status
-      switch (ticket.status) {
-        case 'DRAFT': statusCounts.draft++; break;
-        case 'SUBMITTED': statusCounts.submitted++; break;
-        case 'IN_PROCESS': statusCounts.inProcess++; break;
-        case 'NPDI_INITIATED': statusCounts.npdiInitiated++; break;
-        case 'COMPLETED': statusCounts.completed++; break;
-        case 'CANCELED': statusCounts.canceled++; break;
-      }
-
-      // Count by priority
-      if (ticket.priority) {
-        priorityCounts[ticket.priority]++;
-      }
-
-      // Count by SBU
-      if (ticket.sbu) {
-        sbuCounts[ticket.sbu] = (sbuCounts[ticket.sbu] || 0) + 1;
-      }
-
-      // Calculate time metrics from status history
-      if (ticket.statusHistory && ticket.statusHistory.length > 0) {
-        const submittedEntry = ticket.statusHistory.find(h => h.status === 'SUBMITTED' || h.action === 'TICKET_CREATED');
-        const inProcessEntry = ticket.statusHistory.find(h => h.status === 'IN_PROCESS');
-        const completedEntry = ticket.statusHistory.find(h => h.status === 'COMPLETED');
-
-        const submittedDate = submittedEntry ? new Date(submittedEntry.changedAt || ticket.createdAt) : new Date(ticket.createdAt);
-
-        // Time from SUBMITTED to IN_PROCESS
-        if (inProcessEntry) {
-          const inProcessDate = new Date(inProcessEntry.changedAt);
-          const hoursToInProcess = (inProcessDate - submittedDate) / (1000 * 60 * 60);
-          submittedToInProcessTimes.push(hoursToInProcess);
-        }
-
-        // Time from SUBMITTED to COMPLETED
-        if (completedEntry) {
-          const completedDate = new Date(completedEntry.changedAt);
-          const hoursToCompleted = (completedDate - submittedDate) / (1000 * 60 * 60);
-          submittedToCompletedTimes.push(hoursToCompleted);
-        }
-
-        // Calculate aging for non-completed tickets
-        if (ticket.status !== 'COMPLETED' && ticket.status !== 'CANCELED') {
-          const waitingHours = (now - submittedDate) / (1000 * 60 * 60);
-          const waitingDays = Math.floor(waitingHours / 24);
-
-          agingTickets.push({
-            ticketId: ticket._id,
-            status: ticket.status,
-            priority: ticket.priority,
-            sbu: ticket.sbu,
-            waitingDays,
-            waitingHours: Math.round(waitingHours)
-          });
-        }
+    result.priorityCounts.forEach(item => {
+      if (item._id) {
+        priorityCounts[item._id] = item.count;
       }
     });
 
-    // Calculate average processing times
-    const avgSubmittedToInProcess = submittedToInProcessTimes.length > 0
-      ? submittedToInProcessTimes.reduce((a, b) => a + b, 0) / submittedToInProcessTimes.length
-      : 0;
+    // Process SBU counts with percentages
+    const sbuCounts = result.sbuCounts.map(item => ({
+      sbu: item.sbu,
+      count: item.count,
+      percentage: statusCounts.total > 0
+        ? Math.round((item.count / statusCounts.total) * 100)
+        : 0
+    }));
 
-    const avgSubmittedToCompleted = submittedToCompletedTimes.length > 0
-      ? submittedToCompletedTimes.reduce((a, b) => a + b, 0) / submittedToCompletedTimes.length
-      : 0;
+    // Extract completion counts
+    const completedThisWeek = result.completedThisWeek[0]?.count || 0;
+    const completedThisMonth = result.completedThisMonth[0]?.count || 0;
 
-    // Count tickets completed this week/month
-    const completedThisWeek = await ProductTicket.countDocuments({
-      status: 'COMPLETED',
-      updatedAt: { $gte: oneWeekAgo }
-    });
+    // Extract average processing times
+    const avgSubmittedToInProcess = result.processingTimes[0]?.avgHoursToInProcess || 0;
+    const avgSubmittedToCompleted = result.processingTimes[0]?.avgHoursToCompleted || 0;
 
-    const completedThisMonth = await ProductTicket.countDocuments({
-      status: 'COMPLETED',
-      updatedAt: { $gte: oneMonthAgo }
-    });
+    // Get aging tickets
+    const agingTickets = result.agingTickets || [];
 
     // Calculate system health score (0-100)
     // Based on: backlog size, aging tickets, completion rate, response time
@@ -195,11 +398,7 @@ const getAdminStats = async (req, res) => {
         draft: statusCounts.draft,
         byStatus: statusCounts,
         byPriority: priorityCounts,
-        bySBU: Object.entries(sbuCounts).map(([sbu, count]) => ({
-          sbu,
-          count,
-          percentage: Math.round((count / statusCounts.total) * 100)
-        }))
+        bySBU: sbuCounts  // Already an array of {sbu, count, percentage} from aggregation
       },
       performance: {
         avgResponseTime: {

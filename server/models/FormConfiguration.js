@@ -114,11 +114,6 @@ const formConfigurationSchema = new mongoose.Schema({
     required: true,
     default: 'Product Ticket Form'
   },
-  templateName: {
-    type: String,
-    default: 'Default',
-    required: true
-  },
   description: String,
   version: {
     type: String,
