@@ -9,7 +9,7 @@ export default {
       colors: {
         millipore: {
           blue: '#0066CC',
-          'blue-dark': '#004499',
+          'blue-dark': '#003366',
           'blue-light': '#3388DD',
           orange: '#FF6600',
           'orange-dark': '#CC5200',

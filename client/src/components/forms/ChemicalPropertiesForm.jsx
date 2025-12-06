@@ -693,7 +693,7 @@ const ChemicalPropertiesForm = ({
       {/* Value Selection Modal */}
       {valueSelectionModal && (
         <div className="fixed inset-0 bg-gray-500/75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4 relative z-10">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Select {valueSelectionModal.propertyLabel} Value
             </h3>

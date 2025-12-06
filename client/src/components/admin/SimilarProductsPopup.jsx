@@ -124,10 +124,10 @@ const SimilarProductsPopup = ({ casNumber, onClose, onApprove }) => {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
-        <div className="fixed inset-0 transition-opacity bg-gray-500/75" onClick={onClose}></div>
+        <div className="fixed inset-0 transition-opacity bg-gray-500/75 z-0" onClick={onClose}></div>
 
         {/* Modal panel */}
-        <div className="inline-block w-full max-w-3xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6">
+        <div className="inline-block w-full max-w-3xl px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:p-6 relative z-10">
           {/* Header */}
           <div className="mb-6">
             <div className="flex items-center justify-between">

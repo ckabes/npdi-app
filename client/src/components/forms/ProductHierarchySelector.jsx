@@ -248,7 +248,7 @@ const ProductHierarchySelector = ({ isOpen, onClose, onSelect, currentValue }) =
   if (isLoadingData) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading product hierarchy...</p>
@@ -262,7 +262,7 @@ const ProductHierarchySelector = ({ isOpen, onClose, onSelect, currentValue }) =
   if (dataError) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative z-10">
           <div className="text-center">
             <div className="text-red-600 mb-4">
               <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -307,12 +307,12 @@ const ProductHierarchySelector = ({ isOpen, onClose, onSelect, currentValue }) =
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
         <div
-          className="fixed inset-0 transition-opacity bg-gray-500/75"
+          className="fixed inset-0 transition-opacity bg-gray-500/75 z-0"
           onClick={onClose}
         ></div>
 
         {/* Modal panel */}
-        <div className="inline-block w-full max-w-6xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl">
+        <div className="inline-block w-full max-w-6xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl relative z-10">
           {/* Header */}
           <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-indigo-700">
             <div className="flex items-center justify-between">

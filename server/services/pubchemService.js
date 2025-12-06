@@ -502,16 +502,9 @@ class PubChemService {
       };
     } catch (error) {
       console.error('PubChem enrichment error:', error);
-      // Return minimal data structure if PubChem fails
-      return {
-        chemicalProperties: {
-          casNumber,
-          autoPopulated: false
-        },
-        skuVariants: [],
-        corpbaseData: {},
-        error: error.message
-      };
+      // Re-throw the error so the controller can handle it appropriately
+      // This allows proper HTTP status codes (404 for not found, etc.)
+      throw error;
     }
   }
 }

@@ -1233,10 +1233,40 @@ const lookupCAS = async (req, res) => {
     });
   } catch (error) {
     console.error('CAS lookup error:', error);
-    res.status(500).json({
-      message: 'Failed to lookup CAS number',
+
+    // Determine appropriate HTTP status code based on error type
+    let statusCode = 500;
+    let message = 'Failed to lookup CAS number';
+
+    // Check if this is a "not found" error (CAS number doesn't exist in PubChem)
+    if (error.message && (
+      error.message.includes('not found') ||
+      error.message.includes('Not Found') ||
+      error.message.includes('PUGREST.NotFound')
+    )) {
+      statusCode = 404;
+      message = error.message; // Use the detailed error message from PubChem service
+    }
+    // Check if this is an API connectivity error
+    else if (error.message && (
+      error.message.includes('timeout') ||
+      error.message.includes('ECONNREFUSED') ||
+      error.message.includes('ETIMEDOUT') ||
+      error.message.includes('network')
+    )) {
+      statusCode = 503;
+      message = 'PubChem API is currently unavailable. Please try again later.';
+    }
+    // Other errors (validation, parsing, etc.)
+    else if (error.message) {
+      message = error.message;
+    }
+
+    res.status(statusCode).json({
+      message,
       error: error.message,
-      casNumber: req.params.casNumber
+      casNumber: req.params.casNumber,
+      errorType: statusCode === 404 ? 'NOT_FOUND' : statusCode === 503 ? 'API_UNAVAILABLE' : 'SERVER_ERROR'
     });
   }
 };

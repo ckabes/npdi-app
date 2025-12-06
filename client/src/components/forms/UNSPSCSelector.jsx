@@ -224,7 +224,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
   if (loadingAll) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/75">
-        <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4">
+        <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4 relative z-10">
           <div className="text-center">
             {/* Animated spinner */}
             <div className="flex justify-center mb-6">
@@ -261,12 +261,12 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
         <div
-          className="fixed inset-0 transition-opacity bg-gray-500/75"
+          className="fixed inset-0 transition-opacity bg-gray-500/75 z-0"
           onClick={onClose}
         ></div>
 
         {/* Modal panel */}
-        <div className="inline-block w-full max-w-6xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl">
+        <div className="inline-block w-full max-w-6xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl relative z-10">
           {/* Header */}
           <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700">
             <div className="flex items-center justify-between">
