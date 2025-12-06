@@ -33,6 +33,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedIndicator, setSelectedIndicator] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'overview' && user) {
@@ -100,7 +101,7 @@ const AdminDashboard = () => {
     </div>
   );
 
-  const HealthIndicator = ({ label, status, color }) => {
+  const HealthIndicator = ({ label, status, color, onClick }) => {
     const getColorClasses = (color) => {
       switch (color) {
         case 'green': return 'bg-green-100 text-green-800 border-green-200';
@@ -113,11 +114,233 @@ const AdminDashboard = () => {
     };
 
     return (
-      <div className="flex items-center justify-between py-2">
+      <div
+        className="flex items-center justify-between py-2 cursor-pointer hover:bg-gray-50 px-2 -mx-2 rounded transition-colors"
+        onClick={onClick}
+        title="Click for details"
+      >
         <span className="text-sm text-gray-700">{label}</span>
         <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getColorClasses(color)}`}>
           {status}
         </span>
+      </div>
+    );
+  };
+
+  const HealthIndicatorModal = ({ indicator, stats, onClose }) => {
+    if (!indicator || !stats) return null;
+
+    const getIndicatorDetails = () => {
+      const { performance, systemHealth, tickets } = stats;
+
+      switch (indicator) {
+        case 'database':
+          return {
+            title: 'Database Health',
+            currentValue: systemHealth.indicators.database.status,
+            description: 'Indicates whether the database connection is active and responsive.',
+            calculation: 'Database health is determined by the ability to query the database successfully.',
+            metrics: [
+              { label: 'Connection Status', value: 'Connected', detail: 'Successfully querying database' },
+              { label: 'Response Time', value: systemHealth.indicators.database.responseTime, detail: 'Query execution speed' }
+            ],
+            thresholds: [
+              { label: 'Healthy', condition: 'Database is accessible and responding', color: 'green' },
+              { label: 'Unhealthy', condition: 'Cannot connect or query timeout', color: 'red' }
+            ]
+          };
+
+        case 'backlogManagement':
+          const backlogSize = performance.backlogSize;
+          return {
+            title: 'Backlog Management',
+            currentValue: systemHealth.indicators.backlogManagement,
+            description: 'Measures the current workload based on tickets awaiting action or in progress.',
+            calculation: 'Backlog Size = Submitted Tickets + In Process Tickets',
+            metrics: [
+              { label: 'Submitted Tickets', value: tickets.byStatus.submitted, detail: 'Tickets awaiting action' },
+              { label: 'In Process Tickets', value: tickets.byStatus.inProcess, detail: 'Tickets being actively worked' },
+              { label: 'Total Backlog', value: backlogSize, detail: 'Combined workload', highlight: true }
+            ],
+            thresholds: [
+              { label: 'Good', condition: 'Backlog < 20 tickets', color: 'green' },
+              { label: 'Fair', condition: 'Backlog 20-39 tickets', color: 'yellow' },
+              { label: 'Needs Attention', condition: 'Backlog ≥ 40 tickets', color: 'orange' }
+            ]
+          };
+
+        case 'responseTime':
+          const avgHours = performance.avgResponseTime.hours;
+          const avgDays = performance.avgResponseTime.days;
+          return {
+            title: 'Response Time',
+            currentValue: systemHealth.indicators.responseTime,
+            description: 'Average time from ticket submission to when work begins (IN_PROCESS status).',
+            calculation: 'Average time between SUBMITTED and IN_PROCESS status across all processed tickets',
+            metrics: [
+              { label: 'Average Response Time', value: `${avgDays} days`, detail: `${avgHours} hours`, highlight: true },
+              { label: 'Measurement Period', value: 'All time', detail: 'Based on historical ticket data' }
+            ],
+            thresholds: [
+              { label: 'Good', condition: '< 48 hours (2 days)', color: 'green' },
+              { label: 'Fair', condition: '48-96 hours (2-4 days)', color: 'yellow' },
+              { label: 'Slow', condition: '≥ 96 hours (4+ days)', color: 'orange' }
+            ]
+          };
+
+        case 'completionRate':
+          const completionRate = performance.completionRate;
+          const completed = tickets.completed;
+          const canceled = tickets.canceled;
+          const totalProcessed = completed + canceled;
+          return {
+            title: 'Completion Rate',
+            currentValue: systemHealth.indicators.completionRate,
+            description: 'Percentage of tickets that were completed successfully vs. canceled.',
+            calculation: '(Completed Tickets / (Completed + Canceled)) × 100',
+            metrics: [
+              { label: 'Completed Tickets', value: completed, detail: 'Successfully finished' },
+              { label: 'Canceled Tickets', value: canceled, detail: 'Did not complete' },
+              { label: 'Total Processed', value: totalProcessed, detail: 'Completed + Canceled' },
+              { label: 'Completion Rate', value: `${completionRate}%`, detail: 'Success rate', highlight: true }
+            ],
+            thresholds: [
+              { label: 'Excellent', condition: '≥ 90%', color: 'green' },
+              { label: 'Good', condition: '75-89%', color: 'blue' },
+              { label: 'Needs Improvement', condition: '< 75%', color: 'yellow' }
+            ]
+          };
+
+        case 'urgentHandling':
+          const urgentWaiting = performance.urgentWaiting;
+          const totalUrgent = tickets.byPriority.URGENT;
+          return {
+            title: 'Urgent Handling',
+            currentValue: systemHealth.indicators.urgentHandling,
+            description: 'Number of urgent priority tickets waiting more than 1 day for action.',
+            calculation: 'Count of URGENT tickets that have been waiting > 24 hours',
+            metrics: [
+              { label: 'Total Urgent Tickets', value: totalUrgent, detail: 'All urgent priority tickets' },
+              { label: 'Urgent Waiting > 1 Day', value: urgentWaiting, detail: 'Requires immediate attention', highlight: true }
+            ],
+            thresholds: [
+              { label: 'Excellent', condition: '0 urgent tickets waiting', color: 'green' },
+              { label: 'Good', condition: '< 3 urgent tickets waiting', color: 'blue' },
+              { label: 'Needs Attention', condition: '≥ 3 urgent tickets waiting', color: 'orange' }
+            ]
+          };
+
+        default:
+          return null;
+      }
+    };
+
+    const details = getIndicatorDetails();
+    if (!details) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-millipore-blue to-blue-600 px-6 py-4 flex items-center justify-between">
+            <h2 className="text-xl font-bold text-white">{details.title}</h2>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-gray-200 transition-colors"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="px-6 py-4 space-y-6">
+            {/* Current Status */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-blue-900">Current Status</span>
+                <span className="text-2xl font-bold text-blue-600">{details.currentValue}</span>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">What This Measures</h3>
+              <p className="text-sm text-gray-700">{details.description}</p>
+            </div>
+
+            {/* Calculation */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">How It's Calculated</h3>
+              <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                <code className="text-sm text-gray-800">{details.calculation}</code>
+              </div>
+            </div>
+
+            {/* Current Metrics */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Current Metrics</h3>
+              <div className="space-y-2">
+                {details.metrics.map((metric, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between p-3 rounded-lg ${
+                      metric.highlight ? 'bg-yellow-50 border border-yellow-200' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div>
+                      <div className={`text-sm ${metric.highlight ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>
+                        {metric.label}
+                      </div>
+                      {metric.detail && (
+                        <div className="text-xs text-gray-500 mt-0.5">{metric.detail}</div>
+                      )}
+                    </div>
+                    <div className={`text-lg font-bold ${metric.highlight ? 'text-yellow-900' : 'text-gray-900'}`}>
+                      {metric.value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Thresholds */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">Status Thresholds</h3>
+              <div className="space-y-2">
+                {details.thresholds.map((threshold, index) => {
+                  const colorClasses = {
+                    green: 'bg-green-100 border-green-300 text-green-900',
+                    blue: 'bg-blue-100 border-blue-300 text-blue-900',
+                    yellow: 'bg-yellow-100 border-yellow-300 text-yellow-900',
+                    orange: 'bg-orange-100 border-orange-300 text-orange-900',
+                    red: 'bg-red-100 border-red-300 text-red-900'
+                  };
+                  return (
+                    <div
+                      key={index}
+                      className={`flex items-center justify-between p-3 border rounded-lg ${colorClasses[threshold.color]}`}
+                    >
+                      <span className="text-sm font-semibold">{threshold.label}</span>
+                      <span className="text-sm">{threshold.condition}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <button
+              onClick={onClose}
+              className="w-full btn btn-primary"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </div>
     );
   };
@@ -227,12 +450,14 @@ const AdminDashboard = () => {
           <div className="bg-white shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-medium text-gray-900">System Health Indicators</h3>
+              <p className="text-xs text-gray-500 mt-1">Click on any indicator for detailed calculation info</p>
             </div>
             <div className="px-6 py-4 space-y-1">
               <HealthIndicator
                 label="Database"
                 status={systemHealth.indicators.database.status}
                 color={systemHealth.indicators.database.status === 'Healthy' ? 'green' : 'red'}
+                onClick={() => setSelectedIndicator('database')}
               />
               <HealthIndicator
                 label="Backlog Management"
@@ -241,6 +466,7 @@ const AdminDashboard = () => {
                   systemHealth.indicators.backlogManagement === 'Good' ? 'green' :
                   systemHealth.indicators.backlogManagement === 'Fair' ? 'yellow' : 'orange'
                 }
+                onClick={() => setSelectedIndicator('backlogManagement')}
               />
               <HealthIndicator
                 label="Response Time"
@@ -249,6 +475,7 @@ const AdminDashboard = () => {
                   systemHealth.indicators.responseTime === 'Good' ? 'green' :
                   systemHealth.indicators.responseTime === 'Fair' ? 'yellow' : 'orange'
                 }
+                onClick={() => setSelectedIndicator('responseTime')}
               />
               <HealthIndicator
                 label="Completion Rate"
@@ -257,6 +484,7 @@ const AdminDashboard = () => {
                   systemHealth.indicators.completionRate === 'Excellent' ? 'green' :
                   systemHealth.indicators.completionRate === 'Good' ? 'blue' : 'yellow'
                 }
+                onClick={() => setSelectedIndicator('completionRate')}
               />
               <HealthIndicator
                 label="Urgent Handling"
@@ -265,6 +493,7 @@ const AdminDashboard = () => {
                   systemHealth.indicators.urgentHandling === 'Excellent' ? 'green' :
                   systemHealth.indicators.urgentHandling === 'Good' ? 'blue' : 'orange'
                 }
+                onClick={() => setSelectedIndicator('urgentHandling')}
               />
             </div>
           </div>
@@ -400,6 +629,15 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* Health Indicator Modal */}
+        {selectedIndicator && (
+          <HealthIndicatorModal
+            indicator={selectedIndicator}
+            stats={stats}
+            onClose={() => setSelectedIndicator(null)}
+          />
+        )}
       </div>
     );
   };
