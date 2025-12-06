@@ -315,7 +315,6 @@ App.jsx
 └── AdminDashboard.jsx
     ├── UserManagement
     ├── PermissionsManagement
-    ├── FormConfigurationEditor
     └── ApiKeyManagement
 ```
 
@@ -614,12 +613,8 @@ Top-level route components representing application views:
 - `UserManagement.jsx` - User CRUD operations
 - `UserForm.jsx` - User creation/editing form
 - `PermissionsManagement.jsx` - Role-based access control
-- `FormConfigurationEditor.jsx` - Dynamic form builder
-- `FormConfiguration.jsx` - Form configuration viewer
 - `ApiKeyManagement.jsx` - API key lifecycle
 - `SystemSettings.jsx` - Global configuration
-- `TemplateManagement.jsx` - Ticket template editor
-- `TemplateFormManagement.jsx` - Template form editor
 
 **UI Components:**
 - `StatusBadge.jsx` - Colored status indicators
@@ -2562,10 +2557,10 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 #### 9.3.2 Database-Driven Configuration
 
-FormConfiguration collection enables runtime changes:
+FormConfiguration collection stores form definitions:
 
 ```javascript
-// No code changes needed to:
+// Form configurations managed via seed scripts:
 // - Add new form fields
 // - Reorder sections
 // - Change field visibility
@@ -2573,10 +2568,10 @@ FormConfiguration collection enables runtime changes:
 ```
 
 **Benefits:**
-- Business users can modify forms
-- No deployment required for configuration changes
-- A/B testing different form layouts
-- Rapid iteration on business processes
+- Version-controlled form configurations
+- Consistent deployment across environments
+- Reviewable changes via pull requests
+- No accidental production changes
 
 ### 9.4 Error Handling & Debugging
 

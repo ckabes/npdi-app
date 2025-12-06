@@ -11,7 +11,7 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **Status Workflow**: DRAFT → SUBMITTED → IN_PROCESS → NPDI_INITIATED → COMPLETED/CANCELED with audit trail
 - **NPDI Integration**: Seamless transition to official NPDI system with ticket number synchronization
 - **SBU Organization**: Tickets organized by Strategic Business Unit
-- **Dynamic Form Configuration**: Customizable form fields with live preview editor
+- **Dynamic Form Configuration**: Database-driven form rendering with seed script management
 
 ### Chemical Data Management
 - **Chemical Properties**: CAS numbers, molecular formulas, physical states, purity ranges
@@ -283,7 +283,6 @@ The application uses a profile-based authentication system:
 - Full system access and configuration
 - User management and role assignments
 - API key management for external integrations
-- Form configuration editor
 - System settings management
 - All PM-OPS permissions
 - Access to admin dashboard
@@ -325,10 +324,12 @@ The application uses a profile-based authentication system:
 - `POST /api/admin/api-keys` - Generate new API key
 - `DELETE /api/admin/api-keys/:id` - Revoke API key
 
-### Form Configuration
-- `GET /api/form-config` - Get current form configuration
-- `PUT /api/form-config` - Update form configuration
-- `POST /api/form-config/restore-default` - Restore default configuration
+### Form Configuration (Read-Only)
+- `GET /api/form-config/active` - Get active form configuration
+- `GET /api/form-config/all` - Get all form configurations
+- `GET /api/form-config/:id` - Get specific form configuration
+
+**Note:** Form configurations are managed via seed scripts (`server/scripts/seedFormConfig.js`) for version control.
 
 ### System Settings
 - `GET /api/system-settings` - Get system settings

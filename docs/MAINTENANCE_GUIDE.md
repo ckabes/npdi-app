@@ -3027,24 +3027,22 @@ All endpoints follow consistent error handling:
 
 ### **11. Form System**
 
-The NPDI Portal features a sophisticated dynamic form system that allows administrators to configure what fields are shown, required, and editable without changing code.
+The NPDI Portal features a sophisticated dynamic form system where form configurations are stored in MongoDB and rendered dynamically.
 
 #### **11.1 Form System Overview**
 
-The form system consists of three main components:
-1. **Form Configuration** - Database-stored definition of all form sections and fields
+The form system consists of two main components:
+1. **Form Configuration** - Database-stored definition of all form sections and fields (managed via seed scripts)
 2. **DynamicFormSection Component** - React component that renders forms based on configuration
-3. **FormConfigurationEditor** - Admin interface to modify form configuration
 
 **Key Features:**
-- ✅ Add, remove, or reorder fields without code changes
-- ✅ Set field visibility, editability, and requirements dynamically
 - ✅ Conditional field visibility based on other field values
 - ✅ Support for multiple field types (text, number, select, date, radio, checkbox, etc.)
 - ✅ Field validation rules (min, max, pattern, required)
 - ✅ Default values and dropdown options
-- ✅ Live preview of form changes
-- ✅ Restore to default configuration
+- ✅ Centralized form configuration stored in MongoDB
+
+**Note:** Form configurations are managed via seed scripts (`server/scripts/seedFormConfig.js`) rather than through a UI editor. This ensures configurations are version-controlled and deployed consistently across environments.
 
 #### **11.2 Form Configuration Structure**
 
@@ -3215,55 +3213,58 @@ function CreateTicket() {
 5. Show error messages from form validation
 6. Apply SAP import highlighting if applicable
 
-#### **11.6 Form Configuration Editor**
+#### **11.6 Modifying Form Configuration**
 
-**Location:** `client/src/components/admin/FormConfigurationEditor.jsx`
-**Access:** Admin panel → Form Configuration (ADMIN role only)
+**Note:** Form configurations are managed through seed scripts for version control and consistency across environments.
 
-**Features:**
+**To modify form configuration:**
 
-**1. Split-Screen Interface:**
-- Left panel: Form editor with all configuration options
-- Right panel: Live preview showing how form will appear
+**1. Edit the Seed Script:**
+```bash
+cd server/scripts
+nano seedFormConfig.js
+```
 
-**2. Section Management:**
-- Add new sections with custom titles and descriptions
-- Reorder sections via drag-and-drop
-- Delete sections (with confirmation)
-- Toggle section visibility
-- Collapse/expand sections for easier editing
+**2. Modify the Configuration:**
+The seed script contains the form configuration as a JavaScript object. Make your changes:
+- Add/remove/modify sections
+- Add/remove/modify fields
+- Update field properties (required, visible, editable, etc.)
+- Set validation rules
+- Configure conditional visibility
 
-**3. Field Management:**
-- Add new fields to any section
-- Configure all field properties:
-  - Name, label, type
-  - Required, editable, visible flags
-  - Default value
-  - Placeholder text
-  - Validation rules
-- Inline options editor for dropdown and radio fields
-- Select default value from dropdown/radio options
-- Delete fields (with confirmation)
-- Reorder fields within a section
+**3. Run the Seed Script:**
+```bash
+# From the server/scripts directory
+node seedFormConfig.js
+```
 
-**4. Conditional Visibility Editor:**
-- Set up `visibleWhen` conditions visually
-- Select dependent field from dropdown
-- Choose required value(s)
-- Preview conditions in real-time
+**4. Verify Changes:**
+- Restart the application
+- Navigate to create/edit ticket
+- Verify your form changes appear correctly
 
-**5. Restore Default Configuration:**
-- One-click restore to factory defaults
-- Confirmation dialog to prevent accidental resets
-- Useful for recovering from misconfiguration
+**Advantages of Script-Based Configuration:**
+- ✅ Version controlled in Git
+- ✅ Consistent across development, staging, and production
+- ✅ Easy to review changes in pull requests
+- ✅ Can be deployed automatically with code
+- ✅ No risk of accidental UI-based changes in production
 
-**Workflow:**
-1. Navigate to Admin Dashboard
-2. Click "Form Configuration" in admin menu
-3. Make changes in left panel
-4. Preview changes in right panel in real-time
-5. Click "Save Configuration" when satisfied
-6. Changes immediately apply to all forms
+**Example - Adding a New Field:**
+```javascript
+{
+  fieldKey: 'expirationDate',
+  label: 'Expiration Date',
+  type: 'date',
+  required: false,
+  visible: true,
+  editable: true,
+  helpText: 'Product expiration date'
+}
+```
+
+**For future discriminator pattern:** When implementing multiple ticket types (chemical, instrument, etc.), each type will have its own form configuration managed via seed scripts.
 
 #### **11.7 Field Validation**
 
@@ -5696,140 +5697,133 @@ This part provides step-by-step instructions for routine maintenance tasks that 
 
 ### **19. Modifying Form Configuration**
 
-**Task:** Add, remove, or modify form fields without changing code
+**Task:** Modify form fields and sections
 
-**Who Can Do This:** ADMIN only
+**Who Can Do This:** Developers with repository access
 
-**Scenarios:**
+**When to Use:** Adding/removing form fields, changing validation rules, updating field labels
 
-#### **19.1 Adding a New Field**
+#### **19.1 Locate the Seed Script**
 
-**Steps:**
-
-1. **Navigate to Form Configuration Editor**
-   ```
-   Admin Dashboard → Form Configuration
-   ```
-
-2. **Find the Section** where you want to add the field
-   - Expand the section by clicking on it
-
-3. **Click "Add Field" Button** in that section
-
-4. **Configure the New Field:**
-   - **Field Name:** Internal identifier (camelCase, no spaces)
-     - Example: `expirationDate`, `batchNumber`, `supplierContact`
-   - **Label:** User-facing label
-     - Example: "Expiration Date", "Batch Number", "Supplier Contact"
-   - **Type:** Select field type:
-     - text, number, email, date, select, radio, checkbox, textarea, etc.
-   - **Required:** Check if field must be filled
-   - **Editable:** Check if users can edit (uncheck for read-only)
-   - **Visible:** Check if field should be displayed
-   - **Default Value:** Optional default value
-   - **Placeholder:** Hint text shown in empty field
-
-5. **For Select/Radio Fields, Add Options:**
-   - Click "Edit Options"
-   - Enter options one per line or comma-separated
-   - Example: `Option 1, Option 2, Option 3`
-   - Click "Save Options"
-
-6. **Set Validation Rules** (optional):
-   - Min/Max values (for numbers)
-   - Min/Max length (for text)
-   - Pattern (regex for validation)
-   - Custom error message
-
-7. **Configure Conditional Visibility** (optional):
-   - Click "Set Visibility Condition"
-   - Select dependent field from dropdown
-   - Enter required value(s)
-   - Field will only show when condition is met
-
-8. **Preview the Change**
-   - Look at right panel (live preview)
-   - Verify field appears correctly
-   - Test visibility conditions if configured
-
-9. **Click "Save Configuration"**
-   - Changes saved to database
-   - All forms immediately updated
-   - Users will see new field on next page load
-
-10. **Update Backend Model** (if field needs to be saved):
-    
-    Edit `server/models/ProductTicket.js`:
-    ```javascript
-    // Add new field to schema
-    const productTicketSchema = new mongoose.Schema({
-      // ... existing fields
-      expirationDate: {
-        type: Date,
-        required: false
-      },
-      // ... more fields
-    });
-    ```
-    
-    Restart server:
-    ```bash
-    cd ~/npdi-app/server
-    pkill -f "node.*server"
-    npm start
-    ```
-
-#### **19.2 Removing a Field**
-
-**Steps:**
-
-1. Navigate to Form Configuration Editor
-2. Find the section containing the field
-3. Click "Delete" button (trash icon) next to the field
-4. Confirm deletion in popup
-5. Preview to verify field is gone
-6. Click "Save Configuration"
-
-**⚠️ Warning:** Deleting a field does NOT delete existing data. Old tickets will still have that field's data, but it won't be displayed in forms.
-
-#### **19.3 Reordering Fields**
-
-**Steps:**
-
-1. Navigate to Form Configuration Editor
-2. Find the section with fields to reorder
-3. Use drag-and-drop handles to reorder fields
-4. Drop field in new position
-5. Preview to verify new order
-6. Click "Save Configuration"
-
-#### **19.4 Making a Field Required/Optional**
-
-**Steps:**
-
-1. Navigate to Form Configuration Editor
-2. Find the field to modify
-3. Check or uncheck "Required" checkbox
-4. Preview changes
-5. Click "Save Configuration"
-
-**Note:** Making a previously optional field required will NOT retroactively invalidate old tickets. Only new/edited tickets will require that field.
-
-#### **19.5 Restoring Default Configuration**
-
-If configuration becomes corrupted or you want to start fresh:
-
-1. Navigate to Form Configuration Editor
-2. Click "Restore Default Configuration" button at bottom
-3. Confirm in popup (⚠️ This will overwrite ALL custom changes)
-4. Default configuration loads
-5. All custom fields and changes are lost (unless you have a backup)
-
-**Best Practice:** Before restoring defaults, export current configuration:
 ```bash
-# Export current config to backup
-curl http://localhost:5000/api/form-config > ~/form-config-backup-$(date +%Y%m%d).json
+cd /home/ckabes/npdi-app/server/scripts
+ls -la seedFormConfig.js
 ```
+
+#### **19.2 Edit the Configuration**
+
+```bash
+# Use your preferred editor
+nano seedFormConfig.js
+# or
+code seedFormConfig.js
+```
+
+The configuration structure:
+```javascript
+const formConfig = {
+  name: 'Product Ticket Form - Default',
+  sections: [
+    {
+      sectionKey: 'basic',
+      name: 'Basic Information',
+      visible: true,
+      fields: [
+        {
+          fieldKey: 'productName',
+          label: 'Product Name',
+          type: 'text',
+          required: true,
+          visible: true,
+          editable: true
+        }
+        // More fields...
+      ]
+    }
+    // More sections...
+  ]
+};
+```
+
+#### **19.3 Common Modifications**
+
+**Add a new field:**
+```javascript
+{
+  fieldKey: 'expirationDate',
+  label: 'Expiration Date',
+  type: 'date',
+  required: false,
+  visible: true,
+  editable: true,
+  helpText: 'Product expiration date'
+}
+```
+
+**Make a field required:**
+```javascript
+required: true  // Change from false to true
+```
+
+**Add conditional visibility:**
+```javascript
+visibleWhen: {
+  fieldKey: 'productionType',
+  value: 'Procured'
+}
+```
+
+**Add validation:**
+```javascript
+validation: {
+  min: 0,
+  max: 100,
+  pattern: '^[A-Z0-9]+$',
+  message: 'Custom error message'
+}
+```
+
+#### **19.4 Run the Seed Script**
+
+```bash
+cd /home/ckabes/npdi-app/server/scripts
+node seedFormConfig.js
+```
+
+Expected output:
+```
+Connected to MongoDB
+Form configuration seeded/updated successfully
+Connection closed
+```
+
+#### **19.5 Verify Changes**
+
+1. Restart the application (if running):
+```bash
+# Stop existing process
+pkill -f "npm.*dev"
+
+# Start again
+cd /home/ckabes/npdi-app
+npm run dev
+```
+
+2. Navigate to ticket creation page
+3. Verify your changes appear correctly
+
+#### **19.6 Commit Changes to Git**
+
+```bash
+git add server/scripts/seedFormConfig.js
+git commit -m "Update form configuration: [describe change]"
+git push
+```
+
+**Troubleshooting:**
+- **Changes don't appear:** Restart the application, clear browser cache
+- **Seed script fails:** Check JavaScript syntax, verify MongoDB connection
+- **Fields not validating:** Check validation rules match field type
 
 ---
 
@@ -8553,7 +8547,6 @@ npdi-app/
 │   ├── src/
 │   │   ├── components/         # React components
 │   │   │   ├── admin/         # Admin-only components
-│   │   │   │   ├── FormConfigurationEditor.jsx
 │   │   │   │   ├── MARASearchPopup.jsx
 │   │   │   │   ├── SimilarProductsPopup.jsx
 │   │   │   │   └── SystemSettings.jsx

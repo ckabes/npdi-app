@@ -8,7 +8,9 @@
     "sbu": "Life Science",
     "assignedTemplate": "Default",
     "isActive": true,
-    "createdAt": "2024-01-01T00:00:00.000Z"
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "templateId": "68ed3c44c7b75bdac03b1912",
+    "updatedAt": "2025-12-06T00:13:10.112Z"
   },
   {
     "id": "pm-ops",
