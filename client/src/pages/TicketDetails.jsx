@@ -1002,6 +1002,15 @@ const TicketDetails = () => {
                 </div>
               )}
             </div>
+
+            {/* Subtle ticket name footer */}
+            {ticket && (
+              <div className="mt-8 pb-4 text-center">
+                <p className="text-xs text-gray-300 font-light">
+                  {ticket.productName}
+                </p>
+              </div>
+            )}
         </>
       )}
 
