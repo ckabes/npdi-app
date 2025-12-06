@@ -32,21 +32,33 @@ export const AuthProvider = ({ children }) => {
     // Fetch available profiles
     fetchProfiles();
 
-    // Check for stored token on mount
-    const storedToken = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('user');
+    // Check for stored profile selection (dev mode)
+    const storedProfileId = localStorage.getItem('selectedProfile');
+    const storedProfileData = localStorage.getItem('currentProfileData');
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    if (storedProfileId && storedProfileData) {
+      try {
+        const profile = JSON.parse(storedProfileData);
+        setUser(profile);
+        // Generate a dev mode token for consistency
+        setToken(`dev-token-${storedProfileId}`);
+      } catch (error) {
+        console.error('Error parsing stored profile data:', error);
+        // Clear invalid data
+        localStorage.removeItem('selectedProfile');
+        localStorage.removeItem('currentProfileData');
+      }
     }
+
     setLoading(false);
   }, []);
 
   const selectProfile = (profileId) => {
     const profile = profiles.find(p => p.id === profileId);
     if (profile) {
+      const devToken = `dev-token-${profileId}`;
       setUser(profile);
+      setToken(devToken);
       localStorage.setItem('selectedProfile', profileId);
       localStorage.setItem('currentProfileData', JSON.stringify(profile));
     }
