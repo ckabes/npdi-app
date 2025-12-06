@@ -51,8 +51,7 @@ const weightMatrixSchema = new mongoose.Schema({
   }
 });
 
-// Index for fast lookups
-weightMatrixSchema.index({ size: 1 });
+// Index for fast lookups (size field already indexed via unique: true)
 weightMatrixSchema.index({ 'normalizedSize.value': 1, 'normalizedSize.unit': 1 });
 
 // Pre-save hook to update timestamp

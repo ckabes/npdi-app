@@ -34,8 +34,7 @@ const BusinessLineSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Indexes for efficient querying
-BusinessLineSchema.index({ code: 1 });
+// Indexes for efficient querying (code field already indexed via unique: true)
 BusinessLineSchema.index({ description: 1 });
 BusinessLineSchema.index({ active: 1 });
 

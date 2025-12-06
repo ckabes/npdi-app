@@ -86,8 +86,7 @@ const parserConfigurationSchema = new mongoose.Schema({
   }
 });
 
-// Indexes for fast lookups
-parserConfigurationSchema.index({ configType: 1 });
+// Indexes for fast lookups (configType field already indexed via unique: true)
 parserConfigurationSchema.index({ 'entries.key': 1 });
 parserConfigurationSchema.index({ 'entries.category': 1 });
 
