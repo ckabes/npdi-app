@@ -21,6 +21,7 @@ import { StatusBadge, PriorityBadge } from '../components/badges';
 import { ProductTicketForm } from '../components/forms';
 import UNSPSCSelector from '../components/forms/UNSPSCSelector';
 import PMOpsTabView from '../components/PMOpsTabView';
+import DynamicTicketView from '../components/DynamicTicketView';
 
 const TicketDetails = () => {
   const { id } = useParams();
@@ -804,7 +805,23 @@ const TicketDetails = () => {
               </div>
 
               {/* Main Tabbed Content - Full Width */}
-              <PMOpsTabView ref={pmopsTabViewRef} ticket={ticket} onTicketUpdate={fetchTicket} />
+              {/* Use template-based view for closed tickets (if template exists), existing view for active tickets */}
+              {ticket.status === 'COMPLETED' || ticket.status === 'CANCELED' ? (
+                ticket.template ? (
+                  <div className="card">
+                    <DynamicTicketView
+                      ticket={ticket}
+                      template={ticket.template}
+                    />
+                  </div>
+                ) : (
+                  // Fallback to PMOpsTabView for old closed tickets without templates
+                  <PMOpsTabView ref={pmopsTabViewRef} ticket={ticket} onTicketUpdate={fetchTicket} />
+                )
+              ) : (
+                // Active tickets always use the existing PMOpsTabView
+                <PMOpsTabView ref={pmopsTabViewRef} ticket={ticket} onTicketUpdate={fetchTicket} />
+              )}
 
               {/* Comments - Full Width, Below Content */}
               <div className="card">
