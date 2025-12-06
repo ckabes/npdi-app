@@ -288,8 +288,6 @@ const generateDataExport = async (ticket) => {
     if (pricing.standardCosts) {
       addSubSection('Standard Costs');
       addField('Raw Material Cost Per Unit', pricing.standardCosts.rawMaterialCostPerUnit);
-      addField('Packaging Cost', pricing.standardCosts.packagingCost);
-      addField('Labor Overhead Cost', pricing.standardCosts.laborOverheadCost);
     }
 
     addField('Calculated At', pricing.calculatedAt ? new Date(pricing.calculatedAt).toLocaleString() : '');

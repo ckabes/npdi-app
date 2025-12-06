@@ -35,7 +35,10 @@ const ProductTicketForm = ({
   onSubmit,
   onCancel,
   user,
-  showHeader = true // Whether to show the MilliporeSigma branding header
+  showHeader = true, // Whether to show the MilliporeSigma branding header
+  missingRequiredFields = [], // Array of field keys that are missing and required for submission
+  attemptedSubmit = false, // Whether submission has been attempted (for showing validation)
+  submissionRequirements = [] // Array of field keys that are required for submission
 }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -1544,6 +1547,8 @@ const ProductTicketForm = ({
                         onOpenGPHSelector={handleOpenGPHSelector}
                         onFieldEdit={handleFieldEdit}
                         glowFields={sialFieldGlow ? new Set(['sialProductHierarchy']) : new Set()}
+                        missingRequiredFields={missingRequiredFields}
+                        submissionRequirements={submissionRequirements}
                       />
                     );
                 }

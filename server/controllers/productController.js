@@ -8,6 +8,7 @@ const palantirService = require('../services/palantirService');
 const { cleanTicketData, ensureDefaultSKU, ensureDefaultSBU } = require('../utils/enumCleaner');
 const { generatePDPChecklist } = require('../services/pdpChecklistExportService');
 const { generatePIF } = require('../services/pifExportService');
+const { validateSubmissionRequirements } = require('../utils/submissionValidator');
 
 // Extract current user information from request headers
 const getCurrentUser = (req) => {
@@ -67,6 +68,20 @@ const createTicket = async (req, res) => {
     // PMOps will manually move them to IN_PROCESS when they start working on them
     if (!ticketData.status || ticketData.status === '') {
       ticketData.status = 'SUBMITTED';
+    }
+
+    // Validate submission requirements if status is SUBMITTED
+    if (ticketData.status === 'SUBMITTED') {
+      const validation = await validateSubmissionRequirements(ticketData, currentUser.email);
+
+      if (!validation.isValid) {
+        return res.status(400).json({
+          message: 'Cannot submit ticket: required fields are missing',
+          error: 'Submission Requirements Not Met',
+          missingFields: validation.missingFields,
+          requiredFieldKeys: validation.requiredFieldKeys
+        });
+      }
     }
 
     // Use utility functions to clean and ensure defaults
@@ -630,12 +645,28 @@ const updateTicketStatus = async (req, res) => {
     let filter = { _id: id, ...req.sbuFilter };
 
     const ticket = await ProductTicket.findOne(filter);
-    
+
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found or access denied' });
     }
 
     const oldStatus = ticket.status;
+
+    // Validate submission requirements if changing status to SUBMITTED
+    if (status === 'SUBMITTED' && oldStatus !== 'SUBMITTED') {
+      const currentUser = getCurrentUser(req);
+      const validation = await validateSubmissionRequirements(ticket.toObject(), currentUser.email);
+
+      if (!validation.isValid) {
+        return res.status(400).json({
+          message: 'Cannot submit ticket: required fields are missing',
+          error: 'Submission Requirements Not Met',
+          missingFields: validation.missingFields,
+          requiredFieldKeys: validation.requiredFieldKeys
+        });
+      }
+    }
+
     ticket.status = status;
     
     // Enhanced status change tracking

@@ -921,42 +921,8 @@ const defaultFormConfig = {
           editable: true,
           defaultValue: 0.50,
           helpText: 'Cost of raw materials per base unit',
-          gridColumn: 'third',
+          gridColumn: 'half',
           order: 2,
-          isCustom: false,
-          validation: {
-            min: 0,
-            step: 0.01
-          }
-        },
-        {
-          fieldKey: 'packagingCost',
-          label: 'Packaging Cost ($/unit)',
-          type: 'number',
-          required: false,
-          visible: true,
-          editable: true,
-          defaultValue: 2.50,
-          helpText: 'Packaging cost per base unit',
-          gridColumn: 'third',
-          order: 3,
-          isCustom: false,
-          validation: {
-            min: 0,
-            step: 0.01
-          }
-        },
-        {
-          fieldKey: 'laborOverheadCost',
-          label: 'Labor & Overhead ($/unit)',
-          type: 'number',
-          required: false,
-          visible: true,
-          editable: true,
-          defaultValue: 5.00,
-          helpText: 'Labor and overhead costs per base unit',
-          gridColumn: 'third',
-          order: 4,
           isCustom: false,
           validation: {
             min: 0,
@@ -973,7 +939,7 @@ const defaultFormConfig = {
           defaultValue: 50,
           helpText: 'Target profit margin percentage',
           gridColumn: 'half',
-          order: 5,
+          order: 3,
           isCustom: false,
           validation: {
             min: 0,

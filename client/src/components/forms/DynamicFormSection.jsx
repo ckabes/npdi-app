@@ -17,7 +17,9 @@ const DynamicFormSection = ({
   onOpenSimilarProducts = null,  // Handler for similar products search button
   onOpenGPHSelector = null,  // Handler for Product Hierarchy (GPH) selector button
   onFieldEdit = null,  // Handler for when SAP-imported field is edited (removes green highlight)
-  glowFields = new Set()  // Set of field keys that should have a green glow effect
+  glowFields = new Set(),  // Set of field keys that should have a green glow effect
+  missingRequiredFields = [],  // Array of field keys that are missing and required for submission
+  submissionRequirements = []  // Array of field keys that are required for submission
 }) => {
   if (!section || !section.visible) return null;
 
@@ -158,9 +160,14 @@ const DynamicFormSection = ({
     // Add glow effect for auto-populated fields
     const glowEffect = glowFields.has(field.fieldKey) ? 'animate-glow-green' : '';
 
+    // Add red border for missing required fields
+    const isMissingRequired = missingRequiredFields.includes(field.fieldKey);
+    const isRequired = submissionRequirements.includes(field.fieldKey);
+    const requiredBorder = isMissingRequired ? 'border-2 border-red-500 focus:border-red-600 focus:ring-red-500' : '';
+
     const baseInputClass = isReadOnly
-      ? `form-input bg-gray-50 cursor-not-allowed ${sapHighlight} ${glowEffect}`
-      : `form-input ${sapHighlight} ${glowEffect}`;
+      ? `form-input bg-gray-50 cursor-not-allowed ${sapHighlight} ${glowEffect} ${requiredBorder}`
+      : `form-input ${sapHighlight} ${glowEffect} ${requiredBorder}`;
 
     // Check if there's metadata description for this field
     const metadataKey = `${field.fieldKey}Description`;
@@ -573,15 +580,20 @@ const DynamicFormSection = ({
       <div key={field.fieldKey} className={gridClass}>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {field.label}
-          {field.required && <span className="text-red-500 ml-1">*</span>}
+          {isRequired && <span className="text-red-500 ml-1">*</span>}
         </label>
         {renderInput()}
+        {isMissingRequired && (
+          <p className="mt-1 text-xs text-red-600 font-medium">
+            This field is required for ticket submission
+          </p>
+        )}
         {hasMetadata && (
           <p className="mt-1 text-xs text-gray-500 italic">
             {sapMetadata[metadataKey]}
           </p>
         )}
-        {field.helpText && (
+        {field.helpText && !isMissingRequired && (
           <p className="mt-1 text-xs text-gray-500">{field.helpText}</p>
         )}
         {error && (

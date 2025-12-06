@@ -555,14 +555,6 @@ const productTicketSchema = new mongoose.Schema({
       rawMaterialCostPerUnit: {
         type: Number,
         default: 0.50
-      },
-      packagingCost: {
-        type: Number,
-        default: 2.50
-      },
-      laborOverheadCost: {
-        type: Number,
-        default: 5.00
       }
     },
     targetMargin: {

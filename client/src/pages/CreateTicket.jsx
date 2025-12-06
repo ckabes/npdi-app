@@ -9,6 +9,8 @@ import { ProductTicketForm } from '../components/forms';
 const CreateTicket = () => {
   const [template, setTemplate] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const [missingRequiredFields, setMissingRequiredFields] = useState([]);
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const { user, isPMOPS } = useAuth();
   const navigate = useNavigate();
 
@@ -129,6 +131,8 @@ const CreateTicket = () => {
 
   const onSubmit = async (data) => {
     try {
+      setAttemptedSubmit(true);
+
       // Include template ID with ticket data
       const ticketData = {
         ...data,
@@ -148,7 +152,20 @@ const CreateTicket = () => {
       // Enhanced error handling with validation details
       const errorData = error.response?.data;
 
-      if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
+      // Handle submission requirements validation errors
+      if (errorData?.error === 'Submission Requirements Not Met' && errorData?.missingFields) {
+        setMissingRequiredFields(errorData.missingFields.map(f => f.fieldKey));
+
+        // Show comprehensive error message
+        const fieldLabels = errorData.missingFields.map(f => f.fieldLabel).join(', ');
+        toast.error(
+          `Cannot submit: Please fill in the following required fields: ${fieldLabels}`,
+          { duration: 7000 }
+        );
+
+        // Scroll to top so user can see highlighted fields
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
         // Show each validation error
         errorData.validationErrors.forEach((msg, index) => {
           setTimeout(() => {
@@ -182,6 +199,9 @@ const CreateTicket = () => {
       onSubmit={onSubmit}
       onCancel={handleCancel}
       user={user}
+      missingRequiredFields={missingRequiredFields}
+      attemptedSubmit={attemptedSubmit}
+      submissionRequirements={template?.submissionRequirements || []}
     />
   );
 };
