@@ -188,10 +188,9 @@ export const userAPI = {
 };
 
 export const templatesAPI = {
-  getAll: (includeUsers = false) => apiClient.get('/templates', { params: { includeUsers } }),
+  getAll: () => apiClient.get('/templates'),
   getById: (id) => apiClient.get(`/templates/${id}`),
   getUserTemplate: (email, role) => apiClient.get(`/templates/user/${email}?role=${role}`),
-  getAssignedUsers: (id) => apiClient.get(`/templates/${id}/assigned-users`),
   updateRequirements: (id, submissionRequirements, updatedBy) =>
     apiClient.patch(`/templates/${id}/requirements`, { submissionRequirements, updatedBy })
 };

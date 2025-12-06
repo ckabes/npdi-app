@@ -7,33 +7,16 @@ const cacheService = require('../services/cacheService');
 // Get all templates
 router.get('/', async (req, res) => {
   try {
-    const includeUsers = req.query.includeUsers === 'true';
-
     // Try to get from cache first
-    const cacheKey = includeUsers ? 'all-with-users' : 'all';
     const templates = await cacheService.getOrSet(
       'templates',
-      cacheKey,
+      'all',
       async () => {
         const templatesData = await TicketTemplate.find({ isActive: true })
           .populate('formConfiguration')
           .sort({ isDefault: -1, name: 1 })
           .limit(50) // Safety limit to prevent unbounded queries
           .lean();
-
-        if (includeUsers) {
-          // For each template, find assigned users
-          for (const template of templatesData) {
-            const assignedUsers = await User.find({
-              ticketTemplate: template._id,
-              isActive: true
-            })
-            .select('email firstName lastName role sbu')
-            .lean();
-
-            template.assignedUsers = assignedUsers;
-          }
-        }
 
         return templatesData;
       },
@@ -130,24 +113,6 @@ router.get('/user/:email', async (req, res) => {
   }
 });
 
-// Get users assigned to a specific template
-router.get('/:id/assigned-users', async (req, res) => {
-  try {
-    const templateId = req.params.id;
-
-    const assignedUsers = await User.find({
-      ticketTemplate: templateId,
-      isActive: true
-    })
-    .select('email firstName lastName role sbu')
-    .lean();
-
-    res.json(assignedUsers);
-  } catch (error) {
-    console.error('Error fetching assigned users:', error);
-    res.status(500).json({ message: 'Failed to fetch assigned users', error: error.message });
-  }
-});
 
 // Update submission requirements for a template
 router.patch('/:id/requirements', async (req, res) => {

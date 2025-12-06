@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { templatesAPI } from '../services/api';
 import {
   DocumentTextIcon,
-  UserGroupIcon,
   CheckCircleIcon,
   XCircleIcon,
   ChevronDownIcon,
@@ -25,7 +24,7 @@ const TemplateManager = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await templatesAPI.getAll(true); // Include users
+      const response = await templatesAPI.getAll();
       setTemplates(response.data);
 
       // All templates collapsed by default
@@ -204,10 +203,6 @@ const TemplateManager = () => {
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <div className="flex items-center space-x-1">
-                      <UserGroupIcon className="h-4 w-4" />
-                      <span>{template.assignedUsers?.length || 0} users</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
                       <CheckCircleIcon className="h-4 w-4" />
                       <span>
                         {template.submissionRequirements?.length || 0} required fields
@@ -220,34 +215,6 @@ const TemplateManager = () => {
               {/* Template Content */}
               {expandedTemplates[template._id] && (
                 <div className="p-6">
-                  {/* Assigned Users */}
-                  {template.assignedUsers && template.assignedUsers.length > 0 && (
-                    <div className="mb-6 bg-gray-50 rounded-lg p-4">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                        <UserGroupIcon className="h-4 w-4 mr-2" />
-                        Assigned Users
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {template.assignedUsers.map(user => (
-                          <div
-                            key={user.email}
-                            className="inline-flex items-center px-3 py-1 bg-white border border-gray-200 rounded-full text-sm"
-                          >
-                            <span className="font-medium text-gray-900">
-                              {user.firstName} {user.lastName}
-                            </span>
-                            <span className="ml-2 text-gray-500">({user.role})</span>
-                            {user.sbu && (
-                              <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
-                                {user.sbu}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {/* Form Sections and Fields */}
                   {template.formConfiguration?.sections ? (
                     <div className="space-y-4">
