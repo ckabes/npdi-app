@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const apiKeyController = require('../controllers/apiKeyController');
+const mongoExplorerController = require('../controllers/mongoExplorerController');
 const palantirService = require('../services/palantirService');
 const fs = require('fs').promises;
 const path = require('path');
@@ -51,5 +52,12 @@ router.put('/api-keys/:id', apiKeyController.updateApiKey);
 router.patch('/api-keys/:id/revoke', apiKeyController.revokeApiKey);
 router.delete('/api-keys/:id', apiKeyController.deleteApiKey);
 router.post('/api-keys/validate', apiKeyController.validateApiKey);
+
+// MongoDB Explorer Routes
+router.get('/mongo/collections', mongoExplorerController.getCollections);
+router.get('/mongo/collections/:collectionName/schema', mongoExplorerController.getCollectionSchema);
+router.get('/mongo/collections/:collectionName/documents', mongoExplorerController.getDocuments);
+router.get('/mongo/collections/:collectionName/documents/:documentId', mongoExplorerController.getDocumentById);
+router.get('/mongo/collections/:collectionName/search', mongoExplorerController.searchDocuments);
 
 module.exports = router;

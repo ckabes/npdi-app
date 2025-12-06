@@ -195,7 +195,17 @@ export const templatesAPI = {
 
 export const adminAPI = {
   getStats: () => apiClient.get('/admin/stats'),
-  testPalantir: () => apiClient.post('/admin/palantir/test-connection')
+  testPalantir: () => apiClient.post('/admin/palantir/test-connection'),
+
+  // MongoDB Explorer
+  getCollections: () => apiClient.get('/admin/mongo/collections'),
+  getCollectionSchema: (collectionName) => apiClient.get(`/admin/mongo/collections/${collectionName}/schema`),
+  getDocuments: (collectionName, params = {}) =>
+    apiClient.get(`/admin/mongo/collections/${collectionName}/documents`, { params }),
+  getDocumentById: (collectionName, documentId) =>
+    apiClient.get(`/admin/mongo/collections/${collectionName}/documents/${documentId}`),
+  searchDocuments: (collectionName, params = {}) =>
+    apiClient.get(`/admin/mongo/collections/${collectionName}/search`, { params })
 };
 
 export const weightMatrixAPI = {

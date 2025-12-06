@@ -10,7 +10,8 @@ import {
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
-  CogIcon
+  CogIcon,
+  CircleStackIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -44,7 +45,8 @@ const Layout = () => {
       { name: 'New Ticket', href: '/tickets/new', icon: PlusIcon }
     ] : []),
     ...(isAdmin ? [
-      { name: 'Admin Dashboard', href: '/admin', icon: CogIcon }
+      { name: 'Admin Dashboard', href: '/admin', icon: CogIcon },
+      { name: 'MongoDB Explorer', href: '/mongodb', icon: CircleStackIcon }
     ] : [])
   ];
 
