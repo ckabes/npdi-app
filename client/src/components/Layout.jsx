@@ -71,7 +71,7 @@ const Layout = () => {
       <div className="relative" style={{ zIndex: 1 }}>
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-40 md:hidden ${sidebarOpen ? '' : 'pointer-events-none'}`}>
-        <div className={`fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`} 
+        <div className={`fixed inset-0 bg-gray-600/75 transition-opacity ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`} 
              onClick={() => setSidebarOpen(false)} />
         
         <div className={`fixed inset-y-0 left-0 flex w-64 transform transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>

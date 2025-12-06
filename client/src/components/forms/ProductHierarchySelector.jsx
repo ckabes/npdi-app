@@ -247,7 +247,7 @@ const ProductHierarchySelector = ({ isOpen, onClose, onSelect, currentValue }) =
   // Show loading state while fetching data
   if (isLoadingData) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -261,7 +261,7 @@ const ProductHierarchySelector = ({ isOpen, onClose, onSelect, currentValue }) =
   // Show error state if data failed to load
   if (dataError) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
           <div className="text-center">
             <div className="text-red-600 mb-4">
@@ -307,7 +307,7 @@ const ProductHierarchySelector = ({ isOpen, onClose, onSelect, currentValue }) =
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
         <div
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+          className="fixed inset-0 transition-opacity bg-gray-500/75"
           onClick={onClose}
         ></div>
 

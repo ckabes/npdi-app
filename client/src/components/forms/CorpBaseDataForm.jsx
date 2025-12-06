@@ -220,7 +220,7 @@ const CorpBaseDataForm = ({
           <textarea
             {...register('corpbaseData.productDescription')}
             rows="4"
-            className={`form-input font-mono text-sm ${fieldsLoading.productDescription ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+            className={`form-input font-mono text-sm ${fieldsLoading.productDescription ? 'ring-2 ring-blue-500/50' : ''}`}
             placeholder={showGenerateButton && !readOnly ? "Click 'Generate with AI' to auto-generate HTML-formatted content..." : "HTML content"}
             readOnly={readOnly || isGenerating}
           />
@@ -235,7 +235,7 @@ const CorpBaseDataForm = ({
             <input
               {...register('corpbaseData.websiteTitle')}
               type="text"
-              className={`form-input ${fieldsLoading.websiteTitle ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+              className={`form-input ${fieldsLoading.websiteTitle ? 'ring-2 ring-blue-500/50' : ''}`}
               placeholder="SEO-optimized title for website"
               readOnly={readOnly}
             />
@@ -248,7 +248,7 @@ const CorpBaseDataForm = ({
             <textarea
               {...register('corpbaseData.metaDescription')}
               rows="2"
-              className={`form-input ${fieldsLoading.metaDescription ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+              className={`form-input ${fieldsLoading.metaDescription ? 'ring-2 ring-blue-500/50' : ''}`}
               placeholder="Brief description for search engines (150-160 characters)"
               readOnly={readOnly}
             />
@@ -278,7 +278,7 @@ const CorpBaseDataForm = ({
           <textarea
             {...register('corpbaseData.keyFeatures')}
             rows="3"
-            className={`form-input font-mono text-sm ${fieldsLoading.keyFeatures ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+            className={`form-input font-mono text-sm ${fieldsLoading.keyFeatures ? 'ring-2 ring-blue-500/50' : ''}`}
             placeholder="<ul>&#10;<li>High purity and quality</li>&#10;<li>Suitable for research applications</li>&#10;</ul>"
             readOnly={readOnly}
           />
@@ -308,7 +308,7 @@ const CorpBaseDataForm = ({
             <textarea
               {...register('corpbaseData.applications')}
               rows="3"
-              className={`form-input font-mono text-sm ${fieldsLoading.applications ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+              className={`form-input font-mono text-sm ${fieldsLoading.applications ? 'ring-2 ring-blue-500/50' : ''}`}
               placeholder="<ul>&#10;<li>Research and Development</li>&#10;<li>Laboratory Analysis</li>&#10;</ul>"
               readOnly={readOnly}
             />
@@ -321,7 +321,7 @@ const CorpBaseDataForm = ({
             <textarea
               {...register('corpbaseData.targetIndustries')}
               rows="3"
-              className={`form-input ${fieldsLoading.targetIndustries ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}`}
+              className={`form-input ${fieldsLoading.targetIndustries ? 'ring-2 ring-blue-500/50' : ''}`}
               placeholder="Pharmaceutical, Biotechnology, Research..."
               readOnly={readOnly}
             />
@@ -376,7 +376,7 @@ const CorpBaseDataForm = ({
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Background overlay */}
-            <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={() => setIsPreviewOpen(false)}></div>
+            <div className="fixed inset-0 transition-opacity bg-gray-500/75" onClick={() => setIsPreviewOpen(false)}></div>
 
             {/* Modal panel */}
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">

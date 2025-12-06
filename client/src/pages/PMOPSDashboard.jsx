@@ -568,7 +568,7 @@ const PMOPSDashboard = () => {
 
       {/* Monthly Rate Modal */}
       {showMonthlyRateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="bg-gradient-to-r from-millipore-blue to-blue-600 px-6 py-4 flex items-center justify-between rounded-t-lg">
               <h3 className="text-lg font-bold text-white">Monthly Rate Calculation</h3>
@@ -614,7 +614,7 @@ const PMOPSDashboard = () => {
 
       {/* This Week Modal */}
       {showThisWeekModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
             <div className="bg-gradient-to-r from-millipore-blue to-blue-600 px-6 py-4 flex items-center justify-between rounded-t-lg">
               <h3 className="text-lg font-bold text-white">This Week's Completion</h3>

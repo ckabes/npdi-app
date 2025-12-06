@@ -235,7 +235,7 @@ const GenericCRUDManager = ({
 
       {/* Rebuilding Loading Overlay */}
       {rebuilding && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/50">
           <div className="flex items-center justify-center min-h-screen px-4">
             <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
               <div className="text-center">
@@ -265,7 +265,7 @@ const GenericCRUDManager = ({
 
       {/* Rebuild Confirmation Modal */}
       {showRebuildConfirm && !rebuilding && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900/50">
           <div className="flex items-center justify-center min-h-screen px-4">
             <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full">
               <div className="flex items-start">

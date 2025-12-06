@@ -530,7 +530,7 @@ const ChemicalPropertiesForm = ({
                   + Add Property
                 </button>
                 {showAddPropertyMenu && (
-                  <div className="absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                  <div className="absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black/5 z-10">
                     <div className="py-1 max-h-64 overflow-y-auto">
                       {availableProperties
                         .filter(prop => !visibleProperties.includes(prop.key))
@@ -692,7 +692,7 @@ const ChemicalPropertiesForm = ({
 
       {/* Value Selection Modal */}
       {valueSelectionModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-gray-500/75 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Select {valueSelectionModal.propertyLabel} Value

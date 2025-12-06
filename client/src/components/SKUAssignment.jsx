@@ -181,7 +181,7 @@ const SKUAssignment = ({ ticket, onUpdate }) => {
           {errors.partNumber && (
             <p className="mt-2 text-sm text-red-600 font-medium">{errors.partNumber.message}</p>
           )}
-          <p className="mt-2 text-xs text-gray-700 bg-white bg-opacity-60 rounded p-2">
+          <p className="mt-2 text-xs text-gray-700 bg-white/60 rounded p-2">
             <span className="font-medium">Auto-generates:</span> {partNumber || '176036'}-BULK, {partNumber || '176036'}-CONF, {partNumber || '176036'}-100G (PREPACK), etc.
           </p>
         </div>

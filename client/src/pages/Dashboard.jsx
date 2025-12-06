@@ -687,7 +687,7 @@ const Dashboard = () => {
 
         {/* Monthly Rate Explanation Modal */}
         {showMonthlyRateModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-gray-600/50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
             <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -781,7 +781,7 @@ const Dashboard = () => {
 
         {/* This Week Explanation Modal */}
         {showThisWeekModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-gray-600/50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
             <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">

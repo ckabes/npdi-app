@@ -408,7 +408,7 @@ const ApiKeyManagement = () => {
 
       {/* Generate API Key Modal */}
       {showGenerateModal && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-gray-500/75 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">

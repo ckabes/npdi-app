@@ -223,7 +223,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
   // Loading screen overlay
   if (loadingAll) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/75">
         <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full mx-4">
           <div className="text-center">
             {/* Animated spinner */}
@@ -261,7 +261,7 @@ const UNSPSCSelector = ({ isOpen, onClose, onSelect, currentValue }) => {
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
         <div
-          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+          className="fixed inset-0 transition-opacity bg-gray-500/75"
           onClick={onClose}
         ></div>
 
