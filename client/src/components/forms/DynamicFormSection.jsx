@@ -187,9 +187,7 @@ const DynamicFormSection = ({
               />
             );
           }
-          const { onChange: textareaOnChange, ...textareaRegisterProps } = register(fieldPath, {
-            required: field.required ? `${field.label} is required` : false
-          });
+          const { onChange: textareaOnChange, ...textareaRegisterProps } = register(fieldPath);
           return (
             <textarea
               {...textareaRegisterProps}
@@ -216,7 +214,6 @@ const DynamicFormSection = ({
             );
           }
           const { onChange: numberOnChange, ...numberRegisterProps } = register(fieldPath, {
-            required: field.required ? `${field.label} is required` : false,
             valueAsNumber: true,
             ...(field.validation?.min !== undefined && { min: field.validation.min }),
             ...(field.validation?.max !== undefined && { max: field.validation.max })
@@ -252,9 +249,7 @@ const DynamicFormSection = ({
               </select>
             );
           }
-          const { onChange: selectOnChange, ...selectRegisterProps } = register(fieldPath, {
-            required: field.required ? `${field.label} is required` : false
-          });
+          const { onChange: selectOnChange, ...selectRegisterProps } = register(fieldPath);
           return (
             <select
               {...selectRegisterProps}
@@ -280,9 +275,7 @@ const DynamicFormSection = ({
                 <label key={option.value} className="inline-flex items-center cursor-pointer">
                   <input
                     type="radio"
-                    {...register(fieldPath, {
-                      required: field.required ? `${field.label} is required` : false
-                    })}
+                    {...register(fieldPath)}
                     value={option.value}
                     className="form-radio h-4 w-4 text-millipore-blue"
                     disabled={isReadOnly}
@@ -321,9 +314,7 @@ const DynamicFormSection = ({
           return (
             <input
               type="date"
-              {...register(fieldPath, {
-                required: field.required ? `${field.label} is required` : false
-              })}
+              {...register(fieldPath)}
               className={baseInputClass}
             />
           );
@@ -344,7 +335,6 @@ const DynamicFormSection = ({
             <input
               type="email"
               {...register(fieldPath, {
-                required: field.required ? `${field.label} is required` : false,
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                   message: 'Invalid email address'
@@ -370,9 +360,7 @@ const DynamicFormSection = ({
           return (
             <input
               type="url"
-              {...register(fieldPath, {
-                required: field.required ? `${field.label} is required` : false
-              })}
+              {...register(fieldPath)}
               className={baseInputClass}
               placeholder={field.placeholder}
             />
@@ -496,7 +484,6 @@ const DynamicFormSection = ({
                 placeholder={field.placeholder || 'Search plant code or description...'}
                 disabled={false}
                 className={sapHighlight}
-                required={field.required}
               />
             );
           }
@@ -519,13 +506,11 @@ const DynamicFormSection = ({
                 placeholder={field.placeholder || 'Search business line or description...'}
                 disabled={false}
                 className={sapHighlight}
-                required={field.required}
               />
             );
           }
 
           const { onChange: registerOnChange, ...registerProps } = register(fieldPath, {
-            required: field.required ? `${field.label} is required` : false,
             ...(field.validation?.pattern && {
               pattern: {
                 value: new RegExp(field.validation.pattern),
@@ -580,7 +565,6 @@ const DynamicFormSection = ({
       <div key={field.fieldKey} className={gridClass}>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           {field.label}
-          {isRequired && <span className="text-red-500 ml-1">*</span>}
         </label>
         {renderInput()}
         {isMissingRequired && (

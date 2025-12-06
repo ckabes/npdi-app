@@ -12,8 +12,7 @@ const PlantCodeAutocomplete = ({
   onBlur,
   placeholder = 'Search plant code or description...',
   disabled = false,
-  className = '',
-  required = false
+  className = ''
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [plantCodes, setPlantCodes] = useState([]);
@@ -174,7 +173,6 @@ const PlantCodeAutocomplete = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          required={required}
           className={`form-input ${className}`}
           autoComplete="off"
         />

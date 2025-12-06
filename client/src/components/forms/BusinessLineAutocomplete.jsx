@@ -12,8 +12,7 @@ const BusinessLineAutocomplete = ({
   onBlur,
   placeholder = 'Search business line or description...',
   disabled = false,
-  className = '',
-  required = false
+  className = ''
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [businessLines, setBusinessLines] = useState([]);
@@ -174,7 +173,6 @@ const BusinessLineAutocomplete = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          required={required}
           className={`form-input ${className}`}
           autoComplete="off"
         />
