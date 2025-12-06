@@ -468,6 +468,11 @@ const productTicketSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'  // Reference to the User model for populated queries
   },
+  template: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TicketTemplate',  // Reference to the template used to create this ticket
+    required: false
+  },
   assignedTo: {
     type: String,  // Email address from profile
     required: false

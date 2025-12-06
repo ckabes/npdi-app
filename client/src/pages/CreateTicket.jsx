@@ -129,7 +129,13 @@ const CreateTicket = () => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await productAPI.createTicket(data);
+      // Include template ID with ticket data
+      const ticketData = {
+        ...data,
+        template: template?._id || null
+      };
+
+      const response = await productAPI.createTicket(ticketData);
       toast.success('Product ticket created successfully!', { duration: 4000 });
 
       // Navigate to tickets list (dashboard) after successful creation

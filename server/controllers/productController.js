@@ -331,7 +331,13 @@ const getTicketById = async (req, res) => {
 
     // Note: createdBy, assignedTo, comments.user, and statusHistory.changedBy are String fields (email addresses), not ObjectId references
     const ticket = await ProductTicket.findOne(filter)
-      .populate('createdByUser', 'firstName lastName email');  // Populate user info for display
+      .populate('createdByUser', 'firstName lastName email')  // Populate user info for display
+      .populate({
+        path: 'template',
+        populate: {
+          path: 'formConfiguration'
+        }
+      });  // Populate template and its form configuration
 
     if (!ticket) {
       return res.status(404).json({ message: 'Ticket not found or access denied' });
