@@ -19,7 +19,10 @@ const PricingCalculationForm = ({
 }) => {
   const baseUnit = watch('baseUnit.unit') || 'g';
   const baseUnitValue = watch('baseUnit.value') || 0;
-  const rawMaterialCostPerUnit = watch('pricingData.standardCosts.rawMaterialCostPerUnit') || 0;
+  const rawMaterialCostPerUnitValue = watch('pricingData.standardCosts.rawMaterialCostPerUnit');
+  const rawMaterialCostPerUnit = rawMaterialCostPerUnitValue !== null && rawMaterialCostPerUnitValue !== undefined && rawMaterialCostPerUnitValue !== ''
+    ? parseFloat(rawMaterialCostPerUnitValue)
+    : 0;
   const currency = watch('currency') || 'USD';
 
   const currencySymbol = getCurrencySymbol(currency);
@@ -103,7 +106,7 @@ const PricingCalculationForm = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-gray-600">Standard Cost per Base Unit:</span>
               <span className="inline-flex items-center px-3 py-1 rounded-md text-sm font-semibold bg-blue-600 text-white">
-                {currencySymbol}{parseFloat(rawMaterialCostPerUnit).toFixed(2)} / {baseUnit || 'unit'}
+                {currencySymbol}{(isNaN(rawMaterialCostPerUnit) ? 0 : rawMaterialCostPerUnit).toFixed(2)} / {baseUnit || 'unit'}
               </span>
             </div>
             <p className="mt-1 text-xs text-gray-500">

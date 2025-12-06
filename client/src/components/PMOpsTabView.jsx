@@ -1000,51 +1000,53 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
           </div>
         )}
 
-        {/* Part Number Assignment */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">Part Number Assignment</h4>
-          <div className="flex items-center space-x-3">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Base Part Number
-              </label>
-              <input
-                type="text"
-                value={partNumber}
-                onChange={(e) => setPartNumber(e.target.value)}
-                placeholder="e.g., 1234567"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
-                disabled={savingPartNumber || (!!ticket.partNumber?.baseNumber && !editingSKUs) || isTicketLocked()}
-              />
-              {ticket.partNumber?.baseNumber && (
-                <p className="text-xs text-green-600 mt-1">
-                  ✓ Part number assigned: {ticket.partNumber.baseNumber}
-                </p>
+        {/* Part Number Assignment - PMOps/Admin Only */}
+        {(isPMOPS || isAdmin) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">Part Number Assignment</h4>
+            <div className="flex items-center space-x-3">
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Base Part Number
+                </label>
+                <input
+                  type="text"
+                  value={partNumber}
+                  onChange={(e) => setPartNumber(e.target.value)}
+                  placeholder="e.g., 1234567"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                  disabled={savingPartNumber || (!!ticket.partNumber?.baseNumber && !editingSKUs) || isTicketLocked()}
+                />
+                {ticket.partNumber?.baseNumber && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ Part number assigned: {ticket.partNumber.baseNumber}
+                  </p>
+                )}
+              </div>
+              {(!ticket.partNumber?.baseNumber || editingSKUs) && !isTicketLocked() && (
+                <button
+                  onClick={handleSavePartNumber}
+                  disabled={savingPartNumber || !partNumber.trim()}
+                  className="mt-5 bg-millipore-blue text-white px-4 py-2 rounded-md hover:bg-millipore-blue-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                >
+                  {savingPartNumber ? 'Saving...' : (ticket.partNumber?.baseNumber ? 'Update Part Number' : 'Assign Part Number')}
+                </button>
               )}
             </div>
-            {(!ticket.partNumber?.baseNumber || editingSKUs) && !isTicketLocked() && (
-              <button
-                onClick={handleSavePartNumber}
-                disabled={savingPartNumber || !partNumber.trim()}
-                className="mt-5 bg-millipore-blue text-white px-4 py-2 rounded-md hover:bg-millipore-blue-dark disabled:bg-gray-300 disabled:cursor-not-allowed text-sm font-medium transition-colors"
-              >
-                {savingPartNumber ? 'Saving...' : (ticket.partNumber?.baseNumber ? 'Update Part Number' : 'Assign Part Number')}
-              </button>
+            {basePartNumber && ticket.skuVariants && ticket.skuVariants.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <p className="text-xs font-medium text-gray-700 mb-2">Generated Part Numbers:</p>
+                <div className="flex flex-wrap gap-2">
+                  {ticket.skuVariants.map((variant, idx) => (
+                    <span key={idx} className="inline-flex items-center px-3 py-1 rounded-md text-xs font-mono bg-white border border-blue-300 text-gray-800">
+                      {basePartNumber}-{getPartNumberSuffix(variant)}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
-          {basePartNumber && ticket.skuVariants && ticket.skuVariants.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-blue-200">
-              <p className="text-xs font-medium text-gray-700 mb-2">Generated Part Numbers:</p>
-              <div className="flex flex-wrap gap-2">
-                {ticket.skuVariants.map((variant, idx) => (
-                  <span key={idx} className="inline-flex items-center px-3 py-1 rounded-md text-xs font-mono bg-white border border-blue-300 text-gray-800">
-                    {basePartNumber}-{getPartNumberSuffix(variant)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        )}
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -1576,8 +1578,9 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
       <nav className="w-56 border-r border-gray-200 flex-shrink-0" aria-label="Sections">
         <div className="py-4">
           {tabs.map((tab) => {
-            const needsPartNumber = tab.id === 'skus' && !ticket.partNumber?.baseNumber;
-            const needsBulk = tab.id === 'skus' && !hasBulkSKU;
+            // Only show flags to PMOps/Admin users
+            const needsPartNumber = (isPMOPS || isAdmin) && tab.id === 'skus' && !ticket.partNumber?.baseNumber;
+            const needsBulk = (isPMOPS || isAdmin) && tab.id === 'skus' && !hasBulkSKU;
             const showOrangeMarker = needsPartNumber;
             const showBlueMarker = !needsPartNumber && needsBulk; // Blue only if orange not shown
 

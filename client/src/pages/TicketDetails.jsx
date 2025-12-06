@@ -35,6 +35,7 @@ const TicketDetails = () => {
   const [isUNSPSCSelectorOpen, setIsUNSPSCSelectorOpen] = useState(false);
   const [template, setTemplate] = useState(null);
   const [loadingTemplate, setLoadingTemplate] = useState(false);
+  const [missingRequiredFields, setMissingRequiredFields] = useState([]);
   const formInitializedRef = useRef(false);
   const pmopsTabViewRef = useRef(null);
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm();
@@ -55,7 +56,21 @@ const TicketDetails = () => {
     };
   };
   
-  const { register: registerEdit, handleSubmit: handleSubmitEdit, setValue: setValueEdit, watch: watchEdit, control: controlEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm();
+  const { register: registerEdit, handleSubmit: handleSubmitEdit, setValue: setValueEdit, watch: watchEdit, control: controlEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm({
+    defaultValues: {
+      pricingData: {
+        standardCosts: {
+          rawMaterialCostPerUnit: 0
+        },
+        targetMargin: 50
+      },
+      baseUnit: {
+        value: 100,
+        unit: 'g'
+      },
+      currency: 'USD'
+    }
+  });
   const { fields: editFields, append: editAppend, remove: editRemove } = useFieldArray({ control: controlEdit, name: 'skuVariants' });
   const { fields: editCompositionFields, append: editAppendComposition, remove: editRemoveComposition } = useFieldArray({ control: controlEdit, name: 'composition.components' });
   const { fields: editQualityFields, append: editAppendQuality, remove: editRemoveQuality } = useFieldArray({ control: controlEdit, name: 'quality.attributes' });

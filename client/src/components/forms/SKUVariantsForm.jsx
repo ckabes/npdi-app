@@ -591,7 +591,7 @@ const SKUVariantsForm = ({
                         type="number"
                         step="1"
                         min="0"
-                        className="form-input"
+                        className="form-input shadow-sm"
                         placeholder="0"
                         readOnly={readOnly}
                       />
@@ -605,7 +605,7 @@ const SKUVariantsForm = ({
                         type="number"
                         step="1"
                         min="0"
-                        className="form-input"
+                        className="form-input shadow-sm"
                         placeholder="0"
                         readOnly={readOnly}
                       />
@@ -619,7 +619,7 @@ const SKUVariantsForm = ({
                         type="number"
                         step="1"
                         min="0"
-                        className="form-input"
+                        className="form-input shadow-sm"
                         placeholder="0"
                         readOnly={readOnly}
                       />

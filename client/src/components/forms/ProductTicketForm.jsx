@@ -313,11 +313,19 @@ const ProductTicketForm = ({
 
   const calculatePricing = () => {
     const standardCosts = watch('pricingData.standardCosts');
-    const targetMargin = parseFloat(watch('pricingData.targetMargin')) || 50;
+    const targetMarginValue = watch('pricingData.targetMargin');
+    const targetMargin = parseFloat(targetMarginValue);
     const baseUnit = watch('baseUnit.unit') || 'g';
+    const rawMaterialCost = watch('pricingData.standardCosts.rawMaterialCostPerUnit');
 
-    if (!standardCosts?.rawMaterialCostPerUnit || !targetMargin) {
-      toast.error('Please fill in standard costs and target margin first');
+    // Check if required fields are filled - allow 0 as a valid value
+    if (rawMaterialCost === null || rawMaterialCost === undefined || rawMaterialCost === '') {
+      toast.error('Please fill in Standard Cost first');
+      return;
+    }
+
+    if (targetMarginValue === null || targetMarginValue === undefined || targetMarginValue === '') {
+      toast.error('Please fill in Target Margin first');
       return;
     }
 
