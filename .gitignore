@@ -104,3 +104,4 @@ server/scripts/VPN*.md
 # Optimization analysis documents (internal use only)
 OPTIMIZATION_IMPLEMENTATION_PLAN.md
 ARCHITECTURE_OPTIMIZATION_ANALYSIS.md
+logs/
