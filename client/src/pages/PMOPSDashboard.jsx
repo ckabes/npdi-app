@@ -19,9 +19,11 @@ const PMOPSDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showMonthlyRateModal, setShowMonthlyRateModal] = useState(false);
   const [showThisWeekModal, setShowThisWeekModal] = useState(false);
+  const [recentlySubmitted, setRecentlySubmitted] = useState([]);
 
   useEffect(() => {
     fetchStats();
+    fetchRecentlySubmittedTickets();
   }, []);
 
   const fetchStats = async () => {
@@ -34,6 +36,41 @@ const PMOPSDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchRecentlySubmittedTickets = async () => {
+    try {
+      const response = await productAPI.getTickets({ status: 'SUBMITTED', limit: 5, sort: '-createdAt' });
+      setRecentlySubmitted(response.data.tickets || []);
+    } catch (error) {
+      console.error('Failed to fetch recently submitted tickets:', error);
+    }
+  };
+
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) {
+      const mins = Math.floor(diffInSeconds / 60);
+      return `${mins}m ago`;
+    }
+    if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours}h ago`;
+    }
+    if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days}d ago`;
+    }
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+    });
   };
 
   if (loading) {
@@ -52,7 +89,7 @@ const PMOPSDashboard = () => {
     );
   }
 
-  const { statusCounts, throughput, performance } = stats;
+  const { statusCounts, throughput, performance, priorityCounts, averageTimes, agingAnalysis } = stats;
 
   return (
     <div className="space-y-6">
@@ -202,6 +239,330 @@ const PMOPSDashboard = () => {
               <InformationCircleIcon className="h-5 w-5 text-millipore-blue" />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Average Processing Times */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="text-lg font-medium text-gray-900">Average Processing Times</h3>
+        </div>
+        <div className="card-body">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm font-medium text-blue-900">Submission → In Process</p>
+              <div className="mt-2">
+                <p className="text-3xl font-bold text-blue-600">{averageTimes.submittedToInProcess.days}</p>
+                <p className="text-sm text-blue-600">days average</p>
+                <p className="text-xs text-blue-500 mt-1">({averageTimes.submittedToInProcess.hours} hours)</p>
+              </div>
+            </div>
+
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <p className="text-sm font-medium text-orange-900">Submission → NPDI Initiated</p>
+              <div className="mt-2">
+                <p className="text-3xl font-bold text-orange-600">{averageTimes.submittedToNPDI.days}</p>
+                <p className="text-sm text-orange-600">days average</p>
+                <p className="text-xs text-orange-500 mt-1">({averageTimes.submittedToNPDI.hours} hours)</p>
+              </div>
+            </div>
+
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <p className="text-sm font-medium text-green-900">Submission → Completed</p>
+              <div className="mt-2">
+                <p className="text-3xl font-bold text-green-600">{averageTimes.submittedToCompleted.days}</p>
+                <p className="text-sm text-green-600">days average</p>
+                <p className="text-xs text-green-500 mt-1">({averageTimes.submittedToCompleted.hours} hours)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Urgent Tickets Needing Attention */}
+      {agingAnalysis.urgentWaiting && agingAnalysis.urgentWaiting.length > 0 && (
+        <div className="card bg-red-50 border-red-300">
+          <div className="card-header bg-red-100 border-red-300">
+            <div className="flex items-center">
+              <ExclamationTriangleIcon className="h-6 w-6 text-red-600 mr-2" />
+              <h3 className="text-lg font-medium text-red-900">Urgent Tickets Waiting</h3>
+            </div>
+          </div>
+          <div className="card-body p-0">
+            <table className="min-w-full divide-y divide-red-200">
+              <thead className="bg-red-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">Ticket</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">SBU</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-red-700 uppercase">Waiting Time</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-red-700 uppercase">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-red-200">
+                {agingAnalysis.urgentWaiting.map((ticket) => (
+                  <tr key={ticket.ticketId || ticket._id} className="hover:bg-red-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {ticket.ticketNumber || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={ticket.status} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {ticket.sbu}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-bold text-red-600">
+                        {ticket.waitingDays} days
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                      <Link
+                        to={`/tickets/${ticket.ticketId}`}
+                        className="text-red-600 hover:text-red-800 font-medium"
+                      >
+                        View →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Recently Submitted Tickets */}
+      <div className="card">
+        <div className="card-header">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <ClockIcon className="h-6 w-6 text-millipore-blue mr-2" />
+              <h3 className="text-lg font-medium text-gray-900">Recently Submitted Tickets</h3>
+            </div>
+            <Link
+              to="/tickets?status=SUBMITTED"
+              className="text-sm text-millipore-blue hover:text-millipore-blue-dark font-medium"
+            >
+              View All Submitted Tickets →
+            </Link>
+          </div>
+          <p className="text-sm text-gray-500 mt-1">5 most recently submitted tickets</p>
+        </div>
+        <div className="card-body p-0">
+          {recentlySubmitted && recentlySubmitted.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created by</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {recentlySubmitted.map((ticket) => {
+                    const submitterName = ticket.createdByUser
+                      ? `${ticket.createdByUser.firstName} ${ticket.createdByUser.lastName}`
+                      : (ticket.createdBy || 'Unknown');
+
+                    return (
+                      <tr key={ticket._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {ticket.ticketNumber || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          <div className="max-w-[200px] truncate" title={ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}>
+                            {ticket.productName || ticket.chemicalProperties?.casNumber || 'Untitled'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <PriorityBadge priority={ticket.priority} />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {ticket.sbu}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="max-w-[150px] truncate" title={submitterName}>
+                            {submitterName}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <span className="text-sm text-gray-900">
+                              {formatTimeAgo(ticket.createdAt)}
+                            </span>
+                            <p className="text-xs text-gray-500">
+                              {new Date(ticket.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                          <Link
+                            to={`/tickets/${ticket._id}`}
+                            className="text-millipore-blue hover:text-millipore-blue-dark font-medium"
+                          >
+                            View →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <ClockIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              <p>No recently submitted tickets</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Two Column Layout for Charts and Tables */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Priority Breakdown */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="text-lg font-medium text-gray-900">Priority Breakdown</h3>
+          </div>
+          <div className="card-body">
+            <div className="space-y-3">
+              {Object.entries(priorityCounts).map(([priority, count]) => {
+                const total = Object.values(priorityCounts).reduce((a, b) => a + b, 0);
+                const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+                const colors = {
+                  URGENT: 'bg-red-500',
+                  HIGH: 'bg-orange-500',
+                  MEDIUM: 'bg-yellow-500',
+                  LOW: 'bg-green-500'
+                };
+
+                return (
+                  <div key={priority}>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <PriorityBadge priority={priority} />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900">{count}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`${colors[priority]} h-2 rounded-full transition-all duration-300`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{percentage}% of total</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* SBU Breakdown */}
+        <div className="card">
+          <div className="card-header">
+            <h3 className="text-lg font-medium text-gray-900">Tickets by SBU</h3>
+          </div>
+          <div className="card-body">
+            <div className="space-y-3">
+              {stats.sbuBreakdown.map((sbu, index) => {
+                const total = stats.sbuBreakdown.reduce((acc, item) => acc + item.count, 0);
+                const percentage = total > 0 ? Math.round((sbu.count / total) * 100) : 0;
+                const colors = ['bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-cyan-500', 'bg-teal-500'];
+
+                return (
+                  <div key={sbu._id}>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-sm font-medium text-gray-700">SBU {sbu._id}</span>
+                      <span className="text-sm font-semibold text-gray-900">{sbu.count}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className={`${colors[index % colors.length]} h-2 rounded-full transition-all duration-300`}
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{percentage}% of total</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Longest Waiting Tickets */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="text-lg font-medium text-gray-900">Aging Tickets (Longest Waiting)</h3>
+          <p className="text-sm text-gray-500 mt-1">Tickets waiting for action, sorted by age</p>
+        </div>
+        <div className="card-body p-0">
+          {agingAnalysis.longestWaiting && agingAnalysis.longestWaiting.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ticket</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">SBU</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waiting Time</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {agingAnalysis.longestWaiting.map((ticket) => (
+                    <tr key={ticket.ticketId || ticket._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {ticket.ticketNumber || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={ticket.status} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <PriorityBadge priority={ticket.priority} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {ticket.sbu}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <span className={`text-sm font-bold ${
+                            ticket.waitingDays > 7 ? 'text-red-600' :
+                            ticket.waitingDays > 3 ? 'text-orange-600' :
+                            'text-gray-900'
+                          }`}>
+                            {ticket.waitingDays} days
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                        <Link
+                          to={`/tickets/${ticket.ticketId}`}
+                          className="text-millipore-blue hover:text-millipore-blue-dark font-medium"
+                        >
+                          View →
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <CheckCircleIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              <p>No aging tickets - all tickets are being processed efficiently!</p>
+            </div>
+          )}
         </div>
       </div>
 
