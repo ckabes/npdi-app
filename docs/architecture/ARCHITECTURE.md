@@ -622,6 +622,44 @@ Top-level route components representing application views:
 - `Layout.jsx` - Application frame with navigation
 - `Loading.jsx` - Loading state indicator
 - `SKUAssignment.jsx` - SKU base number assignment widget
+- `DynamicTicketView.jsx` - Template-based ticket data viewer
+
+**Template-Based Viewing Components:**
+
+**DynamicTicketView Component** (`client/src/components/DynamicTicketView.jsx`):
+- Renders ticket data based on template configuration
+- Creates tabbed interface from template sections
+- Displays only visible fields defined in template
+- Handles nested objects and arrays
+- Formats values appropriately (booleans, objects, arrays)
+- Shows template name footer
+- Used for closed tickets (COMPLETED/CANCELED status)
+
+**Key Features:**
+```javascript
+// Reads template sections and creates tabs
+const visibleSections = formConfig.sections
+  ?.filter(section => section.visible !== false)
+  .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+// Gets field values from nested ticket data
+const getFieldValue = (fieldKey) => {
+  const keys = fieldKey.split('.');  // Handles 'chemicalProperties.casNumber'
+  let value = ticket;
+  for (const key of keys) {
+    value = value?.[key];
+  }
+  return value;
+};
+
+// Renders fields in table format
+{fields.map(field => (
+  <tr key={field.fieldKey}>
+    <td>{field.label || formatFieldLabel(field.fieldKey)}</td>
+    <td>{formatValue(getFieldValue(field.fieldKey), field)}</td>
+  </tr>
+))}
+```
 
 #### 4.2.4 Hooks and Context
 
@@ -670,6 +708,7 @@ The application uses MongoDB, a document-oriented NoSQL database, chosen for:
 - `sbu` - Strategic Business Unit (775, P90, 440, P87, P89, P85)
 - `status` - Workflow state (DRAFT, SUBMITTED, IN_PROCESS, NPDI_INITIATED, COMPLETED, CANCELED)
 - `priority` - Urgency level (LOW, MEDIUM, HIGH, URGENT)
+- `template` - Reference to TicketTemplate (ObjectId) - determines viewing layout for closed tickets
 - `chemicalProperties` - Embedded chemical data (CAS, formula, molecular weight, etc.)
 - `hazardClassification` - GHS classification and safety data
 - `skuVariants[]` - Array of SKU configurations with pricing
@@ -789,16 +828,57 @@ The application uses MongoDB, a document-oriented NoSQL database, chosen for:
 - `dashboardLayout` - Dashboard customization
 - `defaultFilters` - Saved filter preferences
 
-#### 5.2.8 Templates Collection
+#### 5.2.8 TicketTemplate Collection
 
-**Purpose:** Reusable ticket templates
+**Purpose:** Ticket template definitions with form configurations for different ticket types
 
 **Key Fields:**
-- `name` - Template name
+- `name` - Template name (e.g., "Default", "Biologics", "Instruments")
 - `description` - Template description
-- `category` - Template category
-- `templateData` - Pre-filled ticket data
-- `createdBy`, `isActive`
+- `formConfiguration` - Reference to FormConfiguration (ObjectId)
+- `isActive` - Active status
+- `createdAt`, `updatedAt` - Timestamps
+
+**Template-Based Viewing System:**
+
+The application implements a template-based viewing system where tickets store references to their creation template, enabling different views for different ticket types:
+
+**How It Works:**
+1. When a user creates a ticket, the system assigns them a template based on their profile
+2. The ticket stores a reference to this template (`template` field in ProductTicket)
+3. The template contains a reference to a FormConfiguration with sections and fields
+4. When viewing closed tickets (COMPLETED/CANCELED status), the system uses DynamicTicketView
+5. DynamicTicketView reads the template's formConfiguration and renders accordingly
+
+**Benefits:**
+- Different ticket types (Default, Biologics, Instruments) can have different data views
+- Closed tickets render with template-specific field layouts
+- Active tickets preserve existing editing functionality
+- Infrastructure ready for discriminator pattern implementation
+- Future ticket types can have customized viewing experiences
+
+**Example Flow:**
+```javascript
+// 1. User assigned "Biologics" template
+const template = await TicketTemplate.findOne({ name: 'Biologics' })
+  .populate('formConfiguration');
+
+// 2. Ticket created with template reference
+const ticket = new ProductTicket({
+  ...ticketData,
+  template: template._id
+});
+
+// 3. Ticket fetched with template data
+const ticket = await ProductTicket.findById(ticketId)
+  .populate({
+    path: 'template',
+    populate: { path: 'formConfiguration' }
+  });
+
+// 4. DynamicTicketView renders based on template configuration
+<DynamicTicketView ticket={ticket} template={ticket.template} />
+```
 
 #### 5.2.9 WeightMatrix Collection
 

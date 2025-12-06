@@ -3675,6 +3675,148 @@ Tickets can be exported to various formats:
 - SKU numbers
 - And more...
 
+#### **12.10 Template-Based Viewing System**
+
+The NPDI Portal implements a template-based viewing system that enables different ticket types to have customized data views. This infrastructure prepares the system for supporting multiple business units (chemicals, biologics, instruments, etc.) with different data requirements.
+
+**How Template-Based Viewing Works:**
+
+1. **Template Assignment**
+   - Each user is assigned a ticket template in the Admin Dashboard → User Management
+   - Available templates: Default, Biologics, Instruments (future), etc.
+   - Template determines which form configuration is used for ticket creation
+
+2. **Ticket Creation with Template**
+   - When a user creates a ticket, their assigned template is automatically applied
+   - The ticket stores a reference to the template (`template` field)
+   - Form fields are rendered based on the template's form configuration
+
+3. **Template-Based Viewing for Closed Tickets**
+   - **Active tickets** (DRAFT, SUBMITTED, IN_PROCESS, NPDI_INITIATED) use the standard PMOpsTabView
+   - **Closed tickets** (COMPLETED, CANCELED) use DynamicTicketView if they have a template
+   - DynamicTicketView renders ticket data based on the template's form configuration
+
+4. **DynamicTicketView Component**
+   - Location: `client/src/components/DynamicTicketView.jsx`
+   - Creates tabbed interface from template sections
+   - Displays only visible fields defined in the template
+   - Handles nested data (e.g., `chemicalProperties.casNumber`)
+   - Formats values appropriately (booleans, objects, arrays)
+   - Shows template name in footer
+
+**Benefits:**
+
+- ✅ Different ticket types can have different viewing layouts
+- ✅ Closed tickets render with template-specific field organization
+- ✅ Active tickets preserve existing editing functionality
+- ✅ Infrastructure ready for discriminator pattern implementation
+- ✅ Future-ready for multiple business units and ticket types
+
+**Example Scenarios:**
+
+**Scenario 1: Chemical Product (Default Template)**
+- Uses standard chemical properties view
+- Shows CAS number, molecular formula, hazard classification
+- Displays quality specifications and regulatory information
+
+**Scenario 2: Biologics Product (Biologics Template)**
+- Uses biologics-specific view
+- Shows biological properties, expression systems, storage conditions
+- Displays lot control and stability data
+
+**Scenario 3: Instrument Product (Future Instruments Template)**
+- Will use instrument-specific view
+- Will show model numbers, calibration data, warranty information
+- Will display technical specifications and maintenance requirements
+
+**Database Schema:**
+
+```javascript
+// ProductTicket model
+{
+  ticketNumber: "NPDI-2025-0050",
+  productName: "Product Name",
+  status: "COMPLETED",
+  template: ObjectId("..."),  // ← Reference to TicketTemplate
+  // ... other fields
+}
+
+// TicketTemplate model
+{
+  name: "Biologics",
+  description: "Template for biological products",
+  formConfiguration: ObjectId("..."),  // ← Reference to FormConfiguration
+  isActive: true
+}
+
+// FormConfiguration model
+{
+  sections: [
+    {
+      sectionKey: "basic",
+      name: "Basic Information",
+      order: 1,
+      visible: true,
+      fields: [
+        { fieldKey: "productName", label: "Product Name", type: "text", visible: true },
+        // ... more fields
+      ]
+    },
+    // ... more sections
+  ]
+}
+```
+
+**API Flow:**
+
+```javascript
+// Backend: Populate template when fetching ticket
+const ticket = await ProductTicket.findById(ticketId)
+  .populate({
+    path: 'template',
+    populate: { path: 'formConfiguration' }
+  });
+
+// Response includes template and formConfiguration
+{
+  ticketNumber: "NPDI-2025-0050",
+  template: {
+    name: "Biologics",
+    formConfiguration: {
+      sections: [...]
+    }
+  }
+}
+```
+
+**Frontend Conditional Rendering:**
+
+```jsx
+// TicketDetails.jsx
+{ticket.status === 'COMPLETED' || ticket.status === 'CANCELED' ? (
+  ticket.template ? (
+    // Template-based view for closed tickets
+    <DynamicTicketView ticket={ticket} template={ticket.template} />
+  ) : (
+    // Fallback for old tickets without templates
+    <PMOpsTabView ticket={ticket} onTicketUpdate={fetchTicket} />
+  )
+) : (
+  // Standard editing view for active tickets
+  <PMOpsTabView ticket={ticket} onTicketUpdate={fetchTicket} />
+)}
+```
+
+**Future Enhancements:**
+
+This template infrastructure prepares for the discriminator pattern refactoring:
+- Different ticket **types** (chemical, biologics, instruments) can have specialized schemas
+- Each type can have different required fields and validation rules
+- UI automatically adapts to each ticket type's data structure
+- External API can return type-specific data without null fields
+
+See `docs/DISCRIMINATOR_PATTERN_REFACTORING_PLAN.md` for more details on the planned evolution.
+
 ---
 
 
