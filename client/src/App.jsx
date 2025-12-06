@@ -56,7 +56,7 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="tickets/new" element={
-          <ProtectedRoute allowedRoles={['PRODUCT_MANAGER', 'PM_OPS', 'ADMIN']}>
+          <ProtectedRoute allowedRoles={['PRODUCT_MANAGER', 'ADMIN']}>
             <CreateTicket />
           </ProtectedRoute>
         } />

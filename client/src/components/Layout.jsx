@@ -42,7 +42,7 @@ const Layout = () => {
     ...(isPMOPS || isAdmin ? [
       { name: 'Drafts', href: '/drafts', icon: PencilIcon }
     ] : []),
-    ...(isProductManager || isPMOPS || isAdmin ? [
+    ...(isProductManager || isAdmin ? [
       { name: 'New Ticket', href: '/tickets/new', icon: PlusIcon }
     ] : []),
     ...(isAdmin ? [

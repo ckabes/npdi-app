@@ -125,7 +125,7 @@ const TicketList = () => {
             }
           </p>
         </div>
-        {(isProductManager || isPMOPS || isAdmin) && (
+        {(isProductManager || isAdmin) && (
           <Link to="/tickets/new" className="btn btn-primary flex items-center">
             <PlusIcon className="h-5 w-5 mr-2" />
             New Ticket
@@ -211,7 +211,7 @@ const TicketList = () => {
               <p className="mt-1 text-sm text-gray-500">
                 Get started by creating a new product ticket.
               </p>
-              {(isProductManager || isPMOPS || isAdmin) && (
+              {(isProductManager || isAdmin) && (
                 <div className="mt-6">
                   <Link to="/tickets/new" className="btn btn-primary">
                     <PlusIcon className="h-5 w-5 mr-2" />
