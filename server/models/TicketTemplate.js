@@ -23,6 +23,10 @@ const ticketTemplateSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  submissionRequirements: {
+    type: [String],  // Array of fieldKeys that are required for submission
+    default: []
+  },
   createdBy: {
     type: String,  // Email address from profile
     default: 'system'

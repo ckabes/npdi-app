@@ -17,19 +17,11 @@ const seedDefaultTemplate = async () => {
       console.log('Template ID:', existingDefault._id);
       console.log('Form Configuration ID:', existingDefault.formConfiguration);
 
-      // Verify the form configuration exists and has the right templateName
+      // Verify the form configuration exists
       const formConfig = await FormConfiguration.findById(existingDefault.formConfiguration);
       if (formConfig) {
         console.log('Form Configuration Name:', formConfig.name);
         console.log('Form Configuration Version:', formConfig.version);
-        console.log('Template Name:', formConfig.templateName);
-
-        // Update templateName if needed
-        if (formConfig.templateName !== 'Default') {
-          formConfig.templateName = 'Default';
-          await formConfig.save();
-          console.log('Updated form configuration templateName to "Default"');
-        }
       }
 
       // Check if we need to assign users to the default template (via User model)
@@ -74,31 +66,23 @@ const seedDefaultTemplate = async () => {
 
     console.log('\n📋 Creating default template...');
 
-    // Get or create the default form configuration
-    let formConfig = await FormConfiguration.findOne({ templateName: 'Default' });
+    // Get the first active form configuration (should be the one seeded by the system)
+    let formConfig = await FormConfiguration.findOne({ isActive: true });
 
     if (!formConfig) {
-      console.log('No form configuration found with templateName "Default"');
       console.log('Looking for any existing form configuration...');
-
-      // Get the first available form configuration (should be the one seeded by the system)
       formConfig = await FormConfiguration.findOne();
 
       if (!formConfig) {
         console.error('❌ No form configuration found. Please ensure the form configuration is seeded first.');
-        console.error('Run: npm run seed (or your seed script) to create the base form configuration');
+        console.error('Run: node server/scripts/seedFormConfig.js to create the base form configuration');
         await mongoose.connection.close();
         process.exit(1);
       }
 
       console.log('Found existing form configuration:', formConfig.name);
-
-      // Update it to be the Default template
-      formConfig.templateName = 'Default';
-      formConfig.name = formConfig.name || 'Product Ticket Form';
-      formConfig.description = formConfig.description || 'Default form configuration for product tickets';
-      await formConfig.save();
-      console.log('✅ Updated form configuration to be "Default" template');
+    } else {
+      console.log('Using active form configuration:', formConfig.name);
     }
 
     // Create the default ticket template (without assignedUsers - will use User model)

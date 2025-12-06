@@ -11,6 +11,7 @@ import DraftsView from './pages/DraftsView';
 import PMOPSDashboard from './pages/PMOPSDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import MongoDBExplorer from './pages/MongoDBExplorer';
+import TemplateManager from './pages/TemplateManager';
 import TestCAS from './pages/TestCAS';
 import Loading from './components/Loading';
 
@@ -73,6 +74,11 @@ function App() {
         <Route path="mongodb" element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
             <MongoDBExplorer />
+          </ProtectedRoute>
+        } />
+        <Route path="templates" element={
+          <ProtectedRoute allowedRoles={['ADMIN']}>
+            <TemplateManager />
           </ProtectedRoute>
         } />
         <Route path="test-cas" element={

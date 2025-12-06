@@ -11,7 +11,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   CogIcon,
-  CircleStackIcon
+  CircleStackIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -46,6 +47,7 @@ const Layout = () => {
     ] : []),
     ...(isAdmin ? [
       { name: 'Admin Dashboard', href: '/admin', icon: CogIcon },
+      { name: 'Template Manager', href: '/templates', icon: DocumentTextIcon },
       { name: 'MongoDB Explorer', href: '/mongodb', icon: CircleStackIcon }
     ] : [])
   ];

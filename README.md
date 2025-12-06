@@ -195,8 +195,6 @@ npdi-app/
 - [Palantir SQL Query API Integration](docs/Palantir-SQL-Query-API-Integration-Guide.md) - SAP MARA data access
 - [SAP MARA Field Mapping](docs/features/SAP-MARA-to-ProductTicket-Mapping.md) - MARA to ProductTicket schema mapping
 - [Similar Products Search](docs/features/SIMILAR_PRODUCTS_SEARCH.md) - Find related products by CAS number
-- [Recent Improvements - December 2025](docs/features/RECENT_IMPROVEMENTS_2025_12.md) - SAP search enhancements, currency support, and UX improvements
-- [Recent Improvements - November 2025](docs/features/RECENT_IMPROVEMENTS_2025_11.md) - Previous enhancements and bug fixes
 
 ## Getting Started
 
@@ -400,58 +398,21 @@ npm run build
 
 ## Performance & Scalability
 
-The application has been optimized for production performance with multiple performance enhancements implemented in December 2025:
+The application is built with production-grade performance features:
 
 ### Database Optimization
-- **Strategic Indexing**: 8 compound indexes on ProductTicket collection
-  - Status + date combinations for dashboard queries
-  - User assignment lookups for filtered lists
-  - CAS number lookups for chemical products
-  - Result: 40-60% faster query performance, eliminated full collection scans
+- **Strategic Compound Indexes**: Optimized query performance for common access patterns
+- **Aggregation Pipelines**: Database-level processing for statistics and analytics
+- **Efficient Queries**: Lean queries and field selection minimize memory usage and payload sizes
 
-- **Aggregation Pipelines**: Database-level processing for statistics
-  - Admin stats: 2.5s → 150ms (95% improvement)
-  - Dashboard stats: 2s → 200ms (90% improvement)
-  - All calculations performed at database level using MongoDB `$facet`
+### Caching
+- **In-Memory LRU Cache**: Intelligent caching for frequently-accessed data like templates and configurations
+- **Automatic Cache Management**: TTL-based expiration and size limits prevent memory issues
 
-- **Query Consolidation**: Single aggregation queries replace dual pagination queries
-  - Before: 2 queries (find + countDocuments)
-  - After: 1 aggregation with `$facet`
-  - Result: 50% reduction in database round trips
-
-### Caching Layer
-- **In-Memory LRU Cache**: Production-ready caching service
-  - 10-minute TTL for templates and form configurations
-  - Namespace-based organization for easy invalidation
-  - Max 200 entries with automatic LRU eviction
-  - Expected 80-90% cache hit rate after warmup
-
-- **Cached Endpoints**:
-  - Template endpoints: 90% query reduction
-  - Form configuration endpoints: 90% query reduction
-  - Overall database load: 70-80% reduction
-
-### Query Optimization
-- **Lean Queries**: All read-only queries use `.lean()` for 40-60% performance improvement
-- **Field Selection**: List endpoints return only needed fields, reducing payload size by 30-50%
-- **Safety Limits**: Default limits on unpaginated endpoints prevent OOM errors
-
-### Performance Metrics
-
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Admin Dashboard Load | 2.5s | 150ms | 95% |
-| User Dashboard Load | 2s | 200ms | 90% |
-| Template Fetch (cached) | 50-100ms | <1ms | 99% |
-| Ticket List Query | 800ms | 400ms | 50% |
-| Response Payload Size | 100% | 50-70% | 30-50% reduction |
-| Database Load | 100% | 20-30% | 70-80% reduction |
-
-### Scalability Features
-- Stateless application design supports horizontal scaling
-- Database indexes support millions of tickets
-- Caching layer reduces database pressure during high traffic
-- Aggregation pipelines maintain performance as data grows
+### Scalability
+- **Stateless Design**: Application supports horizontal scaling for high availability
+- **Optimized Data Flow**: Reduced database round trips through query consolidation
+- **Safety Limits**: Protection against unbounded queries and resource exhaustion
 
 ## Deployment
 
