@@ -327,6 +327,7 @@ const SKUVariantsForm = ({
         {fields.map((field, index) => {
           const skuType = watch(`skuVariants.${index}.type`);
           const showPricing = !['VAR', 'SPEC', 'CONF', 'BULK'].includes(skuType);
+          const showPackageSize = !['VAR', 'SPEC', 'CONF'].includes(skuType);
 
           return (
             <div key={field.id} className="border border-gray-200 rounded-lg p-4">
@@ -376,48 +377,50 @@ const SKUVariantsForm = ({
                   <p className="mt-1 text-xs text-gray-500">PMOps creates the base part number which cascades to all SKUs</p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Package Size *
-                  </label>
-                  <div className="flex">
-                    <input
-                      {...register(`skuVariants.${index}.packageSize.value`, { required: 'Package size is required' })}
-                      type="number"
-                      step="0.1"
-                      className={`form-input rounded-r-none ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
-                      placeholder="100"
-                      onChange={(e) => {
-                        if (onPackageValueChange) onPackageValueChange(index, e.target.value);
-                      }}
-                      readOnly={readOnly || field.type === 'BULK'}
-                    />
-                    <select
-                      {...register(`skuVariants.${index}.packageSize.unit`)}
-                      className={`form-select rounded-l-none border-l-0 ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
-                      onChange={(e) => {
-                        if (onPackageUnitChange) onPackageUnitChange(index, e.target.value);
-                      }}
-                      disabled={readOnly || field.type === 'BULK'}
-                    >
-                      <option value="mg">mg</option>
-                      <option value="g">g</option>
-                      <option value="kg">kg</option>
-                      <option value="mL">mL</option>
-                      <option value="L">L</option>
-                      <option value="EA">EA (each)</option>
-                      <option value="units">units</option>
-                      <option value="vials">vials</option>
-                      <option value="plates">plates</option>
-                      <option value="bulk">bulk (configurable)</option>
-                    </select>
+                {showPackageSize && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Package Size *
+                    </label>
+                    <div className="flex">
+                      <input
+                        {...register(`skuVariants.${index}.packageSize.value`, { required: 'Package size is required' })}
+                        type="number"
+                        step="0.1"
+                        className={`form-input rounded-r-none ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
+                        placeholder="100"
+                        onChange={(e) => {
+                          if (onPackageValueChange) onPackageValueChange(index, e.target.value);
+                        }}
+                        readOnly={readOnly || field.type === 'BULK'}
+                      />
+                      <select
+                        {...register(`skuVariants.${index}.packageSize.unit`)}
+                        className={`form-select rounded-l-none border-l-0 ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
+                        onChange={(e) => {
+                          if (onPackageUnitChange) onPackageUnitChange(index, e.target.value);
+                        }}
+                        disabled={readOnly || field.type === 'BULK'}
+                      >
+                        <option value="mg">mg</option>
+                        <option value="g">g</option>
+                        <option value="kg">kg</option>
+                        <option value="mL">mL</option>
+                        <option value="L">L</option>
+                        <option value="EA">EA (each)</option>
+                        <option value="units">units</option>
+                        <option value="vials">vials</option>
+                        <option value="plates">plates</option>
+                        <option value="bulk">bulk (configurable)</option>
+                      </select>
+                    </div>
+                    {field.type === 'BULK' && (
+                      <p className="mt-1 text-xs text-amber-700 font-medium">
+                        📦 BULK SKUs use the base unit from pricing calculations
+                      </p>
+                    )}
                   </div>
-                  {field.type === 'BULK' && (
-                    <p className="mt-1 text-xs text-amber-700 font-medium">
-                      📦 BULK SKUs use the base unit from pricing calculations
-                    </p>
-                  )}
-                </div>
+                )}
 
                 {/* Physical Dimensions - Only for PREPACK */}
                 {skuType === 'PREPACK' && (
@@ -456,7 +459,7 @@ const SKUVariantsForm = ({
                           {...register(`skuVariants.${index}.grossWeight.value`)}
                           type="number"
                           step="0.001"
-                          className="form-input flex-1"
+                          className="bg-white flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                           placeholder="0.0"
                           readOnly={readOnly}
                         />
@@ -484,7 +487,7 @@ const SKUVariantsForm = ({
                           {...register(`skuVariants.${index}.netWeight.value`)}
                           type="number"
                           step="0.001"
-                          className="form-input flex-1"
+                          className="bg-white flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                           placeholder="0.0"
                           readOnly={readOnly}
                         />
@@ -512,7 +515,7 @@ const SKUVariantsForm = ({
                           {...register(`skuVariants.${index}.volume.value`)}
                           type="number"
                           step="0.001"
-                          className="form-input flex-1"
+                          className="bg-white flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                           placeholder="0.0"
                           readOnly={readOnly}
                         />

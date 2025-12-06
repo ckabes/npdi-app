@@ -89,7 +89,7 @@ const PricingCalculationForm = ({
               {...register('pricingData.targetMargin')}
               type="number"
               step="1"
-              className="form-input text-sm"
+              className="form-input text-sm bg-white"
               placeholder="50"
               readOnly={readOnly}
             />
