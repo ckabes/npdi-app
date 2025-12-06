@@ -219,7 +219,7 @@ const QualitySpecificationsForm = ({
         </div>
 
         {/* Natural Language Input - Quick Entry */}
-        {!readOnly && !editMode && (
+        {!readOnly && (
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <h4 className="text-sm font-semibold text-gray-900">
@@ -284,15 +284,6 @@ const QualitySpecificationsForm = ({
                 Decipher
               </button>
             </div>
-          </div>
-        )}
-
-        {/* Edit Mode Note */}
-        {editMode && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-sm text-blue-800">
-              <strong>Note:</strong> Quality attributes are read-only in edit mode. They can only be defined during ticket creation.
-            </p>
           </div>
         )}
 

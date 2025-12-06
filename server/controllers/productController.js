@@ -517,6 +517,11 @@ const updateTicket = async (req, res) => {
     let updateData = { ...req.body };
     delete updateData.createdBy;
 
+    // Debug logging for intellectual property
+    if (updateData.intellectualProperty) {
+      console.log('[UpdateTicket] Intellectual Property BEFORE cleaning:', JSON.stringify(updateData.intellectualProperty));
+    }
+
     // Allow ticketNumber update ONLY when NPDI is being initiated
     // This changes the ticket number from the original system-generated number (e.g., NPDI-2025-0055)
     // to the new NPDI tracking number from the external NPDI system (e.g., NPDI-2025-0054)

@@ -191,6 +191,36 @@ const cleanChemicalPropertiesArrays = (chemicalProperties) => {
 };
 
 /**
+ * Convert string boolean values to actual booleans
+ * @param {Object} intellectualProperty - Intellectual property object
+ */
+const cleanIntellectualPropertyBooleans = (intellectualProperty) => {
+  if (!intellectualProperty) return;
+
+  // Convert string 'true'/'false' to actual boolean
+  // Also handle empty string case
+  if (intellectualProperty.hasIP === 'true') {
+    intellectualProperty.hasIP = true;
+  } else if (intellectualProperty.hasIP === 'false') {
+    intellectualProperty.hasIP = false;
+  } else if (intellectualProperty.hasIP === '' || intellectualProperty.hasIP === null || intellectualProperty.hasIP === undefined) {
+    // If empty/null/undefined, set to false as default
+    intellectualProperty.hasIP = false;
+  }
+
+  // Clean up patent/license numbers if hasIP is false
+  if (intellectualProperty.hasIP === false) {
+    // Remove patent and license numbers if IP is not applicable
+    if (intellectualProperty.patentNumber === '') {
+      delete intellectualProperty.patentNumber;
+    }
+    if (intellectualProperty.licenseNumber === '') {
+      delete intellectualProperty.licenseNumber;
+    }
+  }
+};
+
+/**
  * Clean all ticket data enum fields and arrays
  * Main function to be called before saving/updating tickets
  * @param {Object} ticketData - Complete ticket data object
@@ -221,6 +251,11 @@ const cleanTicketData = (ticketData) => {
   // Clean corpbase data
   if (ticketData.corpbaseData) {
     cleanCorpBaseDataArrays(ticketData.corpbaseData);
+  }
+
+  // Clean intellectual property boolean values
+  if (ticketData.intellectualProperty) {
+    cleanIntellectualPropertyBooleans(ticketData.intellectualProperty);
   }
 
   return ticketData;

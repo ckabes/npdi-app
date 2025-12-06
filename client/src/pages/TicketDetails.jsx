@@ -73,21 +73,9 @@ const TicketDetails = () => {
     };
   };
   
-  const { register: registerEdit, handleSubmit: handleSubmitEdit, setValue: setValueEdit, watch: watchEdit, control: controlEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm({
-    defaultValues: {
-      pricingData: {
-        standardCosts: {
-          rawMaterialCostPerUnit: 0
-        },
-        targetMargin: 50
-      },
-      baseUnit: {
-        value: 100,
-        unit: 'g'
-      },
-      currency: 'USD'
-    }
-  });
+  // Don't provide defaultValues here - we'll populate via resetEdit() when ticket data loads
+  // This prevents hardcoded defaults from interfering with actual ticket data
+  const { register: registerEdit, handleSubmit: handleSubmitEdit, setValue: setValueEdit, watch: watchEdit, control: controlEdit, reset: resetEdit, formState: { errors: editErrors } } = useForm();
   const { fields: editFields, append: editAppend, remove: editRemove } = useFieldArray({ control: controlEdit, name: 'skuVariants' });
   const { fields: editCompositionFields, append: editAppendComposition, remove: editRemoveComposition } = useFieldArray({ control: controlEdit, name: 'composition.components' });
   const { fields: editQualityFields, append: editAppendQuality, remove: editRemoveQuality } = useFieldArray({ control: controlEdit, name: 'quality.attributes' });
@@ -134,6 +122,8 @@ const TicketDetails = () => {
 
       // Reset the entire form with ticket data
       const formData = getDefaultFormValues();
+      console.log('[TicketDetails] Resetting edit form with data:', formData);
+      console.log('[TicketDetails] Pricing data being set:', formData.pricingData);
       resetEdit(formData);
     }
 
