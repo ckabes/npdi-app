@@ -575,7 +575,8 @@ const updateTicket = async (req, res) => {
     if (newStatus && newStatus !== oldStatus) {
       ticket.statusHistory.push({
         status: newStatus,
-        changedBy: null, // Object ID would go here in real system
+        changedBy: currentUser.email, // Email (legacy)
+        changedByEmployeeId: currentUser.employeeId, // Employee ID
         reason: `Status changed from ${oldStatus} to ${newStatus} by ${currentUser.firstName} ${currentUser.lastName}`,
         action: 'STATUS_CHANGE',
         userInfo: currentUser
@@ -586,8 +587,9 @@ const updateTicket = async (req, res) => {
     if (newPartNumber && newPartNumber !== oldPartNumber) {
       ticket.statusHistory.push({
         status: ticket.status,
-        changedBy: null,
-        reason: oldPartNumber 
+        changedBy: currentUser.email, // Email (legacy)
+        changedByEmployeeId: currentUser.employeeId, // Employee ID
+        reason: oldPartNumber
           ? `SKU base number changed from "${oldPartNumber}" to "${newPartNumber}" by ${currentUser.firstName} ${currentUser.lastName}`
           : `SKU base number assigned: "${newPartNumber}" by ${currentUser.firstName} ${currentUser.lastName}`,
         action: 'SKU_ASSIGNMENT',
@@ -599,7 +601,8 @@ const updateTicket = async (req, res) => {
     if (significantChanges.length > 0) {
       ticket.statusHistory.push({
         status: ticket.status,
-        changedBy: null,
+        changedBy: currentUser.email, // Email (legacy)
+        changedByEmployeeId: currentUser.employeeId, // Employee ID
         reason: `Ticket edited by ${currentUser.firstName} ${currentUser.lastName}: ${significantChanges.join(', ')}`,
         action: 'TICKET_EDIT',
         userInfo: currentUser
@@ -611,7 +614,8 @@ const updateTicket = async (req, res) => {
       const newTicketNumber = updateData.ticketNumber || npdiTracking.trackingNumber;
       ticket.statusHistory.push({
         status: 'NPDI_INITIATED',
-        changedBy: null,
+        changedBy: currentUser.email, // Email (legacy)
+        changedByEmployeeId: currentUser.employeeId, // Employee ID
         reason: `NPDI initiated by ${currentUser.firstName} ${currentUser.lastName}. Ticket number changed from "${oldTicketNumber}" to "${newTicketNumber}". NPDI Tracking: ${npdiTracking.trackingNumber}`,
         action: 'NPDI_INITIATED',
         userInfo: currentUser,
