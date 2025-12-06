@@ -12,11 +12,12 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **NPDI Integration**: Seamless transition to official NPDI system with ticket number synchronization
 - **SBU Organization**: Tickets organized by Strategic Business Unit
 - **Dynamic Form Configuration**: Database-driven form rendering with seed script management
-- **Template-Based Ticket System**: Tickets store template references and adapt viewing based on ticket type
-  - Different templates (Default, Biologics, etc.) show different sections and fields
+- **Template-Based Ticket System**: Versioned ticket templates with semantic versioning
+  - Current template: PM-Chem-1.0.0 (Product Manager - Chemistry)
+  - Templates use semantic versioning (Major.Minor.Patch)
   - Closed tickets render with template-specific views
   - Active tickets preserve existing editing functionality
-  - Future-ready for discriminator pattern and multiple ticket types
+  - Future-ready for discriminator pattern and multiple ticket types (PM-Bio, PM-Instr, etc.)
 
 ### Chemical Data Management
 - **Chemical Properties**: CAS numbers, molecular formulas, physical states, purity ranges

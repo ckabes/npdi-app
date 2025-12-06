@@ -35,6 +35,7 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 
 ### User Guides
 - [Form Configuration Guide](guides/FORM_CONFIGURATION_GUIDE.md) - How to customize forms
+- [Template Versioning](TEMPLATE_VERSIONING.md) - Ticket template versioning requirements and guidelines
 
 ### Data Mapping & Reference
 - [SAP MARA to ProductTicket Mapping](features/SAP-MARA-to-ProductTicket-Mapping.md) - Complete field mapping from SAP MARA to ProductTicket schema

@@ -12,10 +12,32 @@ const connectDB = async () => {
   }
 };
 
+/**
+ * VERSIONING REQUIREMENTS:
+ *
+ * When making changes to this form configuration, the version number MUST be incremented:
+ * - Patch version (x.x.X): Bug fixes, minor text changes, help text updates
+ * - Minor version (x.X.x): New fields, new sections, non-breaking changes
+ * - Major version (X.x.x): Breaking changes, field removals, structural changes
+ *
+ * The template name and form configuration name must match and include the version.
+ * Example: PM-Chem-1.0.0, PM-Chem-1.1.0, PM-Chem-2.0.0
+ *
+ * View templates (DynamicTicketView.jsx) should also reference the same template name.
+ *
+ * After updating:
+ * 1. Update the name and templateName fields below
+ * 2. Update the version field
+ * 3. Run: node server/scripts/seedFormConfig.js
+ * 4. Update any references in devProfiles.json
+ * 5. Update CHANGELOG or documentation with changes
+ */
+
 const defaultFormConfig = {
-  name: 'Product Ticket Form - Default',
-  description: 'Default form configuration for NPDI product tickets',
+  name: 'PM-Chem-1.0.0',
+  description: 'Form configuration for NPDI chemical product tickets (Product Manager - Chemistry)',
   version: '1.0.0',
+  templateName: 'PM-Chem-1.0.0',
   isActive: true,
   sections: [
     {
@@ -1190,7 +1212,8 @@ const seedFormConfig = async () => {
       console.log('✓ Default form configuration created successfully');
     }
 
-    console.log('✓ Default form configuration created successfully');
+    console.log('✓ Form configuration saved successfully');
+    console.log(`  - Template Name: ${config.templateName || config.name}`);
     console.log(`  - Name: ${config.name}`);
     console.log(`  - Version: ${config.version}`);
     console.log(`  - Sections: ${config.sections.length}`);

@@ -6,10 +6,10 @@
     "email": "john.smith@milliporesigma.com",
     "role": "PRODUCT_MANAGER",
     "sbu": "Life Science",
-    "assignedTemplate": "Default",
+    "assignedTemplate": "PM-Chem-1.0.0",
     "isActive": true,
     "createdAt": "2024-01-01T00:00:00.000Z",
-    "templateId": "68ed3c44c7b75bdac03b1912",
+    "templateId": "68ed383ff8564e1aa87b140c",
     "updatedAt": "2025-12-06T00:13:10.112Z"
   },
   {
@@ -28,7 +28,7 @@
     "lastName": "Wilson",
     "email": "mike.wilson@milliporesigma.com",
     "role": "ADMIN",
-    "assignedTemplate": "Default",
+    "assignedTemplate": "PM-Chem-1.0.0",
     "isActive": true,
     "createdAt": "2024-01-01T00:00:00.000Z",
     "updatedAt": "2025-10-13T02:52:47.510Z"
