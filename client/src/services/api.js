@@ -32,6 +32,9 @@ apiClient.interceptors.request.use(async (config) => {
         config.headers['x-user-firstname'] = profile.firstName;
         config.headers['x-user-lastname'] = profile.lastName;
         config.headers['x-user-email'] = profile.email;
+        if (profile.employeeId) {
+          config.headers['x-user-employee-id'] = profile.employeeId;
+        }
         if (profile.sbu) {
           config.headers['x-user-sbu'] = profile.sbu;
         }

@@ -82,6 +82,7 @@ app.get('/api/profiles', async (req, res) => {
           firstName: 'John',
           lastName: 'Smith',
           email: 'john.smith@milliporesigma.com',
+          employeeId: 'M000014',
           role: 'PRODUCT_MANAGER',
           sbu: 'Life Science',
           isActive: true,
@@ -92,6 +93,7 @@ app.get('/api/profiles', async (req, res) => {
           firstName: 'Sarah',
           lastName: 'Johnson',
           email: 'sarah.johnson@milliporesigma.com',
+          employeeId: 'M000015',
           role: 'PM_OPS',
           sbu: 'Process Solutions',
           isActive: true,
@@ -102,6 +104,7 @@ app.get('/api/profiles', async (req, res) => {
           firstName: 'Mike',
           lastName: 'Wilson',
           email: 'mike.wilson@milliporesigma.com',
+          employeeId: 'M000016',
           role: 'ADMIN',
           sbu: 'Electronics',
           isActive: true,
@@ -124,6 +127,7 @@ app.get('/api/profiles', async (req, res) => {
         firstName: profile.firstName,
         lastName: profile.lastName,
         email: profile.email,
+        employeeId: profile.employeeId,
         sbu: profile.sbu,
         userId: profile.id
       }));
