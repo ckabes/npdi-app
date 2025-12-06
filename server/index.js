@@ -312,13 +312,18 @@ const gracefulShutdown = async (signal) => {
 
   try {
     // Stop accepting new connections
-    await new Promise((resolve, reject) => {
-      server.close((err) => {
-        if (err) reject(err);
-        else resolve();
+    // Express 5 change: server.close() throws if server is not running
+    if (server.listening) {
+      await new Promise((resolve, reject) => {
+        server.close((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
       });
-    });
-    logger.info('HTTP server closed - no longer accepting connections');
+      logger.info('HTTP server closed - no longer accepting connections');
+    } else {
+      logger.info('HTTP server was not listening - skipping close');
+    }
 
     // Close database connection (Mongoose v7+ returns a Promise)
     await mongoose.connection.close();
@@ -328,12 +333,19 @@ const gracefulShutdown = async (signal) => {
     clearTimeout(forceShutdownTimer);
     process.exit(0);
   } catch (error) {
-    logger.error('Error during graceful shutdown', {
-      error: error.message,
-      stack: error.stack
-    });
-    clearTimeout(forceShutdownTimer);
-    process.exit(1);
+    // Express 5: ERR_SERVER_NOT_RUNNING is not fatal during shutdown
+    if (error.code === 'ERR_SERVER_NOT_RUNNING') {
+      logger.info('Server was already closed');
+      clearTimeout(forceShutdownTimer);
+      process.exit(0);
+    } else {
+      logger.error('Error during graceful shutdown', {
+        error: error.message,
+        stack: error.stack
+      });
+      clearTimeout(forceShutdownTimer);
+      process.exit(1);
+    }
   }
 };
 
