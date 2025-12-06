@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { getCurrencySymbol, CURRENCY_OPTIONS } from '../../utils/currencyUtils';
 
 /**
@@ -9,11 +9,13 @@ import { getCurrencySymbol, CURRENCY_OPTIONS } from '../../utils/currencyUtils';
  * @param {Function} props.register - react-hook-form register function
  * @param {Function} props.watch - react-hook-form watch function
  * @param {boolean} props.readOnly - whether form should be read-only
+ * @param {Array} props.missingRequiredFields - array of missing field keys for highlighting
  */
 const PricingCalculationForm = ({
   register,
   watch,
-  readOnly = false
+  readOnly = false,
+  missingRequiredFields = []
 }) => {
   const baseUnit = watch('baseUnit.unit') || 'g';
   const baseUnitValue = watch('baseUnit.value') || 0;
@@ -21,6 +23,32 @@ const PricingCalculationForm = ({
   const currency = watch('currency') || 'USD';
 
   const currencySymbol = getCurrencySymbol(currency);
+
+  // Refs for scrolling to fields
+  const currencyRef = useRef(null);
+  const standardCostRef = useRef(null);
+  const targetMarginRef = useRef(null);
+
+  // Check if specific fields are missing
+  const isCurrencyMissing = missingRequiredFields.includes('currency');
+  const isStandardCostMissing = missingRequiredFields.includes('rawMaterialCostPerUnit') ||
+                                 missingRequiredFields.includes('pricingData.standardCosts.rawMaterialCostPerUnit');
+  const isTargetMarginMissing = missingRequiredFields.includes('targetMargin') ||
+                                 missingRequiredFields.includes('pricingData.targetMargin');
+
+  // Scroll to first missing field
+  useEffect(() => {
+    if (isCurrencyMissing && currencyRef.current) {
+      currencyRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      currencyRef.current.focus();
+    } else if (isStandardCostMissing && standardCostRef.current) {
+      standardCostRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      standardCostRef.current.focus();
+    } else if (isTargetMarginMissing && targetMarginRef.current) {
+      targetMarginRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetMarginRef.current.focus();
+    }
+  }, [isCurrencyMissing, isStandardCostMissing, isTargetMarginMissing]);
 
   return (
     <div className="card">
@@ -36,7 +64,8 @@ const PricingCalculationForm = ({
             </label>
             <select
               {...register('currency')}
-              className="form-select text-sm bg-white"
+              ref={currencyRef}
+              className={`form-select text-sm bg-white ${isCurrencyMissing ? 'border-2 border-red-500 ring-2 ring-red-200' : ''}`}
               disabled={readOnly}
             >
               {CURRENCY_OPTIONS.map(option => (
@@ -57,12 +86,16 @@ const PricingCalculationForm = ({
             </label>
             <input
               {...register('pricingData.standardCosts.rawMaterialCostPerUnit')}
+              ref={standardCostRef}
               type="number"
               step="0.01"
-              className="form-input text-sm bg-white"
+              className={`form-input text-sm bg-white ${isStandardCostMissing ? 'border-2 border-red-500 ring-2 ring-red-200' : ''}`}
               placeholder="0.50"
               readOnly={readOnly}
             />
+            {isStandardCostMissing && (
+              <p className="mt-1 text-xs text-red-600 font-medium">⚠️ This field is required for submission</p>
+            )}
           </div>
 
           {/* Standard Cost Display */}
@@ -87,12 +120,16 @@ const PricingCalculationForm = ({
             </label>
             <input
               {...register('pricingData.targetMargin')}
+              ref={targetMarginRef}
               type="number"
               step="1"
-              className="form-input text-sm bg-white"
+              className={`form-input text-sm bg-white ${isTargetMarginMissing ? 'border-2 border-red-500 ring-2 ring-red-200' : ''}`}
               placeholder="50"
               readOnly={readOnly}
             />
+            {isTargetMarginMissing && (
+              <p className="mt-1 text-xs text-red-600 font-medium">⚠️ This field is required for submission</p>
+            )}
             <p className="mt-1 text-xs text-gray-500">
               Single target margin applied to all SKU sizes
             </p>

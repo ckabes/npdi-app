@@ -1531,6 +1531,7 @@ const ProductTicketForm = ({
                           register={register}
                           watch={watch}
                           readOnly={false}
+                          missingRequiredFields={missingRequiredFields}
                         />
 
                         {/* SKU Variants - shown after pricing */}

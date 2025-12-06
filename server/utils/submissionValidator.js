@@ -68,7 +68,26 @@ const validateSubmissionRequirements = async (ticketData, userIdentifier, isEmpl
     const missingFields = [];
 
     for (const fieldKey of requiredFieldKeys) {
-      const value = getNestedValue(ticketData, fieldKey);
+      // Try to find the value using different possible paths
+      let value = getNestedValue(ticketData, fieldKey);
+
+      // If not found and fieldKey doesn't contain a dot, try common nested paths
+      if (isFieldEmpty(value) && !fieldKey.includes('.')) {
+        // Try common paths for pricing-related fields
+        const commonPaths = [
+          `pricingData.standardCosts.${fieldKey}`,
+          `pricingData.${fieldKey}`,
+          `chemicalProperties.${fieldKey}`,
+          `corpbaseData.${fieldKey}`
+        ];
+
+        for (const path of commonPaths) {
+          value = getNestedValue(ticketData, path);
+          if (!isFieldEmpty(value)) {
+            break; // Found it!
+          }
+        }
+      }
 
       if (isFieldEmpty(value)) {
         // Get field label from form configuration for user-friendly error messages

@@ -351,7 +351,7 @@ const SKUVariantsForm = ({
                   </label>
                   <select
                     {...register(`skuVariants.${index}.type`, { required: 'Type is required' })}
-                    className="form-select"
+                    className="form-select shadow-sm"
                     onChange={(e) => handleTypeChange(index, e.target.value)}
                     disabled={readOnly}
                   >
@@ -387,7 +387,7 @@ const SKUVariantsForm = ({
                         {...register(`skuVariants.${index}.packageSize.value`, { required: 'Package size is required' })}
                         type="number"
                         step="0.1"
-                        className={`form-input rounded-r-none ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
+                        className={`form-input rounded-r-none shadow-sm ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
                         placeholder="100"
                         onChange={(e) => {
                           if (onPackageValueChange) onPackageValueChange(index, e.target.value);
@@ -396,7 +396,7 @@ const SKUVariantsForm = ({
                       />
                       <select
                         {...register(`skuVariants.${index}.packageSize.unit`)}
-                        className={`form-select rounded-l-none border-l-0 ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
+                        className={`form-select rounded-l-none border-l-0 shadow-sm ${field.type === 'BULK' ? 'bg-amber-50 border-2 border-amber-400 font-semibold' : ''}`}
                         onChange={(e) => {
                           if (onPackageUnitChange) onPackageUnitChange(index, e.target.value);
                         }}
@@ -465,7 +465,7 @@ const SKUVariantsForm = ({
                         />
                         <select
                           {...register(`skuVariants.${index}.grossWeight.unit`)}
-                          className="form-select w-24"
+                          className="form-select w-24 shadow-sm"
                           disabled={readOnly}
                         >
                           <option value="mg">mg</option>
@@ -493,7 +493,7 @@ const SKUVariantsForm = ({
                         />
                         <select
                           {...register(`skuVariants.${index}.netWeight.unit`)}
-                          className="form-select w-24"
+                          className="form-select w-24 shadow-sm"
                           disabled={readOnly}
                         >
                           <option value="mg">mg</option>
@@ -521,7 +521,7 @@ const SKUVariantsForm = ({
                         />
                         <select
                           {...register(`skuVariants.${index}.volume.unit`)}
-                          className="form-select w-24"
+                          className="form-select w-24 shadow-sm"
                           disabled={readOnly}
                         >
                           <option value="µL">µL</option>
@@ -549,7 +549,7 @@ const SKUVariantsForm = ({
                         {...register(`skuVariants.${index}.pricing.listPrice`, { required: showPricing ? 'List price is required' : false })}
                         type="number"
                         step="0.01"
-                        className="form-input rounded-l-none"
+                        className="form-input rounded-l-none shadow-sm"
                         placeholder="99.99"
                         readOnly={readOnly}
                       />

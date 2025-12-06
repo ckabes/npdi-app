@@ -655,7 +655,7 @@ productTicketSchema.index({ 'chemicalProperties.casNumber': 1 });
 productTicketSchema.index({ sbu: 1, createdAt: -1 });
 
 // Pre-save hook to clean up and normalize data before validation
-productTicketSchema.pre('validate', function(next) {
+productTicketSchema.pre('validate', function() {
   // Clean up enum fields - convert empty strings to undefined to avoid enum validation errors
   if (this.productScope && this.productScope.scope === '') {
     this.productScope.scope = undefined;
@@ -723,11 +723,9 @@ productTicketSchema.pre('validate', function(next) {
       }
     });
   }
-
-  next();
 });
 
-productTicketSchema.pre('save', function(next) {
+productTicketSchema.pre('save', function() {
   this.updatedAt = Date.now();
 
   if (this.isNew) {
@@ -738,8 +736,6 @@ productTicketSchema.pre('save', function(next) {
       action: 'TICKET_CREATED'
     });
   }
-
-  next();
 });
 
 productTicketSchema.pre('save', async function() {

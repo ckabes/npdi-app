@@ -182,8 +182,7 @@ const CreateTicket = () => {
           { duration: 7000 }
         );
 
-        // Scroll to top so user can see highlighted fields
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Don't scroll to top - let the form components scroll to the specific missing fields
       } else if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
         // Show each validation error
         errorData.validationErrors.forEach((msg, index) => {
