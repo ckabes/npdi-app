@@ -42,11 +42,28 @@ const TicketDetails = () => {
   // Initialize form with proper defaults based on ticket data
   const getDefaultFormValues = () => {
     if (!ticket || !editMode) return {};
-    
+
     return {
       ...ticket,
-      skuVariants: ticket.skuVariants && ticket.skuVariants.length > 0 
-        ? ticket.skuVariants 
+      // Ensure pricingData is properly initialized from ticket data
+      pricingData: {
+        standardCosts: {
+          rawMaterialCostPerUnit: ticket.pricingData?.standardCosts?.rawMaterialCostPerUnit ?? 0,
+          packagingCost: ticket.pricingData?.standardCosts?.packagingCost ?? 0,
+          laborOverheadCost: ticket.pricingData?.standardCosts?.laborOverheadCost ?? 0
+        },
+        targetMargin: ticket.pricingData?.targetMargin ?? 50,
+        baseUnit: ticket.pricingData?.baseUnit ?? 'g'
+      },
+      // Ensure baseUnit is properly initialized
+      baseUnit: {
+        value: ticket.baseUnit?.value ?? 100,
+        unit: ticket.baseUnit?.unit ?? 'g'
+      },
+      // Ensure currency is initialized
+      currency: ticket.currency ?? 'USD',
+      skuVariants: ticket.skuVariants && ticket.skuVariants.length > 0
+        ? ticket.skuVariants
         : [{
             type: 'PREPACK',
             sku: '',
@@ -203,6 +220,7 @@ const TicketDetails = () => {
     try {
       await productAPI.updateTicket(id, data);
       toast.success('Ticket updated successfully');
+      setMissingRequiredFields([]);
       setEditMode(false);
       fetchTicket();
     } catch (error) {
@@ -211,7 +229,19 @@ const TicketDetails = () => {
       // Enhanced error handling with validation details
       const errorData = error.response?.data;
 
-      if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
+      // Handle submission requirements validation errors
+      if (errorData?.error === 'Submission Requirements Not Met' && errorData?.missingFields) {
+        setMissingRequiredFields(errorData.missingFields.map(f => f.fieldKey));
+
+        // Show comprehensive error message
+        const fieldLabels = errorData.missingFields.map(f => f.fieldLabel).join(', ');
+        toast.error(
+          `Cannot submit: Please fill in the following required fields: ${fieldLabels}`,
+          { duration: 7000 }
+        );
+
+        // Don't scroll to top - let the form components scroll to the specific missing fields
+      } else if (errorData?.validationErrors && errorData.validationErrors.length > 0) {
         // Show each validation error
         errorData.validationErrors.forEach((msg, index) => {
           setTimeout(() => {
@@ -223,6 +253,25 @@ const TicketDetails = () => {
       } else {
         toast.error('Failed to update ticket. Please check your input and try again.');
       }
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleSubmitTicket = async () => {
+    if (!window.confirm('Are you sure you want to submit this ticket? Once submitted, it will be sent to PMOps for review.')) {
+      return;
+    }
+
+    setUpdateLoading(true);
+    try {
+      await productAPI.updateStatus(id, { status: 'SUBMITTED' });
+      toast.success('Ticket submitted successfully!');
+      fetchTicket();
+    } catch (error) {
+      console.error('Failed to submit ticket:', error);
+      const errorMsg = error.response?.data?.message || 'Failed to submit ticket';
+      toast.error(errorMsg);
     } finally {
       setUpdateLoading(false);
     }
@@ -402,15 +451,29 @@ const TicketDetails = () => {
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     </div>
                   ) : (
-                    <button
-                      onClick={toggleEditMode}
-                      className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-white/20"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      <span>{ticket.status === 'DRAFT' ? 'Edit Draft' : 'Edit Ticket'}</span>
-                    </button>
+                    <>
+                      <button
+                        onClick={toggleEditMode}
+                        className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-white/20"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        <span>{ticket.status === 'DRAFT' ? 'Edit Draft' : 'Edit Ticket'}</span>
+                      </button>
+                      {ticket.status === 'DRAFT' && (
+                        <button
+                          onClick={handleSubmitTicket}
+                          disabled={updateLoading}
+                          className="bg-green-600/90 backdrop-blur-sm hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 flex items-center space-x-2 border border-green-500/30"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span>{updateLoading ? 'Submitting...' : 'Submit Ticket'}</span>
+                        </button>
+                      )}
+                    </>
                   )}
                 </>
               )}
@@ -720,6 +783,7 @@ const TicketDetails = () => {
           onCancel={() => setEditMode(false)}
           user={user}
           showHeader={false}
+          missingRequiredFields={missingRequiredFields}
         />
       ) : (
         <>

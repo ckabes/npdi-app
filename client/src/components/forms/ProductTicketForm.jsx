@@ -1677,6 +1677,32 @@ const ProductTicketForm = ({
           >
             {loading ? (mode === 'edit' ? 'Saving...' : 'Creating...') : (mode === 'edit' ? 'Save Changes' : 'Create Ticket')}
           </button>
+          {mode === 'edit' && ticket?.status === 'DRAFT' && (
+            <button
+              type="button"
+              onClick={async () => {
+                if (!window.confirm('Are you sure you want to submit this ticket? Once submitted, it will be sent to PMOps for review.')) {
+                  return;
+                }
+                try {
+                  setLoading(true);
+                  await productAPI.updateStatus(ticket._id, { status: 'SUBMITTED' });
+                  toast.success('Ticket submitted successfully!');
+                  onCancel(); // Exit edit mode and refresh
+                } catch (error) {
+                  console.error('Failed to submit ticket:', error);
+                  const errorMsg = error.response?.data?.message || 'Failed to submit ticket';
+                  toast.error(errorMsg);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              className="btn bg-green-600 hover:bg-green-700 text-white"
+            >
+              {loading ? 'Submitting...' : 'Submit Ticket'}
+            </button>
+          )}
         </div>
       </form>
 
