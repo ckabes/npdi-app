@@ -1014,7 +1014,7 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                   value={partNumber}
                   onChange={(e) => setPartNumber(e.target.value)}
                   placeholder="e.g., 1234567"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                  className="w-full bg-white px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
                   disabled={savingPartNumber || (!!ticket.partNumber?.baseNumber && !editingSKUs) || isTicketLocked()}
                 />
                 {ticket.partNumber?.baseNumber && (

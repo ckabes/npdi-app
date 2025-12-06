@@ -225,16 +225,16 @@ const TicketList = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="pl-4 pr-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Ticket
                     </th>
                     <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Product
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Priority
                     </th>
-                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -243,7 +243,7 @@ const TicketList = () => {
                     <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Updated
                     </th>
-                    <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="pl-3 pr-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -251,8 +251,8 @@ const TicketList = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {tickets.map((ticket) => (
                     <tr key={ticket._id} className="hover:bg-gray-50">
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <Link 
+                      <td className="pl-4 pr-3 py-3 whitespace-nowrap">
+                        <Link
                           to={`/tickets/${ticket._id}`}
                           className="text-sm font-medium text-millipore-blue hover:text-millipore-blue-dark"
                         >
@@ -267,10 +267,10 @@ const TicketList = () => {
                           SBU {ticket.sbu}
                         </div>
                       </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         <PriorityBadge priority={ticket.priority} />
                       </td>
-                      <td className="px-3 py-3 whitespace-nowrap">
+                      <td className="px-3 py-3 whitespace-nowrap text-center">
                         <StatusBadge status={ticket.status} />
                       </td>
                       <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
@@ -279,7 +279,7 @@ const TicketList = () => {
                       <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-500">
                         {new Date(ticket.updatedAt).toLocaleDateString()}
                       </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="pl-3 pr-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                         <Link
                           to={`/tickets/${ticket._id}`}
                           className="text-millipore-blue hover:text-millipore-blue-dark flex items-center justify-end"
