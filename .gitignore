@@ -28,6 +28,9 @@ Thumbs.db
 *.swo
 *~
 
+# Claude Code local settings (project instructions should be committed)
+.claude/settings.local.json
+
 # Test coverage
 coverage/
 
