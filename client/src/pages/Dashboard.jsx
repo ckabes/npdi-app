@@ -34,7 +34,8 @@ const Dashboard = () => {
   const [enableTransition, setEnableTransition] = useState(false);
 
   useEffect(() => {
-    if (!user?.email) return; // Wait for user to be loaded
+    const userIdentifier = user?.employeeId || user?.email;
+    if (!userIdentifier) return; // Wait for user to be loaded
 
     fetchStats();
     fetchMyTickets();
@@ -43,7 +44,7 @@ const Dashboard = () => {
       fetchRecentlySubmittedTickets();
     }
     fetchDraftTickets();
-  }, [user?.email, isPMOPS]);
+  }, [user?.employeeId, user?.email, isPMOPS]);
 
   const fetchStats = async () => {
     try {
@@ -69,7 +70,7 @@ const Dashboard = () => {
         page: 1,
         limit: 5, // Show only 5 most recent tickets
         status: 'SUBMITTED,IN_PROCESS,NPDI_INITIATED,COMPLETED',
-        createdBy: user?.email, // Filter by current user's email
+        createdBy: user?.employeeId || user?.email, // Use employeeId if available, fallback to email
         sortBy: 'updatedAt', // Sort by last updated
         sortOrder: 'desc' // Most recent first
       };
@@ -125,7 +126,7 @@ const Dashboard = () => {
         page: 1,
         limit: 5,
         status: 'DRAFT',
-        createdBy: user?.email, // Filter by current user's email
+        createdBy: user?.employeeId || user?.email, // Use employeeId if available, fallback to email
         sortBy: 'updatedAt', // Sort by last updated
         sortOrder: 'desc' // Most recent first
       });

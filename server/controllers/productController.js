@@ -274,13 +274,32 @@ const getTickets = async (req, res) => {
     }
     if (sbu) filter.sbu = sbu;
     if (priority) filter.priority = priority;
-    if (createdBy) filter.createdBy = createdBy;
+    // Support both email and employeeId for createdBy filter
+    if (createdBy) {
+      filter.$or = filter.$or || [];
+      filter.$or.push(
+        { createdBy: createdBy },
+        { createdByEmployeeId: createdBy }
+      );
+    }
     if (search) {
-      filter.$or = [
+      // If we already have $or for createdBy, we need to use $and
+      const searchConditions = [
         { productName: { $regex: search, $options: 'i' } },
         { ticketNumber: { $regex: search, $options: 'i' } },
         { 'chemicalProperties.casNumber': { $regex: search, $options: 'i' } }
       ];
+
+      if (filter.$or) {
+        // Combine both conditions using $and
+        filter.$and = [
+          { $or: filter.$or },
+          { $or: searchConditions }
+        ];
+        delete filter.$or;
+      } else {
+        filter.$or = searchConditions;
+      }
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
