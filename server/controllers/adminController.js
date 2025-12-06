@@ -429,9 +429,11 @@ const getAdminStats = async (req, res) => {
           database: dbHealth,
           backlogManagement: backlogSize < 20 ? 'Good' : backlogSize < 40 ? 'Fair' : 'Needs Attention',
           responseTime: avgSubmittedToInProcess < 48 ? 'Good' : avgSubmittedToInProcess < 96 ? 'Fair' : 'Slow',
-          completionRate: completionRate >= 90 ? 'Excellent' : completionRate >= 75 ? 'Good' : 'Needs Improvement',
+          completionTime: avgSubmittedToCompleted / 24 < 100 ? 'Good' : avgSubmittedToCompleted / 24 < 150 ? 'Fair' : 'Slow',
           urgentHandling: urgentWaiting === 0 ? 'Excellent' : urgentWaiting < 3 ? 'Good' : 'Needs Attention'
-        }
+        },
+        // Keep completion rate for reference
+        completionRatePercent: completionRate
       },
       configuration: {
         formConfigs,

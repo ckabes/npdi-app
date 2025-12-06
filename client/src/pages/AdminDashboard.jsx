@@ -35,6 +35,19 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedIndicator, setSelectedIndicator] = useState(null);
 
+  // Load thresholds from localStorage or use defaults
+  const getDefaultThresholds = () => ({
+    backlogManagement: { good: 20, fair: 40 },
+    responseTime: { good: 48, fair: 96 },
+    completionTime: { good: 100, fair: 150 },
+    urgentHandling: { excellent: 0, good: 3 }
+  });
+
+  const [thresholds, setThresholds] = useState(() => {
+    const saved = localStorage.getItem('healthIndicatorThresholds');
+    return saved ? JSON.parse(saved) : getDefaultThresholds();
+  });
+
   useEffect(() => {
     if (activeTab === 'overview' && user) {
       fetchStats();
@@ -130,6 +143,22 @@ const AdminDashboard = () => {
   const HealthIndicatorModal = ({ indicator, stats, onClose }) => {
     if (!indicator || !stats) return null;
 
+    const [editMode, setEditMode] = useState(false);
+    const [editedThresholds, setEditedThresholds] = useState(thresholds[indicator] || {});
+
+    const handleSaveThresholds = () => {
+      const newThresholds = { ...thresholds, [indicator]: editedThresholds };
+      setThresholds(newThresholds);
+      localStorage.setItem('healthIndicatorThresholds', JSON.stringify(newThresholds));
+      setEditMode(false);
+      toast.success('Thresholds updated successfully');
+    };
+
+    const handleResetThresholds = () => {
+      const defaults = getDefaultThresholds();
+      setEditedThresholds(defaults[indicator]);
+    };
+
     const getIndicatorDetails = () => {
       const { performance, systemHealth, tickets } = stats;
 
@@ -152,6 +181,7 @@ const AdminDashboard = () => {
 
         case 'backlogManagement':
           const backlogSize = performance.backlogSize;
+          const backlogThresholds = editMode ? editedThresholds : thresholds.backlogManagement;
           return {
             title: 'Backlog Management',
             currentValue: systemHealth.indicators.backlogManagement,
@@ -163,15 +193,16 @@ const AdminDashboard = () => {
               { label: 'Total Backlog', value: backlogSize, detail: 'Combined workload', highlight: true }
             ],
             thresholds: [
-              { label: 'Good', condition: 'Backlog < 20 tickets', color: 'green' },
-              { label: 'Fair', condition: 'Backlog 20-39 tickets', color: 'yellow' },
-              { label: 'Needs Attention', condition: 'Backlog ≥ 40 tickets', color: 'orange' }
+              { label: 'Good', condition: `Backlog < ${backlogThresholds.good} tickets`, color: 'green', editable: true, key: 'good' },
+              { label: 'Fair', condition: `Backlog ${backlogThresholds.good}-${backlogThresholds.fair - 1} tickets`, color: 'yellow', editable: true, key: 'fair' },
+              { label: 'Needs Attention', condition: `Backlog ≥ ${backlogThresholds.fair} tickets`, color: 'orange', editable: false }
             ]
           };
 
         case 'responseTime':
           const avgHours = performance.avgResponseTime.hours;
           const avgDays = performance.avgResponseTime.days;
+          const responseThresholds = editMode ? editedThresholds : thresholds.responseTime;
           return {
             title: 'Response Time',
             currentValue: systemHealth.indicators.responseTime,
@@ -182,38 +213,38 @@ const AdminDashboard = () => {
               { label: 'Measurement Period', value: 'All time', detail: 'Based on historical ticket data' }
             ],
             thresholds: [
-              { label: 'Good', condition: '< 48 hours (2 days)', color: 'green' },
-              { label: 'Fair', condition: '48-96 hours (2-4 days)', color: 'yellow' },
-              { label: 'Slow', condition: '≥ 96 hours (4+ days)', color: 'orange' }
+              { label: 'Good', condition: `< ${responseThresholds.good} hours (${responseThresholds.good / 24} days)`, color: 'green', editable: true, key: 'good' },
+              { label: 'Fair', condition: `${responseThresholds.good}-${responseThresholds.fair} hours (${responseThresholds.good / 24}-${responseThresholds.fair / 24} days)`, color: 'yellow', editable: true, key: 'fair' },
+              { label: 'Slow', condition: `≥ ${responseThresholds.fair} hours (${responseThresholds.fair / 24}+ days)`, color: 'orange', editable: false }
             ]
           };
 
-        case 'completionRate':
-          const completionRate = performance.completionRate;
-          const completed = tickets.completed;
-          const canceled = tickets.canceled;
-          const totalProcessed = completed + canceled;
+        case 'completionTime':
+          const avgCompletionDays = performance.avgCompletionTime.days;
+          const avgCompletionHours = performance.avgCompletionTime.hours;
+          const currentThresholds = editMode ? editedThresholds : thresholds.completionTime;
+
           return {
-            title: 'Completion Rate',
-            currentValue: systemHealth.indicators.completionRate,
-            description: 'Percentage of tickets that were completed successfully vs. canceled.',
-            calculation: '(Completed Tickets / (Completed + Canceled)) × 100',
+            title: 'Completion Time',
+            currentValue: systemHealth.indicators.completionTime,
+            description: 'Average time from ticket submission to completion.',
+            calculation: 'Average time between SUBMITTED and COMPLETED status across all completed tickets',
             metrics: [
-              { label: 'Completed Tickets', value: completed, detail: 'Successfully finished' },
-              { label: 'Canceled Tickets', value: canceled, detail: 'Did not complete' },
-              { label: 'Total Processed', value: totalProcessed, detail: 'Completed + Canceled' },
-              { label: 'Completion Rate', value: `${completionRate}%`, detail: 'Success rate', highlight: true }
+              { label: 'Average Completion Time', value: `${avgCompletionDays} days`, detail: `${avgCompletionHours} hours`, highlight: true },
+              { label: 'Target', value: `< ${currentThresholds.good} days`, detail: 'Goal for ticket completion' },
+              { label: 'Measurement Period', value: 'All time', detail: 'Based on historical ticket data' }
             ],
             thresholds: [
-              { label: 'Excellent', condition: '≥ 90%', color: 'green' },
-              { label: 'Good', condition: '75-89%', color: 'blue' },
-              { label: 'Needs Improvement', condition: '< 75%', color: 'yellow' }
+              { label: 'Good', condition: `< ${currentThresholds.good} days`, color: 'green', editable: true, key: 'good' },
+              { label: 'Fair', condition: `${currentThresholds.good}-${currentThresholds.fair} days`, color: 'yellow', editable: true, key: 'fair' },
+              { label: 'Slow', condition: `≥ ${currentThresholds.fair} days`, color: 'orange', editable: false }
             ]
           };
 
         case 'urgentHandling':
           const urgentWaiting = performance.urgentWaiting;
           const totalUrgent = tickets.byPriority.URGENT;
+          const urgentThresholds = editMode ? editedThresholds : thresholds.urgentHandling;
           return {
             title: 'Urgent Handling',
             currentValue: systemHealth.indicators.urgentHandling,
@@ -224,9 +255,9 @@ const AdminDashboard = () => {
               { label: 'Urgent Waiting > 1 Day', value: urgentWaiting, detail: 'Requires immediate attention', highlight: true }
             ],
             thresholds: [
-              { label: 'Excellent', condition: '0 urgent tickets waiting', color: 'green' },
-              { label: 'Good', condition: '< 3 urgent tickets waiting', color: 'blue' },
-              { label: 'Needs Attention', condition: '≥ 3 urgent tickets waiting', color: 'orange' }
+              { label: 'Excellent', condition: `${urgentThresholds.excellent} urgent tickets waiting`, color: 'green', editable: true, key: 'excellent' },
+              { label: 'Good', condition: `< ${urgentThresholds.good} urgent tickets waiting`, color: 'blue', editable: true, key: 'good' },
+              { label: 'Needs Attention', condition: `≥ ${urgentThresholds.good} urgent tickets waiting`, color: 'orange', editable: false }
             ]
           };
 
@@ -307,7 +338,21 @@ const AdminDashboard = () => {
 
             {/* Thresholds */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Status Thresholds</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-900">Status Thresholds</h3>
+                {indicator !== 'database' && (
+                  <button
+                    onClick={() => setEditMode(!editMode)}
+                    className={`px-3 py-1 text-xs font-medium rounded ${
+                      editMode
+                        ? 'bg-gray-200 text-gray-700'
+                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    }`}
+                  >
+                    {editMode ? 'Cancel' : 'Edit Thresholds'}
+                  </button>
+                )}
+              </div>
               <div className="space-y-2">
                 {details.thresholds.map((threshold, index) => {
                   const colorClasses = {
@@ -323,11 +368,42 @@ const AdminDashboard = () => {
                       className={`flex items-center justify-between p-3 border rounded-lg ${colorClasses[threshold.color]}`}
                     >
                       <span className="text-sm font-semibold">{threshold.label}</span>
-                      <span className="text-sm">{threshold.condition}</span>
+                      {editMode && threshold.editable ? (
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="number"
+                            value={editedThresholds[threshold.key] || 0}
+                            onChange={(e) => setEditedThresholds({
+                              ...editedThresholds,
+                              [threshold.key]: parseFloat(e.target.value) || 0
+                            })}
+                            className="w-20 px-2 py-1 text-sm border border-gray-300 rounded"
+                          />
+                          <span className="text-sm">{indicator === 'responseTime' ? 'hours' : indicator === 'completionTime' ? 'days' : 'tickets'}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm">{threshold.condition}</span>
+                      )}
                     </div>
                   );
                 })}
               </div>
+              {editMode && (
+                <div className="flex items-center space-x-2 mt-4">
+                  <button
+                    onClick={handleSaveThresholds}
+                    className="flex-1 btn btn-primary"
+                  >
+                    Save Thresholds
+                  </button>
+                  <button
+                    onClick={handleResetThresholds}
+                    className="flex-1 btn btn-secondary"
+                  >
+                    Reset to Default
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -478,13 +554,13 @@ const AdminDashboard = () => {
                 onClick={() => setSelectedIndicator('responseTime')}
               />
               <HealthIndicator
-                label="Completion Rate"
-                status={systemHealth.indicators.completionRate}
+                label="Completion Time"
+                status={systemHealth.indicators.completionTime}
                 color={
-                  systemHealth.indicators.completionRate === 'Excellent' ? 'green' :
-                  systemHealth.indicators.completionRate === 'Good' ? 'blue' : 'yellow'
+                  systemHealth.indicators.completionTime === 'Good' ? 'green' :
+                  systemHealth.indicators.completionTime === 'Fair' ? 'yellow' : 'orange'
                 }
-                onClick={() => setSelectedIndicator('completionRate')}
+                onClick={() => setSelectedIndicator('completionTime')}
               />
               <HealthIndicator
                 label="Urgent Handling"
