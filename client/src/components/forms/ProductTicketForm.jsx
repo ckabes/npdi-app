@@ -1626,6 +1626,15 @@ const ProductTicketForm = ({
         </div>
       </form>
 
+      {/* Subtle template name footer */}
+      {template && (
+        <div className="mt-8 pb-4 text-center">
+          <p className="text-xs text-gray-300 font-light">
+            {template.name}
+          </p>
+        </div>
+      )}
+
       {/* SAP Search Popup */}
       {showSAPPopup && (
         <MARASearchPopup
