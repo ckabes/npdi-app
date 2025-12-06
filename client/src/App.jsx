@@ -17,16 +17,28 @@ import Loading from './components/Loading';
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) return <Loading />;
-  
+
   if (!user) return <Navigate to="/select-profile" replace />;
-  
+
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     return <Navigate to="/dashboard" replace />;
   }
-  
+
   return children;
+};
+
+const RoleBasedRedirect = () => {
+  const { user } = useAuth();
+
+  // PM_OPS and ADMIN users go to PMOps Dashboard
+  if (user?.role === 'PM_OPS' || user?.role === 'ADMIN') {
+    return <Navigate to="/pm-ops" replace />;
+  }
+
+  // Product Managers go to PM Dashboard
+  return <Navigate to="/dashboard" replace />;
 };
 
 function App() {
@@ -39,7 +51,7 @@ function App() {
   return (
     <Routes>
       <Route path="/select-profile" element={
-        user ? <Navigate to="/dashboard" replace /> : <ProfileSelection />
+        user ? <RoleBasedRedirect /> : <ProfileSelection />
       } />
       
       <Route path="/" element={
@@ -47,7 +59,7 @@ function App() {
           <Layout />
         </ProtectedRoute>
       }>
-        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route index element={<RoleBasedRedirect />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="tickets" element={<TicketList />} />
         <Route path="drafts" element={
@@ -88,7 +100,7 @@ function App() {
         } />
       </Route>
       
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<RoleBasedRedirect />} />
     </Routes>
   );
 }

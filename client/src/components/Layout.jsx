@@ -37,7 +37,7 @@ const Layout = () => {
   };
 
   const navigation = [
-    { name: isPMOPS || isAdmin ? 'PMOps Dashboard' : 'Dashboard', href: '/dashboard', icon: HomeIcon },
+    { name: isPMOPS || isAdmin ? 'PMOps Dashboard' : 'Dashboard', href: isPMOPS || isAdmin ? '/pm-ops' : '/dashboard', icon: HomeIcon },
     { name: 'Tickets', href: '/tickets', icon: DocumentIcon },
     ...(isPMOPS || isAdmin ? [
       { name: 'Drafts', href: '/drafts', icon: PencilIcon }
