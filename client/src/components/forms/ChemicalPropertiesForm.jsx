@@ -320,7 +320,7 @@ const ChemicalPropertiesForm = ({
                 <p className="mt-1 text-xs text-green-600">Auto-populated from PubChem</p>
               )}
               {!autoPopulated && !readOnly && !canonicalSMILES && (
-                <p className="mt-1 text-xs text-gray-500">Simplified Molecular-Input Line-Entry System. Structure visualization will appear when entered.</p>
+                <p className="mt-1 text-xs text-gray-500">Structure visualization will appear when entered.</p>
               )}
             </div>
 
