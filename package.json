@@ -23,13 +23,11 @@
   "author": "MilliporeSigma",
   "license": "ISC",
   "dependencies": {
-    "@headlessui/react": "^2.2.9",
     "apache-arrow": "^21.1.0",
     "axios": "^1.13.2",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
-    "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
@@ -38,16 +36,11 @@
     "helmet": "^8.1.0",
     "mongoose": "^9.0.1",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.11",
-    "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1",
-    "tailwind-merge": "^3.4.0"
+    "nodemailer": "^7.0.11"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.17",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.1",
-    "nodemon": "^3.1.11",
-    "tailwindcss": "^4.1.17"
+    "nodemon": "^3.1.11"
   }
 }
