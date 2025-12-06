@@ -89,7 +89,9 @@ server/scripts/seedUsers.js
 server/scripts/seedApiKey.js
 server/scripts/clean*.js
 server/scripts/configure*.js
-server/scripts/diagnoseVPN.*
+server/scripts/diagnose*.js
+server/scripts/inspect*.js
+server/scripts/backfill*.js
 server/scripts/discover*.js
 server/scripts/assign*.js
 server/scripts/fix*.js
