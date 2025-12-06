@@ -55,13 +55,14 @@ const createTicket = async (req, res) => {
     // Get current user information from request headers
     const currentUser = getCurrentUser(req);
 
-    // Look up the user in the database to get the ObjectId
-    const userRecord = await User.findOne({ email: currentUser.email });
+    // Look up the user in the database to get the ObjectId and their assigned template
+    const userRecord = await User.findOne({ email: currentUser.email }).populate('ticketTemplate');
 
     let ticketData = {
       ...req.body,
       createdBy: currentUser.email, // Set to current user's email
-      createdByUser: userRecord?._id // Set the user reference if found
+      createdByUser: userRecord?._id, // Set the user reference if found
+      template: userRecord?.ticketTemplate?._id || null // Store the template used to create this ticket
     };
 
     // All submitted tickets should have SUBMITTED status initially
@@ -81,6 +82,11 @@ const createTicket = async (req, res) => {
           missingFields: validation.missingFields,
           requiredFieldKeys: validation.requiredFieldKeys
         });
+      }
+
+      // Store the template that was used for validation
+      if (validation.template && !ticketData.template) {
+        ticketData.template = validation.template._id;
       }
     }
 

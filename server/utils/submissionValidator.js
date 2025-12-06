@@ -9,20 +9,34 @@ const User = require('../models/User');
  */
 const validateSubmissionRequirements = async (ticketData, userEmail) => {
   try {
-    // Find the user's assigned template
-    const user = await User.findOne({ email: userEmail }).populate({
-      path: 'ticketTemplate',
-      populate: { path: 'formConfiguration' }
-    });
-
     let template = null;
 
-    // Check if user has an assigned template
-    if (user?.ticketTemplate && user.ticketTemplate.isActive) {
-      template = user.ticketTemplate;
+    // If ticket has a stored template (existing ticket), use that
+    // This ensures validation is consistent with the template used when ticket was created
+    if (ticketData.template) {
+      template = await TicketTemplate.findById(ticketData.template).populate('formConfiguration');
+
+      // If the stored template is inactive or deleted, fall through to user's current template
+      if (template && !template.isActive) {
+        console.warn(`Ticket's stored template ${ticketData.template} is inactive, using user's current template`);
+        template = null;
+      }
     }
 
-    // Fallback to default template if no template or inactive
+    // If no stored template (new ticket) or stored template not found, use user's current template
+    if (!template) {
+      const user = await User.findOne({ email: userEmail }).populate({
+        path: 'ticketTemplate',
+        populate: { path: 'formConfiguration' }
+      });
+
+      // Check if user has an assigned template
+      if (user?.ticketTemplate && user.ticketTemplate.isActive) {
+        template = user.ticketTemplate;
+      }
+    }
+
+    // Fallback to default template if still no template found
     if (!template) {
       template = await TicketTemplate.findOne({
         isDefault: true,
