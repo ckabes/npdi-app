@@ -15,7 +15,19 @@ const getCollections = async (req, res) => {
     const collectionsWithCounts = await Promise.all(
       collections.map(async (collection) => {
         const count = await db.collection(collection.name).countDocuments();
-        const stats = await db.collection(collection.name).stats();
+
+        // Use collStats command instead of deprecated stats() method
+        let stats = { size: 0, nindexes: 0, avgObjSize: 0 };
+        try {
+          const result = await db.command({ collStats: collection.name });
+          stats = {
+            size: result.size || 0,
+            nindexes: result.nindexes || 0,
+            avgObjSize: result.avgObjSize || 0
+          };
+        } catch (err) {
+          console.warn(`Failed to get stats for collection ${collection.name}:`, err.message);
+        }
 
         return {
           name: collection.name,
@@ -23,7 +35,7 @@ const getCollections = async (req, res) => {
           documentCount: count,
           sizeBytes: stats.size,
           indexCount: stats.nindexes,
-          avgObjSize: stats.avgObjSize || 0
+          avgObjSize: stats.avgObjSize
         };
       })
     );
