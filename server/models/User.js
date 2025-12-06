@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  ticketTemplate: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'TicketTemplate',
+    required: false  // PM_OPS and ADMIN roles don't require templates
+  },
   lastLogin: {
     type: Date
   },

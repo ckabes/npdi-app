@@ -2,6 +2,7 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const TicketTemplate = require('../models/TicketTemplate');
 const FormConfiguration = require('../models/FormConfiguration');
+const User = require('../models/User');
 
 const seedDefaultTemplate = async () => {
   try {
@@ -31,7 +32,7 @@ const seedDefaultTemplate = async () => {
         }
       }
 
-      // Check if we need to assign users to the default template
+      // Check if we need to assign users to the default template (via User model)
       const fs = require('fs');
       const path = require('path');
       const profilesPath = path.join(__dirname, '../data/devProfiles.json');
@@ -40,22 +41,29 @@ const seedDefaultTemplate = async () => {
         const profilesData = fs.readFileSync(profilesPath, 'utf8');
         const profiles = JSON.parse(profilesData);
 
-        // Get all Product Manager and Admin users
-        const shouldBeAssigned = profiles
-          .filter(profile => profile.role === 'PRODUCT_MANAGER' || profile.role === 'ADMIN')
-          .map(profile => profile.email);
+        // Get all Product Manager and Admin users who should have the default template
+        const usersToAssign = profiles.filter(
+          profile => (profile.role === 'PRODUCT_MANAGER' || profile.role === 'ADMIN') && !profile.templateId
+        );
 
-        // Check if they're already assigned
-        const currentlyAssigned = existingDefault.assignedUsers || [];
-        const needsUpdate = shouldBeAssigned.some(email => !currentlyAssigned.includes(email));
-
-        if (needsUpdate) {
-          existingDefault.assignedUsers = [...new Set([...currentlyAssigned, ...shouldBeAssigned])];
-          await existingDefault.save();
-          console.log('Updated assigned users:', existingDefault.assignedUsers.join(', '));
-        } else {
-          console.log('Assigned Users:', currentlyAssigned.join(', ') || 'None');
+        let assignedCount = 0;
+        for (const profile of usersToAssign) {
+          const user = await User.findOne({ email: profile.email });
+          if (user && !user.ticketTemplate) {
+            user.ticketTemplate = existingDefault._id;
+            await user.save();
+            assignedCount++;
+          }
         }
+
+        if (assignedCount > 0) {
+          console.log(`✅ Assigned default template to ${assignedCount} users`);
+        }
+
+        // Show current assignments
+        const assignedUsers = await User.find({ ticketTemplate: existingDefault._id }).select('email');
+        console.log('Users with default template:', assignedUsers.map(u => u.email).join(', ') || 'None');
+
       } catch (error) {
         console.warn('Could not update user assignments:', error.message);
       }
@@ -93,34 +101,13 @@ const seedDefaultTemplate = async () => {
       console.log('✅ Updated form configuration to be "Default" template');
     }
 
-    // Get Product Manager emails from devProfiles to assign to default template
-    const fs = require('fs');
-    const path = require('path');
-    const profilesPath = path.join(__dirname, '../data/devProfiles.json');
-    let assignedUsers = [];
-
-    try {
-      const profilesData = fs.readFileSync(profilesPath, 'utf8');
-      const profiles = JSON.parse(profilesData);
-
-      // Get all Product Manager and Admin users (exclude PM_OPS)
-      assignedUsers = profiles
-        .filter(profile => profile.role === 'PRODUCT_MANAGER' || profile.role === 'ADMIN')
-        .map(profile => profile.email);
-
-      console.log('Found users to assign to Default template:', assignedUsers);
-    } catch (error) {
-      console.warn('Could not read devProfiles.json, continuing without user assignment');
-    }
-
-    // Create the default ticket template
+    // Create the default ticket template (without assignedUsers - will use User model)
     const defaultTemplate = new TicketTemplate({
       name: 'Default',
       description: 'Default ticket template for all Product Managers',
       formConfiguration: formConfig._id,
       isDefault: true,
       isActive: true,
-      assignedUsers: assignedUsers, // Assign Product Managers and Admins by default
       createdBy: 'system',
       updatedBy: 'system'
     });
@@ -129,12 +116,56 @@ const seedDefaultTemplate = async () => {
     console.log('\n✅ Default template created successfully!');
     console.log('Template ID:', defaultTemplate._id);
     console.log('Template Name:', defaultTemplate.name);
-    console.log('Assigned Users:', defaultTemplate.assignedUsers.join(', ') || 'None');
     console.log('Form Configuration ID:', formConfig._id);
     console.log('Form Configuration Name:', formConfig.name);
     console.log('Form Configuration Version:', formConfig.version);
     console.log('Sections:', formConfig.sections?.length || 0);
     console.log('Total Fields:', formConfig.metadata?.totalFields || 0);
+
+    // Assign template to users via User model
+    const fs = require('fs');
+    const path = require('path');
+    const profilesPath = path.join(__dirname, '../data/devProfiles.json');
+
+    try {
+      const profilesData = fs.readFileSync(profilesPath, 'utf8');
+      const profiles = JSON.parse(profilesData);
+
+      // Get all Product Manager and Admin users
+      const usersToAssign = profiles.filter(
+        profile => profile.role === 'PRODUCT_MANAGER' || profile.role === 'ADMIN'
+      );
+
+      console.log(`\n📋 Assigning template to ${usersToAssign.length} users...`);
+      let assignedCount = 0;
+
+      for (const profile of usersToAssign) {
+        try {
+          await User.findOneAndUpdate(
+            { email: profile.email },
+            {
+              email: profile.email,
+              firstName: profile.firstName,
+              lastName: profile.lastName,
+              role: profile.role,
+              sbu: profile.sbu,
+              isActive: profile.isActive !== undefined ? profile.isActive : true,
+              ticketTemplate: defaultTemplate._id
+            },
+            { upsert: true, new: true }
+          );
+          assignedCount++;
+        } catch (error) {
+          console.warn(`   ⚠️  Could not assign template to ${profile.email}:`, error.message);
+        }
+      }
+
+      console.log(`✅ Assigned template to ${assignedCount} users`);
+      console.log('Users:', usersToAssign.map(u => u.email).join(', '));
+
+    } catch (error) {
+      console.warn('Could not assign users from devProfiles.json:', error.message);
+    }
 
     console.log('\n📝 Next steps:');
     console.log('1. Visit Admin Dashboard > Templates & Forms');

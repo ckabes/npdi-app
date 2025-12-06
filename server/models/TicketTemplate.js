@@ -23,9 +23,6 @@ const ticketTemplateSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  assignedUsers: [{
-    type: String  // Email addresses
-  }],
   createdBy: {
     type: String,  // Email address from profile
     default: 'system'

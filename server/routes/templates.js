@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const TicketTemplate = require('../models/TicketTemplate');
+const User = require('../models/User');
 
 // Get all templates
 router.get('/', async (req, res) => {
@@ -44,13 +45,20 @@ router.get('/user/:email', async (req, res) => {
       return res.json({ message: 'PM Ops users do not have assigned templates', template: null });
     }
 
-    // Find template assigned to this user
-    let template = await TicketTemplate.findOne({
-      assignedUsers: userEmail,
-      isActive: true
-    }).populate('formConfiguration');
+    // Find user and populate their assigned template
+    const user = await User.findOne({ email: userEmail }).populate({
+      path: 'ticketTemplate',
+      populate: { path: 'formConfiguration' }
+    });
 
-    // If no template found, return default template
+    let template = null;
+
+    // Check if user has an assigned template and it's active
+    if (user?.ticketTemplate && user.ticketTemplate.isActive) {
+      template = user.ticketTemplate;
+    }
+
+    // If no template found or template is inactive, return default template
     if (!template) {
       template = await TicketTemplate.findOne({
         isDefault: true,
