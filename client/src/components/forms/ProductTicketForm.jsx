@@ -10,8 +10,7 @@ import {
   QualitySpecificationsForm,
   PricingCalculationForm,
   SKUVariantsForm,
-  CorpBaseDataForm,
-  DynamicCustomSections
+  CorpBaseDataForm
 } from './index';
 import MARASearchPopup from '../admin/MARASearchPopup';
 import SimilarProductsPopup from '../admin/SimilarProductsPopup';

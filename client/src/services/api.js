@@ -149,23 +149,7 @@ export const productAPI = {
 export const formConfigAPI = {
   getActive: () => apiClient.get('/form-config/active'),
   getAll: () => apiClient.get('/form-config/all'),
-  getById: (id) => apiClient.get(`/form-config/${id}`),
-  create: (data) => apiClient.post('/form-config', data),
-  update: (id, data) => apiClient.put(`/form-config/${id}`, data),
-  publish: (id) => apiClient.post(`/form-config/${id}/publish`),
-  discardDraft: (id) => apiClient.post(`/form-config/${id}/discard-draft`),
-  rollback: (id) => apiClient.post(`/form-config/${id}/rollback`),
-  restoreDefault: (id) => apiClient.post(`/form-config/${id}/restore-default`),
-  reorderSections: (id, sectionOrders) =>
-    apiClient.patch(`/form-config/${id}/sections/reorder`, { sectionOrders }),
-  addSection: (id, section) => apiClient.post(`/form-config/${id}/sections`, section),
-  addField: (id, sectionKey, field) =>
-    apiClient.post(`/form-config/${id}/sections/${sectionKey}/fields`, field),
-  deleteSection: (id, sectionKey) =>
-    apiClient.delete(`/form-config/${id}/sections/${sectionKey}`),
-  deleteField: (id, sectionKey, fieldKey) =>
-    apiClient.delete(`/form-config/${id}/sections/${sectionKey}/fields/${fieldKey}`),
-  activate: (id) => apiClient.patch(`/form-config/${id}/activate`)
+  getById: (id) => apiClient.get(`/form-config/${id}`)
 };
 
 export const permissionAPI = {
@@ -206,12 +190,7 @@ export const userAPI = {
 export const templatesAPI = {
   getAll: () => apiClient.get('/templates'),
   getById: (id) => apiClient.get(`/templates/${id}`),
-  getUserTemplate: (email, role) => apiClient.get(`/templates/user/${email}?role=${role}`),
-  create: (data) => apiClient.post('/templates', data),
-  update: (id, data) => apiClient.put(`/templates/${id}`, data),
-  delete: (id) => apiClient.delete(`/templates/${id}`),
-  assign: (id, data) => apiClient.patch(`/templates/${id}/assign`, data),
-  unassign: (id, data) => apiClient.patch(`/templates/${id}/unassign`, data)
+  getUserTemplate: (email, role) => apiClient.get(`/templates/user/${email}?role=${role}`)
 };
 
 export const adminAPI = {

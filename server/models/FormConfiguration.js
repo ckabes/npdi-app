@@ -125,32 +125,11 @@ const formConfigurationSchema = new mongoose.Schema({
     required: true,
     default: '1.0.0'
   },
-  isDraft: {
-    type: Boolean,
-    default: false
-  },
-  publishedVersion: {
-    type: String,
-    default: '1.0.0'
-  },
-  lastPublishedAt: {
-    type: Date
-  },
-  // Store the last published version's sections for rollback
-  lastPublishedSections: {
-    type: [formSectionSchema],
-    default: undefined
-  },
   isActive: {
     type: Boolean,
     default: true
   },
   sections: [formSectionSchema],
-  metadata: {
-    totalFields: Number,
-    customFieldsCount: Number,
-    customSectionsCount: Number
-  },
   createdBy: {
     type: String,  // Email address from profile
     default: 'system'
@@ -171,26 +150,6 @@ const formConfigurationSchema = new mongoose.Schema({
 
 formConfigurationSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
-
-  // Calculate metadata
-  let totalFields = 0;
-  let customFieldsCount = 0;
-  let customSectionsCount = 0;
-
-  this.sections.forEach(section => {
-    if (section.isCustom) customSectionsCount++;
-    totalFields += section.fields.length;
-    section.fields.forEach(field => {
-      if (field.isCustom) customFieldsCount++;
-    });
-  });
-
-  this.metadata = {
-    totalFields,
-    customFieldsCount,
-    customSectionsCount
-  };
-
   next();
 });
 
