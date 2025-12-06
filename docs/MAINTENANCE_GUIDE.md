@@ -3299,9 +3299,9 @@ Custom validation in route handlers
 - `url` - Valid URL format
 - Custom validators - Business logic validation
 
-#### **11.8 Pre-filled Forms from SAP Integration**
+#### **11.8 Pre-filled Forms from Palantir Integration for SAP Data**
 
-The form system integrates with SAP/Palantir to auto-populate fields:
+The form system integrates with Palantir (for SAP MARA data) to auto-populate fields:
 
 **SAP-Imported Field Features:**
 - Green background highlight to indicate SAP data
@@ -4471,9 +4471,9 @@ const handlePubChemLookup = async () => {
 - **Rate limit exceeded:** Queue requests
 - **Network error:** Fallback to manual entry
 
-#### **15.3 SAP / Palantir MARA Integration**
+#### **15.3 Palantir Integration for SAP MARA Data**
 
-**Purpose:** Import existing product data from SAP system via Palantir MARA API
+**Purpose:** Import existing product data from SAP MARA system via Palantir Foundry SQL Query API
 
 **MARA:** Material Master data in SAP
 
@@ -6599,9 +6599,9 @@ db.productticketes.deleteOne({ test: "test" })
 - Check server logs for validation errors
 - Review ProductTicket schema in models
 
-#### **23.5 PubChem/SAP Integration Not Working**
+#### **23.5 PubChem/Palantir Integration Not Working**
 
-**Symptom:** "Auto-fill from PubChem" or SAP import fails
+**Symptom:** "Auto-fill from PubChem" or Palantir SAP MARA import fails
 
 **Solutions:**
 
@@ -7549,7 +7549,7 @@ After deploying:
 - [ ] Database connections working
 - [ ] Forms submitting correctly
 - [ ] Exports working
-- [ ] External integrations (PubChem, SAP) working
+- [ ] External integrations (PubChem, Palantir) working
 - [ ] Error logs checked
 - [ ] Performance acceptable
 - [ ] Team notified deployment complete
@@ -8526,7 +8526,7 @@ Application Not Working?
          │   ├─ Enable query profiling
          │   └─ Check network latency
          │
-         └─ Integration not working (PubChem/SAP)?
+         └─ Integration not working (PubChem/Palantir)?
              ├─ Check internet connectivity
              ├─ Verify API keys in System Settings
              ├─ Check CORS configuration
@@ -8717,20 +8717,20 @@ lsof -i :27017 # MongoDB
 - SKU variant tracking
 - Dashboard for each role
 - PubChem integration
-- SAP/Palantir integration
+- Palantir integration for SAP data
 - Excel/CSV export
 - Permission management
 - Form configuration editor
 
 **Version 1.1.0** (Feature additions)
 - Similar Products search
-- Enhanced SAP import with green highlighting
+- Enhanced Palantir SAP MARA import with green highlighting
 - Radio button field type support
 - Improved dashboard statistics
 - Activity feed enhancements
 
-**Version 1.2.0** (December 2025 - SAP Search, UX Enhancements & Code Quality)
-- Intelligent multi-criteria SAP search (automatic type detection)
+**Version 1.2.0** (December 2025 - Palantir SAP Search, UX Enhancements & Code Quality)
+- Intelligent multi-criteria Palantir SAP search (automatic type detection)
 - Case-insensitive prefix matching for product name searches
 - Pagination with "Load More" functionality (10 results at a time)
 - Base -BULK SKU filtering (excludes variants like -VAR, -SPEC)

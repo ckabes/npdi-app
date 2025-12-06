@@ -1182,7 +1182,7 @@ const searchMARA = async (req, res) => {
     if (!isEnabled) {
       return res.status(503).json({
         success: false,
-        message: 'SAP integration is not configured. Please contact your administrator.'
+        message: 'Palantir integration for SAP data is not configured. Please contact your administrator.'
       });
     }
 
@@ -1586,7 +1586,7 @@ const searchMARA = async (req, res) => {
     let statusCode = 500;
 
     if (error.message.includes('not enabled') || error.message.includes('not configured')) {
-      errorMessage = 'SAP integration is not configured';
+      errorMessage = 'Palantir integration for SAP data is not configured';
       statusCode = 503;
     } else if (error.message.includes('Authentication') || error.message.includes('token')) {
       errorMessage = 'SAP authentication failed';

@@ -27,7 +27,7 @@ A New Product Development and Introduction (NPDI) ticket initiation application 
 - **Storage Conditions**: Temperature, humidity, light, and atmosphere requirements
 - **Regulatory Information**: FDA, EPA, REACH, TSCA compliance tracking
 - **PubChem Integration**: Automatic chemical data population from CAS numbers
-- **SAP Data Integration**: Palantir SQL Query API v2 for MARA dataset queries
+- **Palantir Integration for SAP Data**: Palantir SQL Query API v2 for MARA dataset queries
   - Intelligent multi-criteria search (CAS, part number, or product name)
   - Automatic search type detection with visual feedback
   - Pagination with "Load More" functionality (10 results at a time)
