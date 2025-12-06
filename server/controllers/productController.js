@@ -223,10 +223,20 @@ const saveDraft = async (req, res) => {
       createdByUser: userRecord?._id // Set the user reference if found
     };
 
+    // Debug logging for intellectual property
+    if (ticketData.intellectualProperty) {
+      console.log('[SaveDraft] Intellectual Property BEFORE cleaning:', JSON.stringify(ticketData.intellectualProperty));
+    }
+
     // Use utility functions to clean and ensure defaults
     ticketData = ensureDefaultSBU(ticketData, 'P90');
     ticketData = ensureDefaultSKU(ticketData);
     ticketData = cleanTicketData(ticketData);
+
+    // Debug logging after cleaning
+    if (ticketData.intellectualProperty) {
+      console.log('[SaveDraft] Intellectual Property AFTER cleaning:', JSON.stringify(ticketData.intellectualProperty));
+    }
 
     const ticket = new ProductTicket(ticketData);
 
@@ -549,6 +559,11 @@ const updateTicket = async (req, res) => {
 
     // Clean enum fields before applying updates
     updateData = cleanTicketData(updateData);
+
+    // Debug logging after cleaning
+    if (updateData.intellectualProperty) {
+      console.log('[UpdateTicket] Intellectual Property AFTER cleaning:', JSON.stringify(updateData.intellectualProperty));
+    }
 
     // Track status changes
     const oldStatus = ticket.status;

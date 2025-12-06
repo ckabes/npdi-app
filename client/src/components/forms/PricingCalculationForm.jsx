@@ -27,16 +27,6 @@ const PricingCalculationForm = ({
 
   const currencySymbol = getCurrencySymbol(currency);
 
-  // Debug logging to diagnose watch() issues
-  useEffect(() => {
-    console.log('[PricingCalc] Watch values:', {
-      rawMaterialCostPerUnitValue,
-      rawMaterialCostPerUnit,
-      baseUnit,
-      currency
-    });
-  }, [rawMaterialCostPerUnitValue, rawMaterialCostPerUnit, baseUnit, currency]);
-
   // Refs for scrolling to fields
   const currencyRef = useRef(null);
   const standardCostRef = useRef(null);

@@ -122,8 +122,6 @@ const TicketDetails = () => {
 
       // Reset the entire form with ticket data
       const formData = getDefaultFormValues();
-      console.log('[TicketDetails] Resetting edit form with data:', formData);
-      console.log('[TicketDetails] Pricing data being set:', formData.pricingData);
       resetEdit(formData);
     }
 
