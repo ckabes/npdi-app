@@ -338,7 +338,7 @@ const CorpBaseDataForm = ({
             <input
               {...register('corpbaseData.unspscCode')}
               type="text"
-              className="form-input flex-1"
+              className="form-input flex-1 bg-white"
               placeholder="Select UNSPSC classification code..."
               readOnly={readOnly}
             />

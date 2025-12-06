@@ -370,7 +370,7 @@ const SKUVariantsForm = ({
                   <input
                     {...register(`skuVariants.${index}.sku`)}
                     type="text"
-                    className="form-input bg-gray-50"
+                    className="form-input bg-gray-50 shadow-sm"
                     placeholder="Will be assigned by PMOps (e.g., 176036-100G)"
                     readOnly
                   />

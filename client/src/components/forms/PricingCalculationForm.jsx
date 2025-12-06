@@ -20,6 +20,14 @@ const PricingCalculationForm = ({
   const baseUnit = watch('baseUnit.unit') || 'g';
   const baseUnitValue = watch('baseUnit.value') || 0;
   const rawMaterialCostPerUnitValue = watch('pricingData.standardCosts.rawMaterialCostPerUnit');
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[PricingForm] rawMaterialCostPerUnitValue changed:', rawMaterialCostPerUnitValue);
+    console.log('[PricingForm] Type:', typeof rawMaterialCostPerUnitValue);
+    console.log('[PricingForm] Full pricingData:', watch('pricingData'));
+  }, [rawMaterialCostPerUnitValue]);
+
   const rawMaterialCostPerUnit = rawMaterialCostPerUnitValue !== null && rawMaterialCostPerUnitValue !== undefined && rawMaterialCostPerUnitValue !== ''
     ? parseFloat(rawMaterialCostPerUnitValue)
     : 0;
@@ -88,7 +96,20 @@ const PricingCalculationForm = ({
               Standard Cost ({currencySymbol}/{baseUnit || 'unit'})
             </label>
             <input
-              {...register('pricingData.standardCosts.rawMaterialCostPerUnit')}
+              {...(() => {
+                const registered = register('pricingData.standardCosts.rawMaterialCostPerUnit');
+                const originalOnChange = registered.onChange;
+                return {
+                  ...registered,
+                  onChange: async (e) => {
+                    console.log('[PricingForm Input] onChange START - new value:', e.target.value);
+                    await originalOnChange(e);
+                    setTimeout(() => {
+                      console.log('[PricingForm Input] After onChange - watch says:', watch('pricingData.standardCosts.rawMaterialCostPerUnit'));
+                    }, 0);
+                  }
+                };
+              })()}
               ref={standardCostRef}
               type="number"
               step="0.01"

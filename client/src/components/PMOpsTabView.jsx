@@ -1108,7 +1108,7 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                         type="text"
                         value={variant.suffix || getPartNumberSuffix(variant)}
                         onChange={(e) => handleUpdateSKUField(variantIdx, 'suffix', e.target.value.toUpperCase())}
-                        className="form-input text-sm font-mono w-24"
+                        className="form-input text-sm font-mono w-24 bg-white"
                         placeholder="e.g., 100G"
                       />
                     </td>
@@ -1132,13 +1132,13 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                           type="number"
                           value={variant.packageSize?.value || ''}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'packageSize.value', e.target.value)}
-                          className="form-input text-sm w-20"
+                          className="form-input text-sm w-20 bg-white"
                           placeholder="Value"
                         />
                         <select
                           value={variant.packageSize?.unit || 'g'}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'packageSize.unit', e.target.value)}
-                          className="form-select text-sm w-16"
+                          className="form-select text-sm w-16 bg-white"
                         >
                           <option value="mg">mg</option>
                           <option value="g">g</option>
@@ -1166,13 +1166,13 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                           type="number"
                           value={variant.netWeight?.value || ''}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'netWeight.value', e.target.value)}
-                          className="form-input text-sm w-20"
+                          className="form-input text-sm w-20 bg-white"
                           placeholder="Value"
                         />
                         <select
                           value={variant.netWeight?.unit || 'g'}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'netWeight.unit', e.target.value)}
-                          className="form-select text-sm w-16"
+                          className="form-select text-sm w-16 bg-white"
                         >
                           <option value="mg">mg</option>
                           <option value="g">g</option>
@@ -1198,13 +1198,13 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                           type="number"
                           value={variant.grossWeight?.value || ''}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'grossWeight.value', e.target.value)}
-                          className="form-input text-sm w-20"
+                          className="form-input text-sm w-20 bg-white"
                           placeholder="Value"
                         />
                         <select
                           value={variant.grossWeight?.unit || 'g'}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'grossWeight.unit', e.target.value)}
-                          className="form-select text-sm w-16"
+                          className="form-select text-sm w-16 bg-white"
                         >
                           <option value="mg">mg</option>
                           <option value="g">g</option>
@@ -1230,13 +1230,13 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                           type="number"
                           value={variant.volume?.value || ''}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'volume.value', e.target.value)}
-                          className="form-input text-sm w-20"
+                          className="form-input text-sm w-20 bg-white"
                           placeholder="Value"
                         />
                         <select
                           value={variant.volume?.unit || 'mL'}
                           onChange={(e) => handleUpdateSKUField(variantIdx, 'volume.unit', e.target.value)}
-                          className="form-select text-sm w-16"
+                          className="form-select text-sm w-16 bg-white"
                         >
                           <option value="mL">mL</option>
                           <option value="L">L</option>
@@ -1261,7 +1261,7 @@ const PMOpsTabView = forwardRef(({ ticket, onTicketUpdate }, ref) => {
                         step="0.01"
                         value={variant.pricing?.listPrice || ''}
                         onChange={(e) => handleUpdateSKUField(variantIdx, 'pricing.listPrice', parseFloat(e.target.value) || '')}
-                        className="form-input text-sm w-24"
+                        className="form-input text-sm w-24 bg-white"
                         placeholder="0.00"
                       />
                     ) : (

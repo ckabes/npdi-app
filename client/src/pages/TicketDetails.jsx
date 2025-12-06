@@ -137,7 +137,15 @@ const TicketDetails = () => {
       // Reset the entire form with ticket data
       const formData = getDefaultFormValues();
       console.log('[TicketDetails] Initializing edit form ONE TIME with data:', formData);
+      console.log('[TicketDetails] Pricing data being set:', formData.pricingData);
+      console.log('[TicketDetails] Standard cost value:', formData.pricingData?.standardCosts?.rawMaterialCostPerUnit);
       resetEdit(formData);
+
+      // Verify the form was populated
+      setTimeout(() => {
+        console.log('[TicketDetails] After resetEdit, watchEdit says pricingData is:', watchEdit('pricingData'));
+        console.log('[TicketDetails] After resetEdit, watchEdit says standardCost is:', watchEdit('pricingData.standardCosts.rawMaterialCostPerUnit'));
+      }, 100);
     }
 
     // Reset form initialization when exiting edit mode
