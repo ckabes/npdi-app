@@ -247,6 +247,190 @@ Streamlined the Pricing Calculation Form by removing unnecessary cost sections.
 
 ---
 
+### 4. Code Quality Improvements - Part 2 Refactoring
+
+**Status:** ✅ Completed
+**Date:** December 5, 2025
+
+#### What Changed
+Major refactoring initiative to reduce code duplication and improve maintainability by creating reusable utilities and components.
+
+#### Phase 1: Create Reusable Utilities and Components
+
+**Backend Utilities Created:**
+
+**`server/utils/errorHandler.js`** (~107 lines)
+- `asyncHandler`: Wrapper for cleaner async route handlers
+- `sendErrorResponse`: Consistent error formatting
+- `handleNotFound`: 404 response helper
+- `sendSuccessResponse`: Standardized success responses
+- `sendValidationError`: Validation error formatting
+- **Impact**: Eliminates duplicate try-catch blocks across 43+ controllers
+
+**Frontend Utilities Created:**
+
+**`client/src/utils/dateFormatters.js`** (~186 lines)
+- `formatDate`: Full date and time formatting
+- `formatDateOnly`: Date only (no time)
+- `formatDateTime`: Customizable date/time display
+- `formatTimeAgo`: Relative time (e.g., "2 hours ago")
+- `formatTimeOnly`, `formatDateISO`, `formatDuration`: Additional helpers
+- **Impact**: Eliminates duplicate date formatting across 8+ components
+
+**Frontend Components Created:**
+
+**`client/src/components/common/LoadingSpinner.jsx`** (~45 lines)
+- Customizable sizes (sm, md, lg)
+- Optional loading message
+- Consistent loading states across application
+- **Impact**: Eliminates duplicate loading UI in 10+ components
+
+**`client/src/components/common/EmptyState.jsx`** (~41 lines)
+- Optional icon, title, message, and action button
+- Consistent empty data states
+- **Impact**: Eliminates duplicate empty state UI in 5+ components
+
+**`client/src/components/common/Badge.jsx`** (~115 lines)
+- `RoleBadge`: User roles (PRODUCT_MANAGER, PM_OPS, ADMIN)
+- `ActiveStatusBadge`: Active/inactive status display
+- `GenericBadge`: Custom color-coded badges
+- **Impact**: Eliminates duplicate badge logic in 5+ components
+
+**`client/src/components/admin/GenericCRUDManager.jsx`** (~416 lines)
+- Reusable component for managing entities with CRUD operations
+- Supports Palantir rebuild functionality
+- Customizable columns and form fields
+- Inline editing with save/cancel
+- Active/inactive status toggles
+- Metadata display (last extracted, source, etc.)
+- Form validation and error handling
+- **Impact**: Will eliminate ~600 lines of duplicate code per admin manager
+
+#### Phase 2: Refactor Admin CRUD Managers
+
+**Refactored Components:**
+
+**`PlantCodesManager.jsx`**
+- **Before**: 483 lines
+- **After**: 148 lines
+- **Reduction**: 335 lines (69%)
+
+**`BusinessLineManager.jsx`**
+- **Before**: 483 lines
+- **After**: 148 lines
+- **Reduction**: 335 lines (69%)
+
+**Total Lines Eliminated in Phase 2**: 670 lines
+
+**Changes Made:**
+- Replaced duplicate CRUD logic with `GenericCRUDManager`
+- Moved to declarative column definitions
+- Eliminated duplicate state management
+- Eliminated duplicate CRUD handlers (add, edit, delete, rebuild)
+- Eliminated duplicate loading/rebuilding overlays
+- Eliminated duplicate modal dialogs
+- Now using shared `ActiveStatusBadge` component
+
+**Benefits:**
+- Massive code reduction (~69% per component)
+- Improved consistency between components
+- Easier to maintain and extend
+- Future admin managers can use same pattern
+- Bug fixes in `GenericCRUDManager` benefit all managers
+
+**Functionality Preserved:**
+- All CRUD operations (Create, Read, Update, Delete)
+- Palantir rebuild functionality with progress indicators
+- Inline editing with save/cancel
+- Active/inactive status toggles
+- Metadata display (last extracted, source, etc.)
+- Form validation
+- Error handling and toast notifications
+
+#### Total Impact
+- **Phase 1**: Created 6 new reusable utilities/components (~910 lines)
+- **Phase 2**: Eliminated 670 lines of duplicate code
+- **Net Effect**: ~1,000+ lines of duplicate code eliminated when fully implemented
+- **Improved**: Consistency, maintainability, and development velocity
+
+---
+
+### 5. Code Cleanup - Part 1: Unused Code Elimination
+
+**Status:** ✅ Completed
+**Date:** December 5, 2025
+
+#### What Changed
+Comprehensive code audit and cleanup eliminating approximately 320 lines of unused code across frontend and backend.
+
+#### Frontend Cleanup (~115 lines removed)
+
+**`Dashboard.jsx`**
+- Removed unused state: `recentActivity`
+- Removed unused functions: `getActivityIcon`, `getActivityBgColor` (35 lines)
+- Removed unused imports: `ChatBubbleLeftIcon`, `CheckIcon`
+- **Impact**: Cleaner component with faster load time
+
+**`PMOPSDashboard.jsx`**
+- Removed duplicate local badge components (30 lines)
+- Added proper imports from `../components/badges`
+- **Impact**: Consistent badge styling across application
+
+**`TicketDetails.jsx`**
+- Removed 8 unused form component imports
+- Removed unused icon imports: `PlusIcon`, `TrashIcon`, `CurrencyDollarIcon`
+- **Impact**: Reduced bundle size, clearer dependencies
+
+**`SKUAssignment.jsx`**
+- Removed unused `margin` variable
+- Removed unused `calculatePricing()` function (15 lines)
+- **Impact**: Clearer pricing logic
+
+**`WeightMatrixManagement.jsx`**
+- Fixed duplicate `disabled` attribute warning
+- **Impact**: Build warning eliminated
+
+#### Backend Cleanup (~205 lines removed)
+
+**`server/middleware/auth.js`**
+- Removed 5 unused middleware functions (85 lines):
+  - `authorize()` - never used in routes
+  - `checkSBUAccess()` - logic embedded in controllers
+  - `checkPermission()` - never used
+  - `attachPermissions()` - never used
+  - `hasPermission()` - never used
+- Removed unused `Permission` model import
+- Kept only: `authenticateProfile`, `requireAdmin`, and their aliases
+- **Impact**: Simpler authentication middleware
+
+**`server/middleware/apiAuth.js`**
+- Removed unused `optionalApiAuth` function (38 lines)
+- Removed duplicate `generateApiKey()` (already in ApiKey model)
+- Kept only: `authenticateApiKey`, `checkPermission`
+- **Impact**: Cleaner API authentication
+
+**`server/services/pubchemService.js`**
+- Removed 4 unused methods (82 lines):
+  - `generateMarketingDescription()`
+  - `identifyApplicationAreas()`
+  - `generateSEOKeywords()`
+  - `generateTechnicalBenefits()`
+- **Impact**: Focused service with only used methods
+
+**`server/utils/enumCleaner.js`**
+- Refined exports to only expose public API
+- Made 7 helper functions private
+- Public API: `cleanTicketData`, `ensureDefaultSKU`, `ensureDefaultSBU`
+- **Impact**: Clear public interface, prevents misuse
+
+#### Verification
+- All changes verified through static analysis and grep searches
+- Build successful with no errors or warnings
+- No functionality removed - only verified unused code eliminated
+- **Impact**: Improved code clarity and reduced maintenance surface area
+
+---
+
 ## Bug Fixes
 
 ### Palantir SQL OFFSET Compatibility

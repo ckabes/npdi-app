@@ -1,6 +1,7 @@
 # NPDI Application - Project Statistics
 
-*Generated: 2025-11-23*
+*Last Updated: 2025-12-05*
+*Original Generation: 2025-11-23*
 
 ## Lines of Code (Existing Deployment)
 
@@ -78,6 +79,33 @@ The NPDI application is a moderate-sized full-stack application with approximate
 - **Source Code:** Under 30 MB (compact and well-organized)
 
 The majority of the size comes from Node.js dependencies, which is typical for modern JavaScript applications. The actual source code written is lean and efficient.
+
+---
+
+## Recent Code Quality Improvements (December 2025)
+
+### Refactoring and Cleanup Initiative
+
+**Part 1: Unused Code Elimination**
+- Frontend cleanup: ~115 lines removed
+- Backend cleanup: ~205 lines removed
+- Total unused code eliminated: ~320 lines
+
+**Part 2: Code Duplication Reduction**
+- Created 6 reusable utilities and components: ~910 new lines
+- Refactored 2 admin CRUD managers: ~670 duplicate lines eliminated
+- Net effect: Reduced duplicate code while improving consistency
+
+**Impact:**
+- Improved maintainability and code organization
+- Reduced bundle size through elimination of unused imports
+- Enhanced consistency across application with shared components
+- Easier future development with reusable utilities
+
+**Files Affected:**
+- 11 files cleaned up (unused code removed)
+- 8+ components benefit from new shared utilities
+- Future admin managers can leverage GenericCRUDManager
 
 ---
 
