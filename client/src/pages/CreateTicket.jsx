@@ -11,7 +11,9 @@ const CreateTicket = () => {
   const [loadingTemplate, setLoadingTemplate] = useState(false);
   const [missingRequiredFields, setMissingRequiredFields] = useState([]);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
-  const { user, isPMOPS } = useAuth();
+  const [availableTemplates, setAvailableTemplates] = useState([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const { user, isPMOPS, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const { register, handleSubmit, control, setValue, watch, formState: { errors, isDirty } } = useForm({
@@ -91,6 +93,23 @@ const CreateTicket = () => {
       }
     }
   });
+
+  // Fetch all available templates for admin users
+  useEffect(() => {
+    const fetchAllTemplates = async () => {
+      if (!isAdmin) return;
+
+      try {
+        const response = await templatesAPI.getAll();
+        setAvailableTemplates(response.data || []);
+      } catch (error) {
+        console.error('Error fetching all templates:', error);
+        setAvailableTemplates([]);
+      }
+    };
+
+    fetchAllTemplates();
+  }, [isAdmin]);
 
   // Load user's template on mount and when returning to the page
   useEffect(() => {
@@ -184,25 +203,93 @@ const CreateTicket = () => {
     navigate('/tickets');
   };
 
+  const handleLoadTemplate = async () => {
+    if (!selectedTemplateId) {
+      toast.error('Please select a template first');
+      return;
+    }
+
+    try {
+      setLoadingTemplate(true);
+      const response = await templatesAPI.getById(selectedTemplateId);
+      setTemplate(response.data);
+      toast.success(`Template "${response.data.name}" loaded successfully!`);
+    } catch (error) {
+      console.error('Error loading template:', error);
+      toast.error('Failed to load template. Please try again.');
+    } finally {
+      setLoadingTemplate(false);
+    }
+  };
+
   return (
-    <ProductTicketForm
-      mode="create"
-      template={template}
-      loadingTemplate={loadingTemplate}
-      register={register}
-      handleSubmit={handleSubmit}
-      control={control}
-      setValue={setValue}
-      watch={watch}
-      errors={errors}
-      isDirty={isDirty}
-      onSubmit={onSubmit}
-      onCancel={handleCancel}
-      user={user}
-      missingRequiredFields={missingRequiredFields}
-      attemptedSubmit={attemptedSubmit}
-      submissionRequirements={template?.submissionRequirements || []}
-    />
+    <div>
+      {/* Admin Template Selector */}
+      {isAdmin && availableTemplates.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
+                <label htmlFor="template-selector" className="block text-sm font-medium text-gray-700 mb-2">
+                  Admin: Select Ticket Template
+                </label>
+                <select
+                  id="template-selector"
+                  value={selectedTemplateId}
+                  onChange={(e) => setSelectedTemplateId(e.target.value)}
+                  className="form-select w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  disabled={loadingTemplate}
+                >
+                  <option value="">-- Select Template --</option>
+                  {availableTemplates.map((t) => (
+                    <option key={t._id} value={t._id}>
+                      {t.formConfiguration?.name || t.name}
+                      {t.isDefault && ' (Default)'}
+                      {t.formConfiguration?.version && ` - v${t.formConfiguration.version}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pt-6">
+                <button
+                  onClick={handleLoadTemplate}
+                  disabled={!selectedTemplateId || loadingTemplate}
+                  className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loadingTemplate ? 'Loading...' : 'LOAD'}
+                </button>
+              </div>
+            </div>
+            {template && (
+              <div className="mt-3 text-sm text-gray-600">
+                Currently loaded: <span className="font-semibold">{template.formConfiguration?.name || template.name}</span>
+                {template.formConfiguration?.version && ` (v${template.formConfiguration.version})`}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Main Form */}
+      <ProductTicketForm
+        mode="create"
+        template={template}
+        loadingTemplate={loadingTemplate}
+        register={register}
+        handleSubmit={handleSubmit}
+        control={control}
+        setValue={setValue}
+        watch={watch}
+        errors={errors}
+        isDirty={isDirty}
+        onSubmit={onSubmit}
+        onCancel={handleCancel}
+        user={user}
+        missingRequiredFields={missingRequiredFields}
+        attemptedSubmit={attemptedSubmit}
+        submissionRequirements={template?.submissionRequirements || []}
+      />
+    </div>
   );
 };
 

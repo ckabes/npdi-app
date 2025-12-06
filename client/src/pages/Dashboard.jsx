@@ -879,18 +879,21 @@ const Dashboard = () => {
   return (
     <div className={`space-y-6 ${enableTransition ? 'transition-all duration-700 ease-out' : ''} ${isAnimating ? 'translate-y-1/2 opacity-0' : 'translate-y-0 opacity-100'}`}>
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-millipore-blue to-blue-600 shadow-lg rounded-lg">
+      <div
+        className="shadow-lg rounded-lg"
+        style={{ background: 'linear-gradient(to right, #2563eb 0%, #2563eb 40%, #a855f7 70%, #ec4899 100%)' }}
+      >
         <div className="px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">
                 Welcome back, {user?.firstName}!
               </h1>
-              <p className="text-blue-100 mt-1">{formatRoleName(user?.role)}</p>
+              <p className="text-purple-100 mt-1">{formatRoleName(user?.role)}</p>
             </div>
             <Link
               to="/tickets/new"
-              className="bg-white text-millipore-blue hover:bg-gray-100 font-medium py-2 px-4 rounded-lg shadow transition-colors flex items-center"
+              className="bg-white text-purple-600 hover:bg-gray-100 font-medium py-2 px-4 rounded-lg shadow transition-colors flex items-center"
             >
               <PlusIcon className="h-5 w-5 mr-2" />
               New Ticket
