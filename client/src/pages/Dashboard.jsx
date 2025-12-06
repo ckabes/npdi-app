@@ -34,6 +34,8 @@ const Dashboard = () => {
   const [enableTransition, setEnableTransition] = useState(false);
 
   useEffect(() => {
+    if (!user?.email) return; // Wait for user to be loaded
+
     fetchStats();
     fetchMyTickets();
     if (isPMOPS) {
@@ -41,7 +43,7 @@ const Dashboard = () => {
       fetchRecentlySubmittedTickets();
     }
     fetchDraftTickets();
-  }, []);
+  }, [user?.email, isPMOPS]);
 
   const fetchStats = async () => {
     try {
@@ -62,12 +64,12 @@ const Dashboard = () => {
 
   const fetchMyTickets = async () => {
     try {
-      // Fetch 5 most recent tickets (excluding drafts)
+      // Fetch 5 most recent tickets for the current user (excluding drafts)
       const params = {
         page: 1,
         limit: 5, // Show only 5 most recent tickets
         status: 'SUBMITTED,IN_PROCESS,NPDI_INITIATED,COMPLETED',
-        // No createdBy filter - show all tickets
+        createdBy: user?.email, // Filter by current user's email
         sortBy: 'updatedAt', // Sort by last updated
         sortOrder: 'desc' // Most recent first
       };
@@ -118,11 +120,12 @@ const Dashboard = () => {
 
   const fetchDraftTickets = async () => {
     try {
-      // Fetch draft tickets for the current user
+      // Fetch draft tickets for the current user only
       const response = await productAPI.getTickets({
         page: 1,
         limit: 5,
         status: 'DRAFT',
+        createdBy: user?.email, // Filter by current user's email
         sortBy: 'updatedAt', // Sort by last updated
         sortOrder: 'desc' // Most recent first
       });
