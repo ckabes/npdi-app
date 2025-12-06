@@ -807,13 +807,19 @@ const getDashboardStats = async (req, res) => {
               }
             }
           ],
-          // Count tickets by SBU
+          // Count tickets by SBU (top 5)
           sbuCounts: [
             {
               $group: {
                 _id: '$sbu',
                 count: { $sum: 1 }
               }
+            },
+            {
+              $sort: { count: -1 }
+            },
+            {
+              $limit: 5
             }
           ],
           // Total count
@@ -1100,11 +1106,8 @@ const getDashboardStats = async (req, res) => {
       }
     });
 
-    // SBU breakdown from aggregation
-    const sbuBreakdown = result.sbuCounts.map(item => ({
-      label: item._id || 'Unknown',
-      value: item.count
-    }));
+    // SBU breakdown from aggregation (top 5, already sorted and limited)
+    const sbuBreakdown = result.sbuCounts;
 
     // Extract time metrics from aggregation
     const avgSubmittedToInProcess = result.processingTimes[0]?.avgHoursToInProcess || 0;
