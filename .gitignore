@@ -56,6 +56,10 @@ docs/DISCRIMINATOR_PATTERN_REFACTORING_PLAN.md
 
 # Code audit reports (internal reference only)
 CODE_AUDIT_REPORT.md
+PROJECT_STATISTICS.md
+
+# Archived/deprecated documentation (historical reference only)
+docs/archive/
 
 # VPN diagnostic reports (contains network configuration details)
 VPN_DIAGNOSTIC_REPORT_*.txt
