@@ -16,6 +16,7 @@ const getCurrentUser = (req) => {
   const firstName = req.headers['x-user-firstname'] || 'Unknown';
   const lastName = req.headers['x-user-lastname'] || 'User';
   const email = req.headers['x-user-email'] || '';
+  const employeeId = req.headers['x-user-employee-id'] || '';
   const userRole = req.headers['x-user-role'] || 'PRODUCT_MANAGER';
 
   // Map role to friendly display name
@@ -29,6 +30,7 @@ const getCurrentUser = (req) => {
     firstName,
     lastName,
     email,
+    employeeId,
     role: roleDisplayMap[userRole] || userRole
   };
 };
@@ -56,11 +58,16 @@ const createTicket = async (req, res) => {
     const currentUser = getCurrentUser(req);
 
     // Look up the user in the database to get the ObjectId and their assigned template
-    const userRecord = await User.findOne({ email: currentUser.email }).populate('ticketTemplate');
+    // Support both employeeId (preferred) and email (fallback) for lookups
+    const userQuery = currentUser.employeeId
+      ? { employeeId: currentUser.employeeId }
+      : { email: currentUser.email };
+    const userRecord = await User.findOne(userQuery).populate('ticketTemplate');
 
     let ticketData = {
       ...req.body,
-      createdBy: currentUser.email, // Set to current user's email
+      createdBy: currentUser.email, // Set to current user's email (legacy)
+      createdByEmployeeId: currentUser.employeeId, // Set to current user's employee ID
       createdByUser: userRecord?._id, // Set the user reference if found
       template: userRecord?.ticketTemplate?._id || null // Store the template used to create this ticket
     };
@@ -73,7 +80,8 @@ const createTicket = async (req, res) => {
 
     // Validate submission requirements if status is SUBMITTED
     if (ticketData.status === 'SUBMITTED') {
-      const validation = await validateSubmissionRequirements(ticketData, currentUser.email);
+      const userIdentifier = currentUser.employeeId || currentUser.email;
+      const validation = await validateSubmissionRequirements(ticketData, userIdentifier, !!currentUser.employeeId);
 
       if (!validation.isValid) {
         return res.status(400).json({
@@ -200,12 +208,17 @@ const saveDraft = async (req, res) => {
     const currentUser = getCurrentUser(req);
 
     // Look up the user in the database to get the ObjectId
-    const userRecord = await User.findOne({ email: currentUser.email });
+    // Support both employeeId (preferred) and email (fallback) for lookups
+    const userQuery = currentUser.employeeId
+      ? { employeeId: currentUser.employeeId }
+      : { email: currentUser.email };
+    const userRecord = await User.findOne(userQuery);
 
     let ticketData = {
       ...req.body,
       status: 'DRAFT',
-      createdBy: currentUser.email, // Set to current user's email
+      createdBy: currentUser.email, // Set to current user's email (legacy)
+      createdByEmployeeId: currentUser.employeeId, // Set to current user's employee ID
       createdByUser: userRecord?._id // Set the user reference if found
     };
 
