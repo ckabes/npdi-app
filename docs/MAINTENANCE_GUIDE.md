@@ -8614,9 +8614,8 @@ npdi-app/
 │   └── index.js               # Server entry point
 │
 ├── docs/                       # Documentation
-│   ├── architecture/
-│   │   └── ARCHITECTURE.md
-│   └── archive/
+│   └── architecture/
+│       └── ARCHITECTURE.md
 │
 ├── .gitignore                  # Git ignore rules
 ├── README.md                   # Project README

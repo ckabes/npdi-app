@@ -43,9 +43,6 @@ Welcome to the NPDI (New Product Development & Introduction) Portal documentatio
 - [API Key Storage](security/API_KEY_STORAGE.md) - How API keys are encrypted and stored
 - [Dependency Security Assessment](security/DEPENDENCY_SECURITY_ASSESSMENT.md) - npm package security audit
 
-### Archive
-- [Historical documentation](archive/) - Old documentation kept for reference
-
 ---
 
 ## Quick Links for Common Tasks
@@ -121,13 +118,8 @@ docs/
 ├── guides/                       # How-to guides
 │   ├── SETUP_GUIDE.md            # Installation guide
 │   └── FORM_CONFIGURATION_GUIDE.md
-├── security/                     # Security documentation
-│   └── DEPENDENCY_SECURITY_ASSESSMENT.md
-└── archive/                      # Historical documentation
-    ├── CLAUDE.md                 # Development assistant config
-    ├── SESSION_SUMMARY_2025_11_06.md
-    ├── CLEANUP_ANALYSIS.md
-    └── ... (old docs from previous refactoring)
+└── security/                     # Security documentation
+    └── DEPENDENCY_SECURITY_ASSESSMENT.md
 ```
 
 ---
@@ -193,7 +185,6 @@ When adding new documentation:
    - How-to guides: `docs/guides/`
    - Security: `docs/security/`
    - Reports/analysis: `docs/reports/`
-   - Obsolete docs: `docs/archive/`
 
 2. **Follow naming conventions:**
    - Use UPPERCASE for main docs (e.g., `INTEGRATION_GUIDE.md`)
