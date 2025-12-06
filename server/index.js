@@ -297,26 +297,40 @@ const server = app.listen(PORT, () => {
  * Ensures all connections are properly closed before process exits
  * This is critical for systemd service management
  */
-const gracefulShutdown = (signal) => {
+const gracefulShutdown = async (signal) => {
   logger.info(`${signal} received. Starting graceful shutdown...`);
 
-  // Stop accepting new connections
-  server.close(() => {
-    logger.info('HTTP server closed - no longer accepting connections');
-
-    // Close database connection
-    mongoose.connection.close(false, () => {
-      logger.info('MongoDB connection closed');
-      logger.info('Graceful shutdown completed');
-      process.exit(0);
-    });
-  });
-
   // Force shutdown after 30 seconds if graceful shutdown hangs
-  setTimeout(() => {
+  const forceShutdownTimer = setTimeout(() => {
     logger.error('Graceful shutdown timeout - forcing exit');
     process.exit(1);
   }, 30000);
+
+  try {
+    // Stop accepting new connections
+    await new Promise((resolve, reject) => {
+      server.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+    logger.info('HTTP server closed - no longer accepting connections');
+
+    // Close database connection (Mongoose v7+ returns a Promise)
+    await mongoose.connection.close();
+    logger.info('MongoDB connection closed');
+    logger.info('Graceful shutdown completed');
+
+    clearTimeout(forceShutdownTimer);
+    process.exit(0);
+  } catch (error) {
+    logger.error('Error during graceful shutdown', {
+      error: error.message,
+      stack: error.stack
+    });
+    clearTimeout(forceShutdownTimer);
+    process.exit(1);
+  }
 };
 
 // Handle systemd stop/restart signals
