@@ -36,7 +36,7 @@ const PricingCalculationForm = ({
             </label>
             <select
               {...register('currency')}
-              className="form-select text-sm"
+              className="form-select text-sm bg-white"
               disabled={readOnly}
             >
               {CURRENCY_OPTIONS.map(option => (
@@ -59,7 +59,7 @@ const PricingCalculationForm = ({
               {...register('pricingData.standardCosts.rawMaterialCostPerUnit')}
               type="number"
               step="0.01"
-              className="form-input text-sm"
+              className="form-input text-sm bg-white"
               placeholder="0.50"
               readOnly={readOnly}
             />

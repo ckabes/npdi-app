@@ -1029,43 +1029,83 @@ const ProductTicketForm = ({
    * Auto-populates SIAL Product Hierarchy if empty
    */
   const handleGPHSelect = (gphData) => {
+    console.log('[GPH Selector] ===== GPH SELECTION START =====');
     console.log('[GPH Selector] Selected GPH data:', gphData);
+    console.log('[GPH Selector] Type of gphData:', typeof gphData);
 
     // Handle both old format (string) and new format (object)
     let prodh12, prodhSBU;
     if (typeof gphData === 'string') {
       // Legacy format - just the code
+      console.log('[GPH Selector] Using legacy string format');
       prodh12 = gphData;
       setValue('materialGroup', gphData, { shouldDirty: true });
     } else {
       // New format - full object with SBU
+      console.log('[GPH Selector] Using new object format');
       prodh12 = gphData.prodh12;
       prodhSBU = gphData.prodhSBU;
+      console.log('[GPH Selector] Extracted prodh12:', prodh12);
+      console.log('[GPH Selector] Extracted prodhSBU:', prodhSBU);
+
       setValue('materialGroup', prodh12, { shouldDirty: true });
+      console.log('[GPH Selector] Set materialGroup to:', prodh12);
 
       // Auto-populate SIAL Product Hierarchy if it's empty
       const currentSialHierarchy = watch('sialProductHierarchy');
+      console.log('[GPH Selector] Current SIAL hierarchy value:', currentSialHierarchy);
+      console.log('[GPH Selector] Check: !currentSialHierarchy =', !currentSialHierarchy);
+      console.log('[GPH Selector] Check: prodhSBU exists =', !!prodhSBU);
+      console.log('[GPH Selector] Check: prodh12 exists =', !!prodh12);
+
       if (!currentSialHierarchy && prodhSBU && prodh12) {
+        console.log('[GPH Selector] ✓ All conditions met - auto-populating SIAL');
+
         // First 3 digits of SBU + first 3 characters of PRODH_12
         const sbuPrefix = prodhSBU.substring(0, 3);
         const prodhPrefix = prodh12.substring(0, 3);
         const sialCode = sbuPrefix + prodhPrefix;
 
-        console.log('[GPH Selector] Auto-populating SIAL Product Hierarchy:', sialCode);
+        console.log('[GPH Selector] SBU prefix (first 3):', sbuPrefix);
+        console.log('[GPH Selector] PRODH prefix (first 3):', prodhPrefix);
+        console.log('[GPH Selector] Calculated SIAL code:', sialCode);
+
         setValue('sialProductHierarchy', sialCode, { shouldDirty: true });
+        console.log('[GPH Selector] Set sialProductHierarchy to:', sialCode);
+
+        // Verify the value was set
+        setTimeout(() => {
+          const verifyValue = watch('sialProductHierarchy');
+          console.log('[GPH Selector] Verification check - sialProductHierarchy now:', verifyValue);
+        }, 100);
 
         // Trigger green glow effect
         setSialFieldGlow(true);
+        console.log('[GPH Selector] Triggered green glow effect');
         setTimeout(() => {
           setSialFieldGlow(false);
+          console.log('[GPH Selector] Removed green glow effect');
         }, 3000); // Remove glow after 3 seconds
 
         toast.success(`GPH code added! SIAL Product Hierarchy auto-populated: ${sialCode}`);
+        console.log('[GPH Selector] ===== GPH SELECTION COMPLETE (with SIAL auto-fill) =====');
         return;
+      } else {
+        console.log('[GPH Selector] ✗ Conditions NOT met for SIAL auto-population');
+        if (currentSialHierarchy) {
+          console.log('[GPH Selector] Reason: SIAL hierarchy already has value:', currentSialHierarchy);
+        }
+        if (!prodhSBU) {
+          console.log('[GPH Selector] Reason: prodhSBU is missing or empty');
+        }
+        if (!prodh12) {
+          console.log('[GPH Selector] Reason: prodh12 is missing or empty');
+        }
       }
     }
 
     toast.success('Product Hierarchy (GPH) code added to the form!');
+    console.log('[GPH Selector] ===== GPH SELECTION COMPLETE =====');
   };
 
   /**
@@ -1464,12 +1504,12 @@ const ProductTicketForm = ({
                                       {...register('baseUnit.value')}
                                       type="number"
                                       step="0.01"
-                                      className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                                      className="bg-white w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
                                       placeholder="Value"
                                     />
                                     <select
                                       {...register('baseUnit.unit')}
-                                      className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
+                                      className="bg-white px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-millipore-blue focus:border-millipore-blue text-sm"
                                     >
                                       <option value="mg">mg</option>
                                       <option value="g">g</option>
