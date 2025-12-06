@@ -86,8 +86,9 @@ const seedDefaultTemplate = async () => {
     }
 
     // Create the default ticket template (without assignedUsers - will use User model)
+    // Template name automatically syncs with form configuration name (e.g., PM-Chem-1.9.0)
     const defaultTemplate = new TicketTemplate({
-      name: 'Default',
+      name: formConfig.name, // Automatically synced with form configuration
       description: 'Default ticket template for all Product Managers',
       formConfiguration: formConfig._id,
       isDefault: true,
